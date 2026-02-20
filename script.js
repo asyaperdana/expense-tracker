@@ -10,6 +10,7 @@
   // ─── Constants ────────────────────────────
   var STORAGE_KEY = 'expense_tracker_data';
   var THEME_KEY = 'expense_tracker_theme';
+  var FILTER_KEY = 'expense_tracker_filters';
 
   var CATEGORY_COLORS = {
     Makanan: '#f97316',
@@ -47,10 +48,18 @@
   var avgPerDayEl = document.getElementById('avg-per-day');
   var topCategoryEl = document.getElementById('top-category');
   var emptyState = document.getElementById('empty-state');
+  var dateHelp = document.getElementById('date-help');
+  var categoryHelp = document.getElementById('category-help');
+  var amountHelp = document.getElementById('amount-help');
   var filterCategory = document.getElementById('filter-category');
   var filterMonth = document.getElementById('filter-month');
   var btnResetFilter = document.getElementById('btn-reset-filter');
   var btnExportCsv = document.getElementById('btn-export-csv');
+  var btnExportJson = document.getElementById('btn-export-json');
+  var btnImportJson = document.getElementById('btn-import-json');
+  var inputImportJson = document.getElementById('input-import-json');
+  var undoIndicator = document.getElementById('undo-indicator');
+  var btnUndo = document.getElementById('btn-undo');
   var modalOverlay = document.getElementById('modal-overlay');
   var btnConfirmDelete = document.getElementById('btn-confirm-delete');
   var btnCancelDelete = document.getElementById('btn-cancel-delete');
@@ -60,11 +69,24 @@
   var chartLegend = document.getElementById('chart-legend');
   var chartEmpty = document.getElementById('chart-empty');
   var toastContainer = document.getElementById('toast-container');
+  var importOverlay = document.getElementById('import-overlay');
+  var btnConfirmImport = document.getElementById('btn-confirm-import');
+  var btnCancelImport = document.getElementById('btn-cancel-import');
+  var importSummaryOverlay = document.getElementById('import-summary-overlay');
+  var importSummaryMode = document.getElementById('import-summary-mode');
+  var importSummaryAdded = document.getElementById('import-summary-added');
+  var importSummarySkipped = document.getElementById('import-summary-skipped');
+  var btnCloseImportSummary = document.getElementById('btn-close-import-summary');
 
   // ─── State ────────────────────────────────
   var expenses = [];
   var editingId = null;
   var deleteTargetId = null;
+  var lastDeleted = null;
+  var undoTimer = null;
+  var undoStack = [];
+  var pendingImportData = null;
+  var MAX_UNDO = 10;
 
   // ─── UUID Generator ───────────────────────
   function generateId() {
@@ -118,6 +140,73 @@
         if (toast.parentNode) toast.parentNode.removeChild(toast);
       }, 300);
     }, 2500);
+  }
+
+  function showUndoToast(message, onUndo) {
+    var toast = document.createElement('div');
+    toast.className = 'toast toast-info';
+    toast.innerHTML =
+      '<span class="toast-icon">↩️</span>' +
+      '<span>' + escapeHtml(message) + '</span>' +
+      '<button class="toast-action" type="button">Undo</button>';
+
+    var btn = toast.querySelector('.toast-action');
+    btn.addEventListener('click', function () {
+      if (onUndo) onUndo();
+      toast.classList.add('toast-out');
+      setTimeout(function () {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 200);
+    });
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(function () {
+      toast.classList.add('toast-out');
+      setTimeout(function () {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 300);
+    }, 5000);
+  }
+
+  function showUndoStackToast() {
+    if (!undoStack.length) return;
+    showUndoToast('Perubahan dibatalkan', function () {
+      var prev = undoStack.pop();
+      if (!prev) return;
+      expenses = prev;
+      saveToStorage();
+      renderTable();
+      updateUndoIndicator();
+      showToast('Undo berhasil', 'success');
+    });
+  }
+
+  function pushUndo(state) {
+    undoStack.push(state.slice());
+    if (undoStack.length > MAX_UNDO) {
+      undoStack.shift();
+    }
+    updateUndoIndicator();
+  }
+
+  function updateUndoIndicator() {
+    undoIndicator.textContent = 'Undo: ' + undoStack.length;
+    btnUndo.disabled = undoStack.length === 0;
+  }
+
+  function undoLast() {
+    if (!undoStack.length) {
+      showToast('Tidak ada undo tersedia', 'info');
+      return;
+    }
+    var prev = undoStack.pop();
+    if (!prev) return;
+    expenses = prev;
+    saveToStorage();
+    renderTable();
+    updateUndoIndicator();
+    showToast('Undo berhasil', 'success');
   }
 
   // ─── Format Helpers ───────────────────────
@@ -341,7 +430,16 @@
 
     if (!inputDate.value) {
       inputDate.classList.add('invalid');
+      dateHelp.textContent = 'Tanggal wajib diisi';
       valid = false;
+    }
+    if (inputDate.value && inputDate.value > getTodayString()) {
+      inputDate.classList.add('invalid');
+      dateHelp.textContent = 'Tanggal tidak boleh di masa depan';
+      valid = false;
+    }
+    if (inputDate.value && inputDate.value <= getTodayString()) {
+      dateHelp.textContent = '';
     }
     if (!inputTitle.value.trim()) {
       inputTitle.classList.add('invalid');
@@ -349,11 +447,17 @@
     }
     if (!inputCategory.value) {
       inputCategory.classList.add('invalid');
+      categoryHelp.textContent = 'Kategori wajib diisi';
       valid = false;
+    } else {
+      categoryHelp.textContent = '';
     }
     if (!inputAmount.value || Number(inputAmount.value) <= 0) {
       inputAmount.classList.add('invalid');
+      amountHelp.textContent = 'Nominal harus lebih dari 0';
       valid = false;
+    } else {
+      amountHelp.textContent = '';
     }
 
     return valid;
@@ -363,6 +467,10 @@
   function resetForm() {
     form.reset();
     inputDate.value = getTodayString();
+    inputDate.max = getTodayString();
+    dateHelp.textContent = '';
+    categoryHelp.textContent = '';
+    amountHelp.textContent = '';
     editingId = null;
     btnSubmit.innerHTML = '<span class="btn-icon">＋</span> Simpan';
     btnCancel.style.display = 'none';
@@ -441,13 +549,33 @@
 
   function confirmDelete() {
     if (!deleteTargetId) return;
+    var deletedItem = expenses.find(function (e) {
+      return e.id === deleteTargetId;
+    });
+    pushUndo(expenses);
     expenses = expenses.filter(function (e) {
       return e.id !== deleteTargetId;
     });
     saveToStorage();
     renderTable();
     hideDeleteConfirm();
-    showToast('Pengeluaran berhasil dihapus', 'error');
+    if (deletedItem) {
+      lastDeleted = deletedItem;
+      if (undoTimer) clearTimeout(undoTimer);
+      undoTimer = setTimeout(function () {
+        lastDeleted = null;
+      }, 5500);
+      showUndoToast('Pengeluaran dihapus', function () {
+        if (!lastDeleted) return;
+        expenses.push(lastDeleted);
+        lastDeleted = null;
+        saveToStorage();
+        renderTable();
+        showToast('Pengeluaran dikembalikan', 'success');
+      });
+    } else {
+      showToast('Pengeluaran berhasil dihapus', 'error');
+    }
   }
 
   // ─── Table Click Delegation ──────────────
@@ -495,12 +623,169 @@
     showToast('CSV berhasil diunduh', 'success');
   }
 
+  // ─── Export JSON ─────────────────────────
+  function exportJSON() {
+    if (!expenses.length) {
+      showToast('Tidak ada data untuk diekspor', 'info');
+      return;
+    }
+
+    var json = JSON.stringify(expenses, null, 2);
+    var blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'pengeluaran_' + getTodayString() + '.json';
+    link.click();
+    URL.revokeObjectURL(url);
+
+    showToast('JSON berhasil diunduh', 'success');
+  }
+
+  // ─── Import JSON ─────────────────────────
+  function importJSONFile(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var parsed = JSON.parse(e.target.result);
+        if (!Array.isArray(parsed)) {
+          showToast('Format JSON tidak valid', 'error');
+          return;
+        }
+
+        var cleaned = parsed.filter(function (item) {
+          return item && item.id && item.date && item.title && item.category && typeof item.amount === 'number';
+        });
+
+        pendingImportData = cleaned;
+        openImportModal();
+      } catch (err) {
+        showToast('Gagal membaca file JSON', 'error');
+      } finally {
+        inputImportJson.value = '';
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function openImportModal() {
+    if (!pendingImportData) return;
+    importOverlay.classList.add('active');
+  }
+
+  function closeImportModal() {
+    importOverlay.classList.remove('active');
+    pendingImportData = null;
+  }
+
+  function openImportSummary(mode, added, skipped) {
+    importSummaryMode.textContent = mode;
+    importSummaryAdded.textContent = String(added);
+    importSummarySkipped.textContent = String(skipped);
+    importSummaryOverlay.classList.add('active');
+  }
+
+  function closeImportSummary() {
+    importSummaryOverlay.classList.remove('active');
+  }
+
+  function applyImport() {
+    if (!pendingImportData) return;
+    var selected = document.querySelector('input[name="import-mode"]:checked');
+    var mode = selected ? selected.value : 'replace';
+
+    pushUndo(expenses);
+
+    var added = 0;
+    var skipped = 0;
+
+    if (mode === 'replace') {
+      expenses = pendingImportData.slice();
+      added = expenses.length;
+    } else if (mode === 'merge-id') {
+      var existing = {};
+      expenses.forEach(function (e) { existing[e.id] = true; });
+      pendingImportData.forEach(function (item) {
+        if (!existing[item.id]) {
+          expenses.push(item);
+          added += 1;
+        } else {
+          skipped += 1;
+        }
+      });
+    } else {
+      var seen = {};
+      function normText(value) {
+        return String(value || '')
+          .trim()
+          .replace(/\s+/g, ' ')
+          .toLowerCase();
+      }
+      function makeKey(item) {
+        return [
+          item.date,
+          normText(item.title),
+          item.category,
+          item.amount,
+        ].join('|');
+      }
+      expenses.forEach(function (e) {
+        seen[makeKey(e)] = true;
+      });
+      pendingImportData.forEach(function (item) {
+        var k = makeKey(item);
+        if (!seen[k]) {
+          expenses.push(item);
+          seen[k] = true;
+          added += 1;
+        } else {
+          skipped += 1;
+        }
+      });
+    }
+
+    saveToStorage();
+    renderTable();
+    closeImportModal();
+    var modeLabel =
+      mode === 'replace' ? 'Ganti semua data' :
+      mode === 'merge-id' ? 'Gabung (berdasarkan ID)' :
+      'Gabung (berdasarkan konten)';
+    openImportSummary(modeLabel, added, skipped);
+    showUndoStackToast();
+  }
+
   // ─── Reset Filters ──────────────────────
   function resetFilters() {
     filterCategory.value = 'Semua';
     filterMonth.value = '';
+    localStorage.removeItem(FILTER_KEY);
     renderTable();
     showToast('Filter direset', 'info');
+  }
+
+  function saveFilters() {
+    var payload = {
+      category: filterCategory.value,
+      month: filterMonth.value,
+    };
+    localStorage.setItem(FILTER_KEY, JSON.stringify(payload));
+  }
+
+  function loadFilters() {
+    try {
+      var raw = localStorage.getItem(FILTER_KEY);
+      var saved = raw ? JSON.parse(raw) : null;
+      if (saved && saved.category) {
+        filterCategory.value = saved.category;
+      }
+      if (saved && typeof saved.month === 'string') {
+        filterMonth.value = saved.month;
+      }
+    } catch (e) {
+      // ignore corrupted filters
+    }
   }
 
   // ─── Event Listeners ─────────────────────
@@ -513,15 +798,66 @@
   tbody.addEventListener('click', handleTableClick);
 
   filterCategory.addEventListener('change', function () {
+    saveFilters();
     renderTable();
   });
 
   filterMonth.addEventListener('change', function () {
+    saveFilters();
     renderTable();
+  });
+
+  btnUndo.addEventListener('click', undoLast);
+
+  inputDate.addEventListener('input', function () {
+    if (!inputDate.value) {
+      dateHelp.textContent = 'Tanggal wajib diisi';
+      inputDate.classList.add('invalid');
+      return;
+    }
+    if (inputDate.value > getTodayString()) {
+      dateHelp.textContent = 'Tanggal tidak boleh di masa depan';
+      inputDate.classList.add('invalid');
+      return;
+    }
+    dateHelp.textContent = '';
+    inputDate.classList.remove('invalid');
+  });
+
+  inputCategory.addEventListener('change', function () {
+    if (!inputCategory.value) {
+      categoryHelp.textContent = 'Kategori wajib diisi';
+      inputCategory.classList.add('invalid');
+      return;
+    }
+    categoryHelp.textContent = '';
+    inputCategory.classList.remove('invalid');
+  });
+
+  inputAmount.addEventListener('input', function () {
+    var value = Number(inputAmount.value);
+    if (!inputAmount.value || value <= 0) {
+      amountHelp.textContent = 'Nominal harus lebih dari 0';
+      inputAmount.classList.add('invalid');
+      return;
+    }
+    amountHelp.textContent = '';
+    inputAmount.classList.remove('invalid');
   });
 
   btnResetFilter.addEventListener('click', resetFilters);
   btnExportCsv.addEventListener('click', exportCSV);
+  btnExportJson.addEventListener('click', exportJSON);
+  btnImportJson.addEventListener('click', function () {
+    inputImportJson.click();
+  });
+  inputImportJson.addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    importJSONFile(file);
+  });
+  btnConfirmImport.addEventListener('click', applyImport);
+  btnCancelImport.addEventListener('click', closeImportModal);
+  btnCloseImportSummary.addEventListener('click', closeImportSummary);
 
   btnConfirmDelete.addEventListener('click', confirmDelete);
   btnCancelDelete.addEventListener('click', hideDeleteConfirm);
@@ -534,11 +870,27 @@
       hideDeleteConfirm();
     }
   });
+  importOverlay.addEventListener('click', function (e) {
+    if (e.target === importOverlay) {
+      closeImportModal();
+    }
+  });
+  importSummaryOverlay.addEventListener('click', function (e) {
+    if (e.target === importSummaryOverlay) {
+      closeImportSummary();
+    }
+  });
 
   // Close modal on Escape key
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
       hideDeleteConfirm();
+    }
+    if (e.key === 'Escape' && importOverlay.classList.contains('active')) {
+      closeImportModal();
+    }
+    if (e.key === 'Escape' && importSummaryOverlay.classList.contains('active')) {
+      closeImportSummary();
     }
   });
 
@@ -620,8 +972,8 @@
     row.className = 'split-person-row';
     row.innerHTML =
       '<input type="text" class="person-name-input" placeholder="Nama peserta" value="' + escapeHtml(name || '') + '" />' +
-      '<input type="number" class="custom-amount' + (splitMode === 'custom' ? ' visible' : '') + '" placeholder="Nominal" min="0" />' +
-      '<button class="btn-remove-person" title="Hapus">×</button>';
+      '<input type="number" class="custom-amount' + (splitMode === 'custom' ? ' visible' : '') + '" placeholder="Nominal" min="0" step="1" inputmode="numeric" />' +
+      '<button class="btn-remove-person" title="Hapus" type="button">×</button>';
 
     // Remove button
     row.querySelector('.btn-remove-person').addEventListener('click', function () {
@@ -851,7 +1203,10 @@
   function init() {
     setTheme(getTheme());
     inputDate.value = getTodayString();
+    inputDate.max = getTodayString();
     expenses = getFromStorage();
+    loadFilters();
+    updateUndoIndicator();
     setupCanvas();
     loadSplitHistory();
     renderTable();
@@ -859,4 +1214,3 @@
 
   init();
 })();
-

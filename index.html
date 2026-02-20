@@ -47,6 +47,7 @@
             <div class="form-group">
               <label for="input-date">Tanggal</label>
               <input type="date" id="input-date" required />
+              <small class="help-text" id="date-help" aria-live="polite"></small>
             </div>
             <div class="form-group">
               <label for="input-title">Nama Pengeluaran</label>
@@ -70,18 +71,22 @@
                 <option value="Tagihan">📄 Tagihan</option>
                 <option value="Lainnya">📦 Lainnya</option>
               </select>
+              <small class="help-text" id="category-help" aria-live="polite"></small>
             </div>
             <div class="form-group">
               <label for="input-amount">Nominal (Rp)</label>
               <input
                 type="number"
-                id="input-amount"
-                placeholder="cth: 25000"
-                min="0"
-                required
-              />
-            </div>
+              id="input-amount"
+              placeholder="cth: 25000"
+              min="0"
+              step="1"
+              inputmode="numeric"
+              required
+            />
+            <small class="help-text" id="amount-help" aria-live="polite"></small>
           </div>
+        </div>
           <div class="form-actions">
             <button type="submit" id="btn-submit" class="btn btn-primary">
               <span class="btn-icon">＋</span> Simpan
@@ -155,13 +160,26 @@
             <label for="filter-month">Bulan:</label>
             <input type="month" id="filter-month" />
           </div>
-          <button class="btn btn-ghost btn-sm" id="btn-reset-filter">
+          <div class="filter-group undo-group">
+            <span class="undo-indicator" id="undo-indicator">Undo: 0</span>
+            <button class="btn btn-ghost btn-sm" id="btn-undo" type="button" disabled>
+              Undo
+            </button>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="btn-reset-filter" type="button">
             Reset Filter
           </button>
-          <button class="btn btn-accent btn-sm" id="btn-export-csv">
+          <button class="btn btn-accent btn-sm" id="btn-export-csv" type="button">
             📥 Export CSV
           </button>
-          <button class="btn btn-split btn-sm" id="btn-open-split">
+          <button class="btn btn-ghost btn-sm" id="btn-export-json" type="button">
+            🧾 Export JSON
+          </button>
+          <button class="btn btn-ghost btn-sm" id="btn-import-json" type="button">
+            📤 Import JSON
+          </button>
+          <input type="file" id="input-import-json" accept="application/json" hidden />
+          <button class="btn btn-split btn-sm" id="btn-open-split" type="button">
             🧾 Split Bill
           </button>
         </div>
@@ -194,22 +212,22 @@
 
     <!-- Confirm Delete Modal -->
     <div class="modal-overlay" id="modal-overlay">
-      <div class="modal glass">
+      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
         <div class="modal-icon">⚠️</div>
-        <p class="modal-text">Yakin ingin menghapus pengeluaran ini?</p>
+        <p class="modal-text" id="modal-delete-title">Yakin ingin menghapus pengeluaran ini?</p>
         <div class="modal-actions">
-          <button class="btn btn-danger" id="btn-confirm-delete">Hapus</button>
-          <button class="btn btn-ghost" id="btn-cancel-delete">Batal</button>
+          <button class="btn btn-danger" id="btn-confirm-delete" type="button">Hapus</button>
+          <button class="btn btn-ghost" id="btn-cancel-delete" type="button">Batal</button>
         </div>
       </div>
     </div>
 
     <!-- Split Bill Modal -->
     <div class="modal-overlay" id="split-overlay">
-      <div class="modal glass split-modal">
+      <div class="modal glass split-modal" role="dialog" aria-modal="true" aria-labelledby="split-title">
         <div class="split-header">
-          <h2>🧾 Split Bill</h2>
-          <button class="btn-close" id="btn-close-split" aria-label="Close">&times;</button>
+          <h2 id="split-title">🧾 Split Bill</h2>
+          <button class="btn-close" id="btn-close-split" aria-label="Close" type="button">&times;</button>
         </div>
 
         <!-- Split Form -->
@@ -221,19 +239,19 @@
             </div>
             <div class="form-group">
               <label for="split-total">Total Tagihan (Rp)</label>
-              <input type="number" id="split-total" placeholder="cth: 250000" min="0" />
+              <input type="number" id="split-total" placeholder="cth: 250000" min="0" step="1" inputmode="numeric" />
             </div>
           </div>
 
           <div class="split-mode-toggle">
-            <button class="split-mode-btn active" data-mode="equal" id="mode-equal">⚖️ Bagi Rata</button>
-            <button class="split-mode-btn" data-mode="custom" id="mode-custom">✏️ Custom</button>
+            <button class="split-mode-btn active" data-mode="equal" id="mode-equal" type="button">⚖️ Bagi Rata</button>
+            <button class="split-mode-btn" data-mode="custom" id="mode-custom" type="button">✏️ Custom</button>
           </div>
 
           <div class="split-participants">
             <div class="split-participants-header">
               <label>Peserta</label>
-              <button class="btn btn-sm btn-primary" id="btn-add-person">＋ Tambah</button>
+              <button class="btn btn-sm btn-primary" id="btn-add-person" type="button">＋ Tambah</button>
             </div>
             <div class="split-person-list" id="split-person-list">
               <!-- Dynamic person rows -->
@@ -241,7 +259,7 @@
           </div>
 
           <div class="split-form-actions">
-            <button class="btn btn-primary" id="btn-calculate-split">🧮 Hitung Split</button>
+            <button class="btn btn-primary" id="btn-calculate-split" type="button">🧮 Hitung Split</button>
           </div>
         </div>
 
@@ -250,8 +268,8 @@
           <div class="split-result-summary" id="split-result-summary"></div>
           <div class="split-result-list" id="split-result-list"></div>
           <div class="split-form-actions">
-            <button class="btn btn-primary" id="btn-save-split">💾 Simpan ke Pengeluaran</button>
-            <button class="btn btn-ghost" id="btn-back-split">← Kembali</button>
+            <button class="btn btn-primary" id="btn-save-split" type="button">💾 Simpan ke Pengeluaran</button>
+            <button class="btn btn-ghost" id="btn-back-split" type="button">← Kembali</button>
           </div>
         </div>
 
@@ -263,8 +281,69 @@
       </div>
     </div>
 
+    <!-- Import JSON Modal -->
+    <div class="modal-overlay" id="import-overlay">
+      <div class="modal glass import-modal" role="dialog" aria-modal="true" aria-labelledby="import-title">
+        <div class="modal-icon">📤</div>
+        <h2 class="modal-text" id="import-title">Impor JSON</h2>
+        <p class="modal-subtext">Pilih mode impor untuk data JSON.</p>
+        <div class="import-options">
+          <label class="radio-option">
+            <input type="radio" name="import-mode" value="replace" checked />
+            <span class="radio-label">
+              Ganti semua data
+            </span>
+            <span class="radio-desc">Hapus data lama, gunakan data dari file.</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="import-mode" value="merge-id" />
+            <span class="radio-label">
+              Gabung (berdasarkan ID)
+            </span>
+            <span class="radio-desc">Tambahkan item baru yang ID‑nya belum ada.</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="import-mode" value="merge-content" />
+            <span class="radio-label">
+              Gabung (berdasarkan konten)
+            </span>
+            <span class="radio-desc">Cegah duplikat berdasarkan tanggal+judul+kategori+nominal.</span>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="btn-confirm-import" type="button">Impor</button>
+          <button class="btn btn-ghost" id="btn-cancel-import" type="button">Batal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Summary Modal -->
+    <div class="modal-overlay" id="import-summary-overlay">
+      <div class="modal glass import-summary-modal" role="dialog" aria-modal="true" aria-labelledby="import-summary-title">
+        <div class="modal-icon">✅</div>
+        <h2 class="modal-text" id="import-summary-title">Ringkasan Impor</h2>
+        <div class="import-summary">
+          <div class="import-summary-row">
+            <span>Mode</span>
+            <span id="import-summary-mode">—</span>
+          </div>
+          <div class="import-summary-row">
+            <span>Ditambahkan</span>
+            <span id="import-summary-added">0</span>
+          </div>
+          <div class="import-summary-row">
+            <span>Dilewati</span>
+            <span id="import-summary-skipped">0</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="btn-close-import-summary" type="button">OK</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
+    <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <footer class="footer">
       <p>
