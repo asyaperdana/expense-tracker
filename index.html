@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Expense Tracker — Aplikasi tracking pengeluaran uang harian dengan penyimpanan lokal."
+    />
+    <title>Expense Tracker — Tracking Pengeluaran</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="header-inner">
+        <span class="header-icon">💰</span>
+        <div>
+          <h1>Expense Tracker</h1>
+          <p class="header-subtitle">
+            Kelola pengeluaran harianmu dengan mudah
+          </p>
+        </div>
+        <button
+          class="btn-theme-toggle"
+          id="btn-theme-toggle"
+          title="Toggle dark mode"
+          aria-label="Toggle dark mode"
+        >
+          <span class="theme-icon" id="theme-icon">🌙</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Form Section -->
+      <section class="card glass form-card">
+        <h2 class="card-title">Tambah Pengeluaran</h2>
+        <form id="expense-form" novalidate>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="input-date">Tanggal</label>
+              <input type="date" id="input-date" required />
+            </div>
+            <div class="form-group">
+              <label for="input-title">Nama Pengeluaran</label>
+              <input
+                type="text"
+                id="input-title"
+                placeholder="cth: Makan siang"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="input-category">Kategori</label>
+              <select id="input-category" required>
+                <option value="" disabled selected>Pilih kategori</option>
+                <option value="Makanan">🍔 Makanan</option>
+                <option value="Transport">🚗 Transport</option>
+                <option value="Belanja">🛒 Belanja</option>
+                <option value="Hiburan">🎬 Hiburan</option>
+                <option value="Kesehatan">💊 Kesehatan</option>
+                <option value="Pendidikan">📚 Pendidikan</option>
+                <option value="Tagihan">📄 Tagihan</option>
+                <option value="Lainnya">📦 Lainnya</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="input-amount">Nominal (Rp)</label>
+              <input
+                type="number"
+                id="input-amount"
+                placeholder="cth: 25000"
+                min="0"
+                required
+              />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="btn-submit" class="btn btn-primary">
+              <span class="btn-icon">＋</span> Simpan
+            </button>
+            <button
+              type="button"
+              id="btn-cancel"
+              class="btn btn-ghost"
+              style="display: none"
+            >
+              Batal
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Summary Section -->
+      <section class="card summary-card">
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="summary-label">Total Pengeluaran</span>
+            <span class="summary-value" id="total-amount">Rp 0</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Jumlah Transaksi</span>
+            <span class="summary-value" id="total-count">0</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Rata-rata / Hari</span>
+            <span class="summary-value" id="avg-per-day">Rp 0</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Kategori Teratas</span>
+            <span class="summary-value summary-value-sm" id="top-category"
+              >—</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- Chart Section -->
+      <section class="card glass chart-card">
+        <h2 class="card-title">Grafik Pengeluaran</h2>
+        <div class="chart-container">
+          <canvas id="category-chart" width="280" height="280"></canvas>
+          <div class="chart-legend" id="chart-legend"></div>
+        </div>
+        <p class="chart-empty" id="chart-empty">
+          Belum ada data untuk ditampilkan 📊
+        </p>
+      </section>
+
+      <!-- Filter -->
+      <section class="card glass filter-card">
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label for="filter-category">Kategori:</label>
+            <select id="filter-category">
+              <option value="Semua">Semua</option>
+              <option value="Makanan">🍔 Makanan</option>
+              <option value="Transport">🚗 Transport</option>
+              <option value="Belanja">🛒 Belanja</option>
+              <option value="Hiburan">🎬 Hiburan</option>
+              <option value="Kesehatan">💊 Kesehatan</option>
+              <option value="Pendidikan">📚 Pendidikan</option>
+              <option value="Tagihan">📄 Tagihan</option>
+              <option value="Lainnya">📦 Lainnya</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-month">Bulan:</label>
+            <input type="month" id="filter-month" />
+          </div>
+          <button class="btn btn-ghost btn-sm" id="btn-reset-filter">
+            Reset Filter
+          </button>
+          <button class="btn btn-accent btn-sm" id="btn-export-csv">
+            📥 Export CSV
+          </button>
+          <button class="btn btn-split btn-sm" id="btn-open-split">
+            🧾 Split Bill
+          </button>
+        </div>
+      </section>
+
+      <!-- Table Section -->
+      <section class="card glass table-card">
+        <h2 class="card-title">Daftar Pengeluaran</h2>
+        <div class="table-wrapper">
+          <table id="expense-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Nama</th>
+                <th>Kategori</th>
+                <th class="text-right">Nominal</th>
+                <th class="text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="expense-tbody">
+              <!-- Rows rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+        <p class="empty-state" id="empty-state">
+          Belum ada pengeluaran. Mulai tambahkan data di atas! ☝️
+        </p>
+      </section>
+    </main>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal glass">
+        <div class="modal-icon">⚠️</div>
+        <p class="modal-text">Yakin ingin menghapus pengeluaran ini?</p>
+        <div class="modal-actions">
+          <button class="btn btn-danger" id="btn-confirm-delete">Hapus</button>
+          <button class="btn btn-ghost" id="btn-cancel-delete">Batal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Split Bill Modal -->
+    <div class="modal-overlay" id="split-overlay">
+      <div class="modal glass split-modal">
+        <div class="split-header">
+          <h2>🧾 Split Bill</h2>
+          <button class="btn-close" id="btn-close-split" aria-label="Close">&times;</button>
+        </div>
+
+        <!-- Split Form -->
+        <div class="split-body" id="split-form-view">
+          <div class="split-form-grid">
+            <div class="form-group">
+              <label for="split-bill-name">Nama Bill</label>
+              <input type="text" id="split-bill-name" placeholder="cth: Makan bersama" />
+            </div>
+            <div class="form-group">
+              <label for="split-total">Total Tagihan (Rp)</label>
+              <input type="number" id="split-total" placeholder="cth: 250000" min="0" />
+            </div>
+          </div>
+
+          <div class="split-mode-toggle">
+            <button class="split-mode-btn active" data-mode="equal" id="mode-equal">⚖️ Bagi Rata</button>
+            <button class="split-mode-btn" data-mode="custom" id="mode-custom">✏️ Custom</button>
+          </div>
+
+          <div class="split-participants">
+            <div class="split-participants-header">
+              <label>Peserta</label>
+              <button class="btn btn-sm btn-primary" id="btn-add-person">＋ Tambah</button>
+            </div>
+            <div class="split-person-list" id="split-person-list">
+              <!-- Dynamic person rows -->
+            </div>
+          </div>
+
+          <div class="split-form-actions">
+            <button class="btn btn-primary" id="btn-calculate-split">🧮 Hitung Split</button>
+          </div>
+        </div>
+
+        <!-- Split Results -->
+        <div class="split-body split-results" id="split-results-view" style="display:none">
+          <div class="split-result-summary" id="split-result-summary"></div>
+          <div class="split-result-list" id="split-result-list"></div>
+          <div class="split-form-actions">
+            <button class="btn btn-primary" id="btn-save-split">💾 Simpan ke Pengeluaran</button>
+            <button class="btn btn-ghost" id="btn-back-split">← Kembali</button>
+          </div>
+        </div>
+
+        <!-- Split History -->
+        <div class="split-history" id="split-history">
+          <h3 class="split-history-title">📋 Riwayat Split</h3>
+          <div id="split-history-list" class="split-history-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <footer class="footer">
+      <p>
+        &copy; 2026 Expense Tracker &mdash; Data disimpan di browser
+        (localStorage)
+      </p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
