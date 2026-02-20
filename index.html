@@ -167,56 +167,64 @@
       <!-- Filter -->
       <section class="card glass filter-card">
         <span class="card-illus" aria-hidden="true">◳</span>
-        <div class="filter-bar">
-          <div class="filter-group">
-            <label for="filter-category">Kategori:</label>
-            <select id="filter-category">
-              <option value="Semua">Semua</option>
-              <option value="Makanan">🍔 Makanan</option>
-              <option value="Transport">🚗 Transport</option>
-              <option value="Belanja">🛒 Belanja</option>
-              <option value="Hiburan">🎬 Hiburan</option>
-              <option value="Kesehatan">💊 Kesehatan</option>
-              <option value="Pendidikan">📚 Pendidikan</option>
-              <option value="Tagihan">📄 Tagihan</option>
-              <option value="Lainnya">📦 Lainnya</option>
-            </select>
+        <h3 class="card-title">Filter dan Aksi</h3>
+        <div class="filter-layout">
+          <div class="filter-fields">
+            <div class="filter-group">
+              <label for="filter-category">Kategori</label>
+              <select id="filter-category">
+                <option value="Semua">Semua</option>
+                <option value="Makanan">🍔 Makanan</option>
+                <option value="Transport">🚗 Transport</option>
+                <option value="Belanja">🛒 Belanja</option>
+                <option value="Hiburan">🎬 Hiburan</option>
+                <option value="Kesehatan">💊 Kesehatan</option>
+                <option value="Pendidikan">📚 Pendidikan</option>
+                <option value="Tagihan">📄 Tagihan</option>
+                <option value="Lainnya">📦 Lainnya</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-month">Bulan</label>
+              <input type="month" id="filter-month" />
+            </div>
+            <div class="filter-group">
+              <label for="filter-sort">Urutkan</label>
+              <select id="filter-sort">
+                <option value="date-desc">Tanggal terbaru</option>
+                <option value="date-asc">Tanggal terlama</option>
+                <option value="amount-desc">Nominal tertinggi</option>
+                <option value="amount-asc">Nominal terendah</option>
+              </select>
+            </div>
+            <div class="filter-group filter-group-undo">
+              <label>Riwayat</label>
+              <div class="undo-inline">
+                <span class="undo-indicator" id="undo-indicator">Undo: 0</span>
+                <button class="btn btn-ghost btn-sm" id="btn-undo" type="button" disabled>
+                  Undo
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="filter-group">
-            <label for="filter-month">Bulan:</label>
-            <input type="month" id="filter-month" />
-          </div>
-          <div class="filter-group">
-            <label for="filter-sort">Urutkan:</label>
-            <select id="filter-sort">
-              <option value="date-desc">Tanggal terbaru</option>
-              <option value="date-asc">Tanggal terlama</option>
-              <option value="amount-desc">Nominal tertinggi</option>
-              <option value="amount-asc">Nominal terendah</option>
-            </select>
-          </div>
-          <div class="filter-group undo-group">
-            <span class="undo-indicator" id="undo-indicator">Undo: 0</span>
-            <button class="btn btn-ghost btn-sm" id="btn-undo" type="button" disabled>
-              Undo
+          <div class="filter-actions">
+            <button class="btn btn-ghost btn-sm" id="btn-reset-filter" type="button">
+              Reset Filter
+            </button>
+            <button class="btn btn-accent btn-sm" id="btn-export-csv" type="button">
+              📥 Export CSV
+            </button>
+            <button class="btn btn-ghost btn-sm" id="btn-export-json" type="button">
+              🧾 Export JSON
+            </button>
+            <button class="btn btn-ghost btn-sm" id="btn-import-json" type="button">
+              📤 Import JSON
+            </button>
+            <input type="file" id="input-import-json" accept="application/json" hidden />
+            <button class="btn btn-split btn-sm" id="btn-open-split" type="button">
+              🧾 Split Bill
             </button>
           </div>
-          <button class="btn btn-ghost btn-sm" id="btn-reset-filter" type="button">
-            Reset Filter
-          </button>
-          <button class="btn btn-accent btn-sm" id="btn-export-csv" type="button">
-            📥 Export CSV
-          </button>
-          <button class="btn btn-ghost btn-sm" id="btn-export-json" type="button">
-            🧾 Export JSON
-          </button>
-          <button class="btn btn-ghost btn-sm" id="btn-import-json" type="button">
-            📤 Import JSON
-          </button>
-          <input type="file" id="input-import-json" accept="application/json" hidden />
-          <button class="btn btn-split btn-sm" id="btn-open-split" type="button">
-            🧾 Split Bill
-          </button>
         </div>
       </section>
 

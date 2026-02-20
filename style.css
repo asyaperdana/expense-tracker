@@ -112,11 +112,6 @@
   background: linear-gradient(180deg, rgba(10, 19, 35, 0.95) 0%, rgba(10, 19, 35, 0.84) 100%);
 }
 
-[data-theme="dark"] .filter-group {
-  background: rgba(15, 23, 42, 0.74);
-  border-color: var(--clr-border);
-}
-
 [data-theme="dark"] .hero-card {
   background:
     radial-gradient(circle at 0% 10%, rgba(15, 118, 110, 0.28), transparent 42%),
@@ -137,8 +132,8 @@
 
 [data-theme="dark"] .form-group input,
 [data-theme="dark"] .form-group select,
-[data-theme="dark"] .filter-bar select,
-[data-theme="dark"] .filter-bar input {
+[data-theme="dark"] .filter-group select,
+[data-theme="dark"] .filter-group input {
   background: rgba(15, 17, 23, 0.6);
   border-color: var(--clr-border);
   color: var(--clr-text);
@@ -938,66 +933,90 @@ a:focus-visible {
     linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(250, 252, 255, 0.84) 100%);
 }
 
-.filter-bar {
+.filter-card .card-title {
+  margin-bottom: 0.85rem;
+}
+
+.filter-layout {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.filter-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 0.7rem;
+  align-items: end;
+}
+
+.filter-actions {
   display: flex;
-  align-items: center;
-  gap: 0.9rem;
   flex-wrap: wrap;
+  gap: 0.65rem;
 }
 
 .filter-group {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.filter-group-undo {
+  min-width: 170px;
+}
+
+.undo-inline {
+  display: flex;
+  gap: 0.45rem;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.5rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid var(--clr-border-subtle);
-}
-
-.filter-group:hover {
-  border-color: rgba(14, 165, 233, 0.32);
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.undo-group {
-  margin-left: auto;
 }
 
 .undo-indicator {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--clr-text-secondary);
-  background: var(--clr-bg);
+  background: rgba(14, 165, 233, 0.1);
   border: 1px solid var(--clr-border-subtle);
-  padding: 0.25rem 0.5rem;
-  border-radius: 999px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 10px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
-.filter-bar label {
+.filter-group label {
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--clr-text-secondary);
-  white-space: nowrap;
+  line-height: 1.2;
 }
 
-.filter-bar select,
-.filter-bar input[type="month"] {
-  padding: 0.45rem 0.7rem;
+.filter-group select,
+.filter-group input[type="month"] {
+  min-height: 44px;
+  padding: 0.55rem 0.75rem;
   font-size: 0.85rem;
   font-family: var(--font-body);
   border: 1.5px solid var(--clr-border-subtle);
-  border-radius: 8px;
-  background: var(--clr-surface-solid);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
   color: var(--clr-text);
   outline: none;
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
 }
 
-.filter-bar select:focus,
-.filter-bar input[type="month"]:focus {
+.filter-group select:focus,
+.filter-group input[type="month"]:focus {
   border-color: var(--clr-primary);
-  box-shadow: 0 0 0 2px var(--clr-primary-light);
+  box-shadow: 0 0 0 3px var(--clr-primary-light);
+  background: #fff;
+}
+
+[data-theme="dark"] .filter-group select,
+[data-theme="dark"] .filter-group input[type="month"],
+[data-theme="dark"] .undo-indicator {
+  background: rgba(15, 23, 42, 0.78);
 }
 
 /* ===========================
@@ -1930,6 +1949,10 @@ a:focus-visible {
   .chart-legend {
     width: 100%;
   }
+
+  .filter-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -1994,11 +2017,6 @@ a:focus-visible {
     font-size: 1.3rem;
   }
 
-  .filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
   .form-actions {
     flex-direction: column;
   }
@@ -2007,23 +2025,32 @@ a:focus-visible {
     width: 100%;
   }
 
-  .filter-group {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.3rem;
+  .filter-fields {
+    grid-template-columns: 1fr;
   }
 
-  .undo-group {
-    margin-left: 0;
+  .filter-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+  }
+
+  .filter-actions .btn {
     width: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
   }
 
-  .filter-bar select,
-  .filter-bar input[type="month"] {
-    max-width: none;
+  .filter-group-undo {
+    min-width: 0;
+  }
+
+  .undo-inline {
+    width: 100%;
+  }
+
+  .undo-indicator,
+  #btn-undo {
+    flex: 1;
+    justify-content: center;
   }
 
   #expense-table {
