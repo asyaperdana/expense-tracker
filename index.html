@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -39,8 +39,29 @@
     </header>
 
     <main class="container">
+      <!-- Hero Section -->
+      <section class="card hero-card">
+        <span class="card-illus" aria-hidden="true">✶</span>
+        <div class="hero-content">
+          <div class="hero-kicker">Ringkas Hari Ini</div>
+          <div class="hero-title">Pengeluaran Hari Ini</div>
+          <div class="hero-value" id="today-amount">Rp 0</div>
+          <div class="hero-meta">
+            <span>Transaksi <strong id="today-count">0</strong></span>
+            <span>Dominan <strong id="today-top">—</strong></span>
+          </div>
+          <p class="hero-note" id="today-note">Belum ada catatan hari ini.</p>
+        </div>
+        <div class="hero-graphic" aria-hidden="true">
+          <div class="hero-orb"></div>
+          <div class="hero-orb hero-orb-2"></div>
+          <div class="hero-lines"></div>
+        </div>
+      </section>
+
       <!-- Form Section -->
       <section class="card glass form-card">
+        <span class="card-illus" aria-hidden="true">◈</span>
         <h2 class="card-title">Tambah Pengeluaran</h2>
         <form id="expense-form" novalidate>
           <div class="form-grid">
@@ -105,6 +126,7 @@
 
       <!-- Summary Section -->
       <section class="card summary-card">
+        <span class="card-illus" aria-hidden="true">◉</span>
         <div class="summary-grid">
           <div class="summary-item">
             <span class="summary-label">Total Pengeluaran</span>
@@ -129,6 +151,7 @@
 
       <!-- Chart Section -->
       <section class="card glass chart-card">
+        <span class="card-illus" aria-hidden="true">◔</span>
         <h2 class="card-title">Grafik Pengeluaran</h2>
         <div class="chart-container">
           <canvas id="category-chart" width="280" height="280"></canvas>
@@ -141,6 +164,7 @@
 
       <!-- Filter -->
       <section class="card glass filter-card">
+        <span class="card-illus" aria-hidden="true">◳</span>
         <div class="filter-bar">
           <div class="filter-group">
             <label for="filter-category">Kategori:</label>
@@ -187,6 +211,7 @@
 
       <!-- Table Section -->
       <section class="card glass table-card">
+        <span class="card-illus" aria-hidden="true">▦</span>
         <h2 class="card-title">Daftar Pengeluaran</h2>
         <div class="table-wrapper">
           <table id="expense-table">

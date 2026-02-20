@@ -14,12 +14,12 @@
 
   var CATEGORY_COLORS = {
     Makanan: '#f97316',
-    Transport: '#3b82f6',
-    Belanja: '#8b5cf6',
-    Hiburan: '#ec4899',
-    Kesehatan: '#10b981',
-    Pendidikan: '#f59e0b',
-    Tagihan: '#6366f1',
+    Transport: '#0ea5e9',
+    Belanja: '#16a34a',
+    Hiburan: '#f43f5e',
+    Kesehatan: '#14b8a6',
+    Pendidikan: '#eab308',
+    Tagihan: '#2563eb',
     Lainnya: '#64748b',
   };
 
@@ -47,6 +47,10 @@
   var totalCountEl = document.getElementById('total-count');
   var avgPerDayEl = document.getElementById('avg-per-day');
   var topCategoryEl = document.getElementById('top-category');
+  var todayAmountEl = document.getElementById('today-amount');
+  var todayCountEl = document.getElementById('today-count');
+  var todayTopEl = document.getElementById('today-top');
+  var todayNoteEl = document.getElementById('today-note');
   var emptyState = document.getElementById('empty-state');
   var dateHelp = document.getElementById('date-help');
   var categoryHelp = document.getElementById('category-help');
@@ -275,6 +279,38 @@
     }
   }
 
+  // ─── Update Hero (Today) ─────────────────
+  function updateHero() {
+    var today = getTodayString();
+    var todayItems = expenses.filter(function (item) {
+      return item.date === today;
+    });
+    var total = calculateTotal(todayItems);
+    todayAmountEl.textContent = formatRupiah(total);
+    todayCountEl.textContent = todayItems.length;
+
+    if (todayItems.length === 0) {
+      todayTopEl.textContent = '—';
+      todayNoteEl.textContent = 'Belum ada catatan hari ini.';
+      return;
+    }
+
+    var catTotals = {};
+    todayItems.forEach(function (item) {
+      catTotals[item.category] = (catTotals[item.category] || 0) + item.amount;
+    });
+    var topCat = '';
+    var topVal = 0;
+    Object.keys(catTotals).forEach(function (cat) {
+      if (catTotals[cat] > topVal) {
+        topVal = catTotals[cat];
+        topCat = cat;
+      }
+    });
+    todayTopEl.textContent = (CATEGORY_ICONS[topCat] || '') + ' ' + topCat;
+    todayNoteEl.textContent = 'Catat terus agar pengeluaran tetap terkontrol.';
+  }
+
   // ─── Get Filtered Data ───────────────────
   function getFilteredData() {
     var selectedCat = filterCategory.value;
@@ -297,6 +333,7 @@
     });
 
     tbody.innerHTML = '';
+    updateHero();
 
     if (data.length === 0) {
       emptyState.classList.add('visible');
@@ -314,11 +351,11 @@
       tr.dataset.id = item.id;
 
       tr.innerHTML =
-        '<td>' + formatDate(item.date) + '</td>' +
-        '<td>' + escapeHtml(item.title) + '</td>' +
-        '<td><span class="badge">' + (CATEGORY_ICONS[item.category] || '') + ' ' + escapeHtml(item.category) + '</span></td>' +
-        '<td class="text-right"><span class="amount">' + formatRupiah(item.amount) + '</span></td>' +
-        '<td class="text-center">' +
+        '<td data-label="Tanggal">' + formatDate(item.date) + '</td>' +
+        '<td data-label="Nama">' + escapeHtml(item.title) + '</td>' +
+        '<td data-label="Kategori"><span class="badge">' + (CATEGORY_ICONS[item.category] || '') + ' ' + escapeHtml(item.category) + '</span></td>' +
+        '<td class="text-right" data-label="Nominal"><span class="amount">' + formatRupiah(item.amount) + '</span></td>' +
+        '<td class="text-center" data-label="Aksi">' +
           '<div class="action-group">' +
             '<button class="btn btn-sm btn-edit" data-action="edit" data-id="' + item.id + '" title="Edit">✏️ Edit</button>' +
             '<button class="btn btn-sm btn-delete" data-action="delete" data-id="' + item.id + '" title="Hapus">🗑️ Hapus</button>' +
@@ -412,9 +449,9 @@
     ctx.fillStyle = getComputedStyle(document.body).color || '#1a1d26';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '700 1.1rem Inter, sans-serif';
+    ctx.font = '700 1.1rem "Space Grotesk", sans-serif';
     ctx.fillText(formatRupiah(total), center, center - 8);
-    ctx.font = '400 0.7rem Inter, sans-serif';
+    ctx.font = '500 0.7rem "Manrope", sans-serif';
     ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--clr-text-secondary') || '#6b7280';
     ctx.fillText('Total', center, center + 14);
   }
