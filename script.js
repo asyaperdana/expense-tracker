@@ -72,6 +72,7 @@
   var chartCanvas = document.getElementById('category-chart');
   var chartLegend = document.getElementById('chart-legend');
   var chartEmpty = document.getElementById('chart-empty');
+  var chartTooltip = document.getElementById('chart-tooltip');
   var toastContainer = document.getElementById('toast-container');
   var importOverlay = document.getElementById('import-overlay');
   var btnConfirmImport = document.getElementById('btn-confirm-import');
@@ -91,6 +92,8 @@
   var undoStack = [];
   var pendingImportData = null;
   var MAX_UNDO = 10;
+  var chartSlices = [];
+  var chartGeom = null;
 
   // ─── UUID Generator ───────────────────────
   function generateId() {
@@ -379,18 +382,22 @@
   // ─── Doughnut Chart ──────────────────────
   function renderChart(data) {
     var ctx = chartCanvas.getContext('2d');
-    var size = chartCanvas.width;
+    var dpr = window.devicePixelRatio || 1;
+    var size = chartCanvas.width / dpr;
     var center = size / 2;
     var outerRadius = center - 10;
     var innerRadius = outerRadius * 0.58;
 
     ctx.clearRect(0, 0, size, size);
     chartLegend.innerHTML = '';
+    chartSlices = [];
+    chartGeom = { center: size / 2, innerRadius: innerRadius, outerRadius: outerRadius };
 
     if (!data || data.length === 0) {
       chartEmpty.classList.add('visible');
       chartCanvas.style.display = 'none';
       chartLegend.style.display = 'none';
+      chartTooltip.classList.remove('visible');
       return;
     }
 
@@ -412,6 +419,7 @@
 
     // Draw slices
     var startAngle = -Math.PI / 2;
+    var normalizedStart = 0;
     var gapAngle = 0.03;
 
     categories.forEach(function (cat, i) {
@@ -433,6 +441,14 @@
       }
 
       startAngle += sliceAngle;
+      chartSlices.push({
+        category: cat,
+        amount: catTotals[cat],
+        percent: ((catTotals[cat] / total) * 100),
+        start: normalizedStart,
+        end: normalizedStart + sliceAngle,
+      });
+      normalizedStart += sliceAngle;
 
       // Legend item
       var pct = ((catTotals[cat] / total) * 100).toFixed(1);
@@ -449,11 +465,61 @@
     ctx.fillStyle = getComputedStyle(document.body).color || '#1a1d26';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '700 1.1rem "Space Grotesk", sans-serif';
+    ctx.font = '700 1rem system-ui, -apple-system, "Segoe UI", Arial, sans-serif';
     ctx.fillText(formatRupiah(total), center, center - 8);
-    ctx.font = '500 0.7rem "Manrope", sans-serif';
+    ctx.font = '500 0.7rem system-ui, -apple-system, "Segoe UI", Arial, sans-serif';
     ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--clr-text-secondary') || '#6b7280';
     ctx.fillText('Total', center, center + 14);
+  }
+
+  function hideChartTooltip() {
+    chartTooltip.classList.remove('visible');
+  }
+
+  function handleChartHover(e) {
+    if (!chartSlices.length || !chartGeom) {
+      hideChartTooltip();
+      return;
+    }
+
+    var rect = chartCanvas.getBoundingClientRect();
+    var x = (e.clientX - rect.left);
+    var y = (e.clientY - rect.top);
+
+    var dx = x - chartGeom.center;
+    var dy = y - chartGeom.center;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < chartGeom.innerRadius || dist > chartGeom.outerRadius) {
+      hideChartTooltip();
+      return;
+    }
+
+    var angle = Math.atan2(dy, dx);
+    var normalized = angle + Math.PI / 2;
+    if (normalized < 0) normalized += Math.PI * 2;
+
+    var match = null;
+    chartSlices.forEach(function (slice) {
+      if (normalized >= slice.start && normalized < slice.end) {
+        match = slice;
+      }
+    });
+
+    if (!match) {
+      hideChartTooltip();
+      return;
+    }
+
+    var icon = CATEGORY_ICONS[match.category] || '';
+    var pct = match.percent.toFixed(1);
+    chartTooltip.textContent =
+      icon + ' ' + match.category + ' — ' + formatRupiah(match.amount) + ' (' + pct + '%)';
+
+    var containerRect = chartCanvas.parentElement.getBoundingClientRect();
+    chartTooltip.style.left = (e.clientX - containerRect.left + 12) + 'px';
+    chartTooltip.style.top = (e.clientY - containerRect.top + 12) + 'px';
+    chartTooltip.classList.add('visible');
   }
 
   // ─── Form Validation ─────────────────────
@@ -586,32 +652,45 @@
 
   function confirmDelete() {
     if (!deleteTargetId) return;
+    var row = tbody.querySelector('tr[data-id="' + deleteTargetId + '"]');
     var deletedItem = expenses.find(function (e) {
       return e.id === deleteTargetId;
     });
-    pushUndo(expenses);
-    expenses = expenses.filter(function (e) {
-      return e.id !== deleteTargetId;
-    });
-    saveToStorage();
-    renderTable();
+
     hideDeleteConfirm();
-    if (deletedItem) {
-      lastDeleted = deletedItem;
-      if (undoTimer) clearTimeout(undoTimer);
-      undoTimer = setTimeout(function () {
-        lastDeleted = null;
-      }, 5500);
-      showUndoToast('Pengeluaran dihapus', function () {
-        if (!lastDeleted) return;
-        expenses.push(lastDeleted);
-        lastDeleted = null;
-        saveToStorage();
-        renderTable();
-        showToast('Pengeluaran dikembalikan', 'success');
+
+    function finalizeDelete() {
+      pushUndo(expenses);
+      expenses = expenses.filter(function (e) {
+        return e.id !== deleteTargetId;
       });
+      saveToStorage();
+      renderTable();
+
+      if (deletedItem) {
+        lastDeleted = deletedItem;
+        if (undoTimer) clearTimeout(undoTimer);
+        undoTimer = setTimeout(function () {
+          lastDeleted = null;
+        }, 5500);
+        showUndoToast('Pengeluaran dihapus', function () {
+          if (!lastDeleted) return;
+          expenses.push(lastDeleted);
+          lastDeleted = null;
+          saveToStorage();
+          renderTable();
+          showToast('Pengeluaran dikembalikan', 'success');
+        });
+      } else {
+        showToast('Pengeluaran berhasil dihapus', 'error');
+      }
+    }
+
+    if (row) {
+      row.classList.add('row-removing');
+      setTimeout(finalizeDelete, 180);
     } else {
-      showToast('Pengeluaran berhasil dihapus', 'error');
+      finalizeDelete();
     }
   }
 
@@ -900,6 +979,8 @@
   btnCancelDelete.addEventListener('click', hideDeleteConfirm);
 
   btnThemeToggle.addEventListener('click', toggleTheme);
+  chartCanvas.addEventListener('mousemove', handleChartHover);
+  chartCanvas.addEventListener('mouseleave', hideChartTooltip);
 
   // Close modal on overlay click
   modalOverlay.addEventListener('click', function (e) {

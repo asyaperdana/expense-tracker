@@ -8,12 +8,7 @@
       content="Expense Tracker — Aplikasi tracking pengeluaran uang harian dengan penyimpanan lokal."
     />
     <title>Expense Tracker — Tracking Pengeluaran</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <meta name="theme-color" content="#0f766e" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -156,6 +151,7 @@
         <div class="chart-container">
           <canvas id="category-chart" width="280" height="280"></canvas>
           <div class="chart-legend" id="chart-legend"></div>
+          <div class="chart-tooltip" id="chart-tooltip"></div>
         </div>
         <p class="chart-empty" id="chart-empty">
           Belum ada data untuk ditampilkan 📊
