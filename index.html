@@ -16,12 +16,13 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
   </head>
   <body>
     <!-- Header -->
     <header class="header">
       <div class="header-inner">
-        <span class="header-icon">💰</span>
+        <span class="header-icon"><i class="ph-fill ph-wallet"></i></span>
         <div>
           <h1>Expense Tracker</h1>
           <p class="header-subtitle">
@@ -34,7 +35,7 @@
           title="Toggle dark mode"
           aria-label="Toggle dark mode"
         >
-          <span class="theme-icon" id="theme-icon">🌙</span>
+          <span class="theme-icon" id="theme-icon"><i class="ph-fill ph-moon"></i></span>
         </button>
       </div>
     </header>
@@ -44,14 +45,30 @@
       <section class="card hero-card">
         <span class="card-illus" aria-hidden="true">✶</span>
         <div class="hero-content">
-          <div class="hero-kicker">Ringkas Hari Ini</div>
-          <h2 class="hero-title">Pengeluaran Hari Ini</h2>
-          <div class="hero-value" id="today-amount">Rp 0</div>
-          <div class="hero-meta">
-            <span>Transaksi <strong id="today-count">0</strong></span>
-            <span>Dominan <strong id="today-top">—</strong></span>
+          <div class="hero-kicker">Ringkasan Keuangan</div>
+          <h2 class="hero-title">Total Saldo Aktif</h2>
+          <div class="hero-value" id="total-balance">Rp 0</div>
+          
+          <div class="budget-container" style="margin-top: 1.5rem; background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <div class="budget-header" style="display:flex; justify-content:space-between; align-items:center; font-size: 0.9rem; font-weight:600; margin-bottom: 0.6rem;">
+              <span style="display:flex; align-items:center; gap: 0.4rem"><i class="ph-bold ph-target"></i> Anggaran Bulanan</span>
+              <button class="btn btn-ghost" id="btn-edit-budget" type="button" title="Atur Batasan" style="padding:4px 8px; color:#fff; background: rgba(255,255,255,0.1); border-radius: 6px; height: auto; min-height: unset;"><i class="ph-bold ph-pencil-simple"></i> Atur</button>
+            </div>
+            
+            <div class="budget-stats" style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 0.4rem;">
+              <div style="font-size: 1.15rem; font-weight: 700; letter-spacing: -0.5px;" id="budget-text-used">Rp 0</div>
+              <div style="font-size: 0.85rem; opacity: 0.8;" id="budget-text-limit">/ Tidak ada batas</div>
+            </div>
+
+            <div class="budget-bar" style="height: 8px; background: rgba(255,255,255,0.2); border-radius: 8px; overflow: hidden; position: relative; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);">
+              <div class="budget-fill" id="budget-fill" style="position: absolute; top:0; left:0; height: 100%; background: #fff; width: 0%; border-radius: 8px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s;"></div>
+            </div>
+            
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 0.6rem;">
+              <p class="hero-note" id="budget-note" style="margin: 0; font-size: 0.8rem; opacity: 0.9;">Atur untuk kontrol pengeluaran.</p>
+              <div id="budget-pct" style="font-size: 0.8rem; font-weight: 600; background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px; display: none;">0%</div>
+            </div>
           </div>
-          <p class="hero-note" id="today-note">Belum ada catatan hari ini.</p>
         </div>
         <div class="hero-graphic" aria-hidden="true">
           <div class="hero-orb"></div>
@@ -67,6 +84,26 @@
         <form id="expense-form" novalidate>
           <div class="form-grid">
             <div class="form-group">
+              <label>Jenis Transaksi</label>
+              <div class="segmented-control">
+                <input type="radio" id="type-exp" name="input-type" value="expense" checked />
+                <label for="type-exp"><i class="ph-bold ph-arrow-up-right"></i> Pengeluaran</label>
+                
+                <input type="radio" id="type-inc" name="input-type" value="income" />
+                <label for="type-inc"><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</label>
+                
+                <div class="segmented-bg"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="input-wallet">Sumber Dana</label>
+              <select id="input-wallet" required>
+                <option value="Tunai">Tunai</option>
+                <option value="Rekening Bank">Rekening Bank</option>
+                <option value="E-Wallet">E-Wallet</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label for="input-date">Tanggal</label>
               <input type="date" id="input-date" required />
               <small class="help-text" id="date-help" aria-live="polite"></small>
@@ -81,37 +118,50 @@
               />
             </div>
             <div class="form-group">
-              <label for="input-category">Kategori</label>
+              <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                <label for="input-category">Kategori</label>
+                <button class="btn-ghost" id="btn-add-category" type="button" style="font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--clr-primary-light); color: var(--clr-primary); font-weight: 600; cursor: pointer;">
+                  + Custom
+                </button>
+              </div>
               <select id="input-category" required>
                 <option value="" disabled selected>Pilih kategori</option>
-                <option value="Makanan">🍔 Makanan</option>
-                <option value="Transport">🚗 Transport</option>
-                <option value="Belanja">🛒 Belanja</option>
-                <option value="Hiburan">🎬 Hiburan</option>
-                <option value="Kesehatan">💊 Kesehatan</option>
-                <option value="Pendidikan">📚 Pendidikan</option>
-                <option value="Tagihan">📄 Tagihan</option>
-                <option value="Lainnya">📦 Lainnya</option>
+                <optgroup label="Pengeluaran" id="optgroup-expense">
+                  <option value="Makanan">Makanan</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Belanja">Belanja</option>
+                  <option value="Hiburan">Hiburan</option>
+                  <option value="Kesehatan">Kesehatan</option>
+                  <option value="Pendidikan">Pendidikan</option>
+                  <option value="Tagihan">Tagihan</option>
+                  <option value="Lainnya">Lainnya (Keluar)</option>
+                </optgroup>
+                <optgroup label="Pemasukan" id="optgroup-income">
+                  <option value="Gaji">Gaji</option>
+                  <option value="Pemasukan Lain">Pemasukan Lain</option>
+                </optgroup>
               </select>
               <small class="help-text" id="category-help" aria-live="polite"></small>
             </div>
             <div class="form-group">
               <label for="input-amount">Nominal (Rp)</label>
               <input
-                type="number"
+                type="text"
                 id="input-amount"
-                placeholder="cth: 25000"
-                min="0"
-                step="1"
+                placeholder="cth: 250,000"
                 inputmode="numeric"
                 required
               />
               <small class="help-text" id="amount-help" aria-live="polite"></small>
             </div>
           </div>
-          <div class="form-actions">
+          <div class="form-group checkbox-group">
+            <input type="checkbox" id="input-recurring" />
+            <label for="input-recurring">Tagihan berulang tiap bulan</label>
+          </div>
+          <div class="form-actions" style="margin-top: 1rem;">
             <button type="submit" id="btn-submit" class="btn btn-primary">
-              <span class="btn-icon">＋</span> Simpan
+              <i class="ph-bold ph-plus-circle btn-icon"></i> Simpan
             </button>
             <button
               type="button"
@@ -130,22 +180,20 @@
         <span class="card-illus" aria-hidden="true">◉</span>
         <div class="summary-grid">
           <div class="summary-item">
+            <span class="summary-label">Total Pemasukan</span>
+            <span class="summary-value" id="total-income" style="color: var(--clr-success);">Rp 0</span>
+          </div>
+          <div class="summary-item">
             <span class="summary-label">Total Pengeluaran</span>
-            <span class="summary-value" id="total-amount">Rp 0</span>
+            <span class="summary-value" id="total-expense" style="color: var(--clr-danger);">Rp 0</span>
           </div>
           <div class="summary-item">
             <span class="summary-label">Jumlah Transaksi</span>
             <span class="summary-value" id="total-count">0</span>
           </div>
           <div class="summary-item">
-            <span class="summary-label">Rata-rata / Hari</span>
-            <span class="summary-value" id="avg-per-day">Rp 0</span>
-          </div>
-          <div class="summary-item">
             <span class="summary-label">Kategori Teratas</span>
-            <span class="summary-value summary-value-sm" id="top-category"
-              >—</span
-            >
+            <span class="summary-value summary-value-sm" id="top-category">—</span>
           </div>
         </div>
       </section>
@@ -160,7 +208,7 @@
           <div class="chart-tooltip" id="chart-tooltip"></div>
         </div>
         <p class="chart-empty" id="chart-empty">
-          Belum ada data untuk ditampilkan 📊
+          Belum ada data untuk ditampilkan <i class="ph ph-chart-pie-slice"></i>
         </p>
       </section>
 
@@ -174,14 +222,20 @@
               <label for="filter-category">Kategori</label>
               <select id="filter-category">
                 <option value="Semua">Semua</option>
-                <option value="Makanan">🍔 Makanan</option>
-                <option value="Transport">🚗 Transport</option>
-                <option value="Belanja">🛒 Belanja</option>
-                <option value="Hiburan">🎬 Hiburan</option>
-                <option value="Kesehatan">💊 Kesehatan</option>
-                <option value="Pendidikan">📚 Pendidikan</option>
-                <option value="Tagihan">📄 Tagihan</option>
-                <option value="Lainnya">📦 Lainnya</option>
+                <optgroup label="Pengeluaran">
+                  <option value="Makanan">Makanan</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Belanja">Belanja</option>
+                  <option value="Hiburan">Hiburan</option>
+                  <option value="Kesehatan">Kesehatan</option>
+                  <option value="Pendidikan">Pendidikan</option>
+                  <option value="Tagihan">Tagihan</option>
+                  <option value="Lainnya">Lainnya (Keluar)</option>
+                </optgroup>
+                <optgroup label="Pemasukan">
+                  <option value="Gaji">Gaji</option>
+                  <option value="Pemasukan Lain">Pemasukan Lain</option>
+                </optgroup>
               </select>
             </div>
             <div class="filter-group">
@@ -212,17 +266,17 @@
               Reset Filter
             </button>
             <button class="btn btn-accent btn-sm" id="btn-export-csv" type="button">
-              📥 Export CSV
+              <i class="ph-bold ph-download-simple btn-icon"></i> Export CSV
             </button>
             <button class="btn btn-ghost btn-sm" id="btn-export-json" type="button">
-              🧾 Export JSON
+              <i class="ph-bold ph-export btn-icon"></i> Export JSON
             </button>
             <button class="btn btn-ghost btn-sm" id="btn-import-json" type="button">
-              📤 Import JSON
+              <i class="ph-bold ph-upload-simple btn-icon"></i> Import JSON
             </button>
             <input type="file" id="input-import-json" accept="application/json" hidden />
             <button class="btn btn-split btn-sm" id="btn-open-split" type="button">
-              🧾 Split Bill
+              <i class="ph-bold ph-receipt btn-icon"></i> Split Bill
             </button>
           </div>
         </div>
@@ -238,8 +292,8 @@
             <thead>
               <tr>
                 <th>Tanggal</th>
-                <th>Nama</th>
-                <th>Kategori</th>
+                <th>Tipe & Nama</th>
+                <th>Kategori & Dompet</th>
                 <th class="text-right">Nominal</th>
                 <th class="text-center">Aksi</th>
               </tr>
@@ -258,7 +312,7 @@
     <!-- Confirm Delete Modal -->
     <div class="modal-overlay" id="modal-overlay">
       <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
-        <div class="modal-icon">⚠️</div>
+        <div class="modal-icon"><i class="ph-fill ph-warning-circle" style="color: var(--clr-warning);"></i></div>
         <p class="modal-text" id="modal-delete-title">Yakin ingin menghapus pengeluaran ini?</p>
         <div class="modal-actions">
           <button class="btn btn-danger" id="btn-confirm-delete" type="button">Hapus</button>
@@ -267,11 +321,27 @@
       </div>
     </div>
 
+    <!-- Budget Setup Modal -->
+    <div class="modal-overlay" id="budget-overlay">
+      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-budget-title">
+        <div class="modal-icon"><i class="ph-fill ph-target" style="color: var(--clr-primary);"></i></div>
+        <h2 class="modal-text" id="modal-budget-title">Atur Batas Bulanan</h2>
+        <p class="modal-subtext">Peringatan akan muncul jika Pengeluaran bulan ini melebihi nominal ini. Ketik 0 untuk menonaktifkan.</p>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <input type="text" id="input-budget-limit" placeholder="cth: 3,000,000" inputmode="numeric" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="btn-save-budget" type="button">Simpan Batas</button>
+          <button class="btn btn-ghost" id="btn-cancel-budget" type="button">Batal</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Split Bill Modal -->
     <div class="modal-overlay" id="split-overlay">
       <div class="modal glass split-modal" role="dialog" aria-modal="true" aria-labelledby="split-title">
         <div class="split-header">
-          <h2 id="split-title">🧾 Split Bill</h2>
+          <h2 id="split-title"><i class="ph-bold ph-receipt"></i> Split Bill</h2>
           <button class="btn-close" id="btn-close-split" aria-label="Close" type="button">&times;</button>
         </div>
 
@@ -284,19 +354,19 @@
             </div>
             <div class="form-group">
               <label for="split-total">Total Tagihan (Rp)</label>
-              <input type="number" id="split-total" placeholder="cth: 250000" min="0" step="1" inputmode="numeric" />
+              <input type="text" id="split-total" placeholder="cth: 250,000" inputmode="numeric" />
             </div>
           </div>
 
           <div class="split-mode-toggle">
-            <button class="split-mode-btn active" data-mode="equal" id="mode-equal" type="button">⚖️ Bagi Rata</button>
-            <button class="split-mode-btn" data-mode="custom" id="mode-custom" type="button">✏️ Custom</button>
+            <button class="split-mode-btn active" data-mode="equal" id="mode-equal" type="button"><i class="ph-bold ph-scales"></i> Bagi Rata</button>
+            <button class="split-mode-btn" data-mode="custom" id="mode-custom" type="button"><i class="ph-bold ph-pencil-simple"></i> Custom</button>
           </div>
 
           <div class="split-participants">
             <div class="split-participants-header">
               <label>Peserta</label>
-              <button class="btn btn-sm btn-primary" id="btn-add-person" type="button">＋ Tambah</button>
+              <button class="btn btn-sm btn-primary" id="btn-add-person" type="button"><i class="ph-bold ph-plus-circle"></i> Tambah</button>
             </div>
             <div class="split-person-list" id="split-person-list">
               <!-- Dynamic person rows -->
@@ -304,7 +374,7 @@
           </div>
 
           <div class="split-form-actions">
-            <button class="btn btn-primary" id="btn-calculate-split" type="button">🧮 Hitung Split</button>
+            <button class="btn btn-primary" id="btn-calculate-split" type="button"><i class="ph-bold ph-calculator"></i> Hitung Split</button>
           </div>
         </div>
 
@@ -313,15 +383,49 @@
           <div class="split-result-summary" id="split-result-summary"></div>
           <div class="split-result-list" id="split-result-list"></div>
           <div class="split-form-actions">
-            <button class="btn btn-primary" id="btn-save-split" type="button">💾 Simpan ke Pengeluaran</button>
-            <button class="btn btn-ghost" id="btn-back-split" type="button">← Kembali</button>
+            <button class="btn btn-primary" id="btn-save-split" type="button"><i class="ph-bold ph-floppy-disk"></i> Simpan ke Pengeluaran</button>
+            <button class="btn btn-ghost" id="btn-back-split" type="button"><i class="ph-bold ph-arrow-left"></i> Kembali</button>
           </div>
         </div>
 
         <!-- Split History -->
         <div class="split-history" id="split-history">
-          <h3 class="split-history-title">📋 Riwayat Split</h3>
+          <h3 class="split-history-title"><i class="ph-bold ph-clipboard-text"></i> Riwayat Split</h3>
           <div id="split-history-list" class="split-history-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Category Modal -->
+    <div class="modal-overlay" id="category-overlay">
+      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-category-title">
+        <div class="modal-icon"><i class="ph-fill ph-circles-four" style="color: var(--clr-primary);"></i></div>
+        <h2 class="modal-text" id="modal-category-title">Tambah Kategori Custom</h2>
+        
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="input-custom-cat-name">Nama Kategori</label>
+          <input type="text" id="input-custom-cat-name" placeholder="cth: Kucing, Investasi..." />
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="input-custom-cat-type">Jenis</label>
+          <select id="input-custom-cat-type">
+            <option value="expense">Pengeluaran</option>
+            <option value="income">Pemasukan</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label>Pilih Ikon</label>
+          <div class="icon-selector" id="icon-selector">
+            <!-- Rendered via JS -->
+          </div>
+          <input type="hidden" id="input-custom-cat-icon" />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="btn-save-category" type="button">Tambah Kategori</button>
+          <button class="btn btn-ghost" id="btn-cancel-category" type="button">Batal</button>
         </div>
       </div>
     </div>
@@ -329,7 +433,7 @@
     <!-- Import JSON Modal -->
     <div class="modal-overlay" id="import-overlay">
       <div class="modal glass import-modal" role="dialog" aria-modal="true" aria-labelledby="import-title">
-        <div class="modal-icon">📤</div>
+        <div class="modal-icon"><i class="ph-fill ph-upload-simple" style="color: var(--clr-primary);"></i></div>
         <h2 class="modal-text" id="import-title">Impor JSON</h2>
         <p class="modal-subtext">Pilih mode impor untuk data JSON.</p>
         <div class="import-options">
@@ -365,7 +469,7 @@
     <!-- Import Summary Modal -->
     <div class="modal-overlay" id="import-summary-overlay">
       <div class="modal glass import-summary-modal" role="dialog" aria-modal="true" aria-labelledby="import-summary-title">
-        <div class="modal-icon">✅</div>
+        <div class="modal-icon"><i class="ph-fill ph-check-circle" style="color: var(--clr-success);"></i></div>
         <h2 class="modal-text" id="import-summary-title">Ringkasan Impor</h2>
         <div class="import-summary">
           <div class="import-summary-row">

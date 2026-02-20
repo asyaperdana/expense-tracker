@@ -11,6 +11,10 @@
   var STORAGE_KEY = 'expense_tracker_data';
   var THEME_KEY = 'expense_tracker_theme';
   var FILTER_KEY = 'expense_tracker_filters';
+  var BUDGET_KEY = 'expense_tracker_budget';
+  var SPLIT_HISTORY_KEY = 'expense_tracker_split_history';
+  var CUSTOM_CAT_KEY = 'expense_tracker_custom_cat';
+  var RECURRING_KEY = 'expense_tracker_recurring';
 
   var CATEGORY_COLORS = {
     Makanan: '#f97316',
@@ -20,18 +24,22 @@
     Kesehatan: '#14b8a6',
     Pendidikan: '#eab308',
     Tagihan: '#2563eb',
-    Lainnya: '#64748b',
+    'Lainnya (Keluar)': '#64748b',
+    Gaji: '#0ea5e9',
+    'Pemasukan Lain': '#10b981',
   };
 
   var CATEGORY_ICONS = {
-    Makanan: '🍔',
-    Transport: '🚗',
-    Belanja: '🛒',
-    Hiburan: '🎬',
-    Kesehatan: '💊',
-    Pendidikan: '📚',
-    Tagihan: '📄',
-    Lainnya: '📦',
+    Makanan: '<i class="ph-fill ph-hamburger"></i>',
+    Transport: '<i class="ph-fill ph-car-profile"></i>',
+    Belanja: '<i class="ph-fill ph-shopping-cart"></i>',
+    Hiburan: '<i class="ph-fill ph-popcorn"></i>',
+    Kesehatan: '<i class="ph-fill ph-pill"></i>',
+    Pendidikan: '<i class="ph-fill ph-book-open"></i>',
+    Tagihan: '<i class="ph-fill ph-receipt"></i>',
+    'Lainnya (Keluar)': '<i class="ph-fill ph-package"></i>',
+    Gaji: '<i class="ph-fill ph-money"></i>',
+    'Pemasukan Lain': '<i class="ph-fill ph-piggy-bank"></i>',
   };
 
   // ─── DOM References ───────────────────────
@@ -40,17 +48,22 @@
   var inputTitle = document.getElementById('input-title');
   var inputCategory = document.getElementById('input-category');
   var inputAmount = document.getElementById('input-amount');
+  var inputTypeRadios = document.getElementsByName('input-type');
+  var inputWallet = document.getElementById('input-wallet');
   var btnSubmit = document.getElementById('btn-submit');
   var btnCancel = document.getElementById('btn-cancel');
   var tbody = document.getElementById('expense-tbody');
-  var totalAmountEl = document.getElementById('total-amount');
+  var totalIncomeEl = document.getElementById('total-income');
+  var totalExpenseEl = document.getElementById('total-expense');
   var totalCountEl = document.getElementById('total-count');
-  var avgPerDayEl = document.getElementById('avg-per-day');
   var topCategoryEl = document.getElementById('top-category');
-  var todayAmountEl = document.getElementById('today-amount');
-  var todayCountEl = document.getElementById('today-count');
-  var todayTopEl = document.getElementById('today-top');
-  var todayNoteEl = document.getElementById('today-note');
+  
+  var totalBalanceEl = document.getElementById('total-balance');
+  var budgetTextUsed = document.getElementById('budget-text-used');
+  var budgetTextLimit = document.getElementById('budget-text-limit');
+  var budgetPct = document.getElementById('budget-pct');
+  var budgetFill = document.getElementById('budget-fill');
+  var budgetNote = document.getElementById('budget-note');
   var emptyState = document.getElementById('empty-state');
   var dateHelp = document.getElementById('date-help');
   var categoryHelp = document.getElementById('category-help');
@@ -68,6 +81,15 @@
   var modalOverlay = document.getElementById('modal-overlay');
   var btnConfirmDelete = document.getElementById('btn-confirm-delete');
   var btnCancelDelete = document.getElementById('btn-cancel-delete');
+
+  var btnAddCategory = document.getElementById('btn-add-category');
+  var categoryOverlay = document.getElementById('category-overlay');
+  var inputCustomCatName = document.getElementById('input-custom-cat-name');
+  var inputCustomCatType = document.getElementById('input-custom-cat-type');
+  var inputCustomCatIcon = document.getElementById('input-custom-cat-icon');
+  var iconSelector = document.getElementById('icon-selector');
+  var btnSaveCategory = document.getElementById('btn-save-category');
+  var btnCancelCategory = document.getElementById('btn-cancel-category');
   var btnThemeToggle = document.getElementById('btn-theme-toggle');
   var themeIcon = document.getElementById('theme-icon');
   var chartCanvas = document.getElementById('category-chart');
@@ -85,8 +107,18 @@
   var importSummarySkipped = document.getElementById('import-summary-skipped');
   var btnCloseImportSummary = document.getElementById('btn-close-import-summary');
 
+  var btnEditBudget = document.getElementById('btn-edit-budget');
+  var budgetOverlay = document.getElementById('budget-overlay');
+  var inputBudgetLimit = document.getElementById('input-budget-limit');
+  var btnSaveBudget = document.getElementById('btn-save-budget');
+  var btnCancelBudget = document.getElementById('btn-cancel-budget');
+
+  var inputRecurring = document.getElementById('input-recurring');
+
   // ─── State ────────────────────────────────
   var expenses = [];
+  var customCategories = [];
+  var recurringExpenses = [];
   var editingId = null;
   var deleteTargetId = null;
   var lastDeleted = null;
@@ -97,6 +129,9 @@
   var chartSlices = [];
   var chartGeom = null;
   var renderTimer = null;
+  
+  var AVAILABLE_ICONS = ['ph-star', 'ph-heart', 'ph-airplane-tilt', 'ph-bag', 'ph-game-controller', 'ph-cat', 'ph-dog', 'ph-car', 'ph-house', 'ph-monitor', 'ph-music-note', 'ph-camera', 'ph-coffee', 'ph-bicycle', 'ph-barbell', 'ph-books', 'ph-graduation-cap', 'ph-bandaids', 'ph-bed', 'ph-plug'];
+  var AVAILABLE_COLORS = ['#f43f5e', '#ec4899', '#d946ef', '#a855f7', '#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e', '#84cc16', '#eab308', '#f59e0b', '#f97316', '#ef4444'];
 
   // ─── UUID Generator ───────────────────────
   function generateId() {
@@ -117,6 +152,23 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
   }
 
+  function saveRecurringToStorage() {
+    localStorage.setItem(RECURRING_KEY, JSON.stringify(recurringExpenses));
+  }
+
+  function loadRecurringFromStorage() {
+    try {
+      var raw = localStorage.getItem(RECURRING_KEY);
+      recurringExpenses = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      recurringExpenses = [];
+    }
+  }
+
+  function saveCustomCategories() {
+    localStorage.setItem(CUSTOM_CAT_KEY, JSON.stringify(customCategories));
+  }
+
   // ─── Theme (Dark Mode) ───────────────────
   function getTheme() {
     return localStorage.getItem(THEME_KEY) || 'light';
@@ -125,7 +177,7 @@
   function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
-    themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    themeIcon.innerHTML = theme === 'dark' ? '<i class="ph-fill ph-sun"></i>' : '<i class="ph-fill ph-moon"></i>';
   }
 
   function toggleTheme() {
@@ -136,11 +188,11 @@
   // ─── Toast Notifications ─────────────────
   function showToast(message, type) {
     type = type || 'success';
-    var icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    var icons = { success: '<i class="ph-fill ph-check-circle" style="color: var(--clr-success);"></i>', error: '<i class="ph-fill ph-warning-circle" style="color: var(--clr-danger);"></i>', info: '<i class="ph-fill ph-info" style="color: var(--clr-accent);"></i>' };
     var toast = document.createElement('div');
     toast.className = 'toast toast-' + type;
     toast.innerHTML =
-      '<span class="toast-icon">' + (icons[type] || '✅') + '</span>' +
+      '<span class="toast-icon">' + (icons[type] || '<i class="ph-fill ph-check-circle"></i>') + '</span>' +
       '<span>' + escapeHtml(message) + '</span>';
     toastContainer.appendChild(toast);
 
@@ -156,7 +208,7 @@
     var toast = document.createElement('div');
     toast.className = 'toast toast-info';
     toast.innerHTML =
-      '<span class="toast-icon">↩️</span>' +
+      '<span class="toast-icon"><i class="ph-bold ph-arrow-u-up-left" style="color: var(--clr-accent);"></i></span>' +
       '<span>' + escapeHtml(message) + '</span>' +
       '<button class="toast-action" type="button">Undo</button>';
 
@@ -235,41 +287,38 @@
 
   // ─── Calculate Total ─────────────────────
   function calculateTotal(data) {
-    return data.reduce(function (sum, item) {
-      return sum + item.amount;
-    }, 0);
+    return data.reduce(function (res, item) {
+      if (item.type === 'income') {
+        res.income += item.amount;
+      } else {
+        res.expense += item.amount;
+      }
+      res.balance = res.income - res.expense;
+      return res;
+    }, { income: 0, expense: 0, balance: 0 });
   }
 
-  // ─── Update Summary ──────────────────────
   function updateSummary(filteredData) {
-    var total = calculateTotal(filteredData);
-    totalAmountEl.textContent = formatRupiah(total);
+    var totals = calculateTotal(filteredData);
+    totalIncomeEl.textContent = formatRupiah(totals.income);
+    totalExpenseEl.textContent = formatRupiah(totals.expense);
     totalCountEl.textContent = filteredData.length;
 
     // Pulse animation
-    [totalAmountEl, totalCountEl, avgPerDayEl, topCategoryEl].forEach(function (el) {
+    [totalIncomeEl, totalExpenseEl, totalCountEl, topCategoryEl].forEach(function (el) {
       el.classList.remove('pulse');
       void el.offsetWidth; // reflow
       el.classList.add('pulse');
     });
 
-    // Average per day
-    if (filteredData.length > 0) {
-      var dates = {};
-      filteredData.forEach(function (item) {
-        dates[item.date] = true;
-      });
-      var uniqueDays = Object.keys(dates).length;
-      avgPerDayEl.textContent = formatRupiah(Math.round(total / uniqueDays));
-    } else {
-      avgPerDayEl.textContent = 'Rp 0';
-    }
+    // Remove Avg per day calculation
 
-    // Top category
     if (filteredData.length > 0) {
       var catTotals = {};
       filteredData.forEach(function (item) {
-        catTotals[item.category] = (catTotals[item.category] || 0) + item.amount;
+        if (item.type !== 'income') {
+          catTotals[item.category] = (catTotals[item.category] || 0) + item.amount;
+        }
       });
       var topCat = '';
       var topVal = 0;
@@ -285,36 +334,65 @@
     }
   }
 
-  // ─── Update Hero (Today) ─────────────────
+  // ─── Budget Logic ──────────────────────────
+  function getBudgetLimit() {
+    return Number(localStorage.getItem(BUDGET_KEY)) || 0;
+  }
+  
+  function saveBudgetLimit(val) {
+    localStorage.setItem(BUDGET_KEY, val);
+  }
+
+  // ─── Update Hero (Balance & Budget) ──────
   function updateHero() {
-    var today = getTodayString();
-    var todayItems = expenses.filter(function (item) {
-      return item.date === today;
-    });
-    var total = calculateTotal(todayItems);
-    todayAmountEl.textContent = formatRupiah(total);
-    todayCountEl.textContent = todayItems.length;
+    var totals = calculateTotal(expenses);
+    totalBalanceEl.textContent = formatRupiah(totals.balance);
 
-    if (todayItems.length === 0) {
-      todayTopEl.textContent = '—';
-      todayNoteEl.textContent = 'Belum ada catatan hari ini.';
-      return;
-    }
-
-    var catTotals = {};
-    todayItems.forEach(function (item) {
-      catTotals[item.category] = (catTotals[item.category] || 0) + item.amount;
+    // Calculate this month's expense
+    var today = new Date();
+    var yyyy = today.getFullYear();
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var currentMonth = yyyy + '-' + mm;
+    
+    var monthExpenses = expenses.filter(function(item) {
+      return (item.type !== 'income') && item.date.startsWith(currentMonth);
     });
-    var topCat = '';
-    var topVal = 0;
-    Object.keys(catTotals).forEach(function (cat) {
-      if (catTotals[cat] > topVal) {
-        topVal = catTotals[cat];
-        topCat = cat;
+    
+    var monthExpenseTotal = monthExpenses.reduce(function(sum, item) { return sum + item.amount; }, 0);
+    var budget = getBudgetLimit();
+    
+    if (budget > 0) {
+      budgetTextUsed.textContent = formatRupiah(monthExpenseTotal);
+      budgetTextLimit.textContent = '/ ' + formatRupiah(budget);
+      var pct = Math.min((monthExpenseTotal / budget) * 100, 100);
+      budgetPct.textContent = Math.round(pct) + '%';
+      budgetPct.style.display = 'block';
+      budgetFill.style.width = pct + '%';
+      
+      if (pct >= 90) {
+        budgetFill.style.background = 'var(--clr-danger)';
+        budgetPct.style.background = 'var(--clr-danger)';
+        budgetPct.style.color = '#fff';
+        budgetNote.textContent = 'Hati-hati! Pengeluaran Anda hampir melewati batas.';
+      } else if (pct >= 70) {
+        budgetFill.style.background = 'var(--clr-warning)';
+        budgetPct.style.background = 'var(--clr-warning)';
+        budgetPct.style.color = '#000';
+        budgetNote.textContent = 'Pengeluaran bulan ini sudah cukup tinggi.';
+      } else {
+        budgetFill.style.background = '#ffffff';
+        budgetPct.style.background = 'rgba(255,255,255,0.2)';
+        budgetPct.style.color = '#fff';
+        budgetNote.textContent = 'Pengeluaran Anda masih aman terkontrol.';
       }
-    });
-    todayTopEl.textContent = (CATEGORY_ICONS[topCat] || '') + ' ' + topCat;
-    todayNoteEl.textContent = 'Catat terus agar pengeluaran tetap terkontrol.';
+    } else {
+      budgetTextUsed.textContent = formatRupiah(monthExpenseTotal);
+      budgetTextLimit.textContent = '/ Tidak ada batas';
+      budgetPct.style.display = 'none';
+      budgetFill.style.width = '0%';
+      budgetFill.style.background = '#ffffff';
+      budgetNote.textContent = 'Atur batas bulanan agar lebih terkontrol.';
+    }
   }
 
   // ─── Get Filtered Data ───────────────────
@@ -368,15 +446,18 @@
       tr.style.animationDelay = (index * 0.04) + 's';
       tr.dataset.id = item.id;
 
+      var isIncome = item.type === 'income';
+      var indicatorHtml = isIncome ? '<span style="color:var(--clr-success)"><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</span>' : '<span style="color:var(--clr-danger)"><i class="ph-bold ph-arrow-up-right"></i> Pengeluaran</span>';
+      
       tr.innerHTML =
         '<td data-label="Tanggal">' + formatDate(item.date) + '</td>' +
-        '<td data-label="Nama">' + escapeHtml(item.title) + '</td>' +
-        '<td data-label="Kategori"><span class="badge">' + (CATEGORY_ICONS[item.category] || '') + ' ' + escapeHtml(item.category) + '</span></td>' +
-        '<td class="text-right" data-label="Nominal"><span class="amount">' + formatRupiah(item.amount) + '</span></td>' +
+        '<td data-label="Tipe & Nama"><div style="font-weight:600">' + escapeHtml(item.title) + '</div><div style="font-size:0.75rem">' + indicatorHtml + '</div></td>' +
+        '<td data-label="Kategori & Dompet"><span class="badge">' + (CATEGORY_ICONS[item.category] || '') + ' ' + escapeHtml(item.category) + '</span><div style="font-size:0.75rem; margin-top:4px; opacity:0.7;"><i class="ph-fill ph-wallet"></i> ' + escapeHtml(item.wallet || 'Tunai') + '</div></td>' +
+        '<td class="text-right" data-label="Nominal"><span class="amount ' + (isIncome ? 'text-success' : '') + '" style="font-weight:600">' + (isIncome ? '+' : '-') + formatRupiah(item.amount) + '</span></td>' +
         '<td class="text-center" data-label="Aksi">' +
           '<div class="action-group">' +
-            '<button class="btn btn-sm btn-edit" data-action="edit" data-id="' + item.id + '" title="Edit">✏️ Edit</button>' +
-            '<button class="btn btn-sm btn-delete" data-action="delete" data-id="' + item.id + '" title="Hapus">🗑️ Hapus</button>' +
+            '<button class="btn btn-sm btn-edit" data-action="edit" data-id="' + item.id + '" title="Edit"><i class="ph-bold ph-pencil-simple"></i> Edit</button>' +
+            '<button class="btn btn-sm btn-delete" data-action="delete" data-id="' + item.id + '" title="Hapus"><i class="ph-bold ph-trash"></i> Hapus</button>' +
           '</div>' +
         '</td>';
 
@@ -433,12 +514,14 @@
     chartCanvas.style.display = 'block';
     chartLegend.style.display = 'flex';
 
-    // Aggregate by category
+    // Aggregate by category for expenses only
     var catTotals = {};
     var total = 0;
     data.forEach(function (item) {
-      catTotals[item.category] = (catTotals[item.category] || 0) + item.amount;
-      total += item.amount;
+      if (item.type !== 'income') {
+        catTotals[item.category] = (catTotals[item.category] || 0) + item.amount;
+        total += item.amount;
+      }
     });
 
     var categories = Object.keys(catTotals).sort(function (a, b) {
@@ -583,7 +666,8 @@
     } else {
       categoryHelp.textContent = '';
     }
-    if (!inputAmount.value || Number(inputAmount.value) <= 0) {
+    var rawAmount = inputAmount.value.replace(/,/g, '');
+    if (!rawAmount || Number(rawAmount) <= 0) {
       inputAmount.classList.add('invalid');
       amountHelp.textContent = 'Nominal harus lebih dari 0';
       valid = false;
@@ -603,13 +687,21 @@
     categoryHelp.textContent = '';
     amountHelp.textContent = '';
     editingId = null;
+    
+    // reset type to expense and background to Tunai
+    document.querySelector('input[name="input-type"][value="expense"]').checked = true;
+    inputWallet.value = 'Tunai';
+
+    inputRecurring.checked = false;
+    document.querySelector('.checkbox-group').style.display = 'flex'; // show when adding
+
     btnSubmit.disabled = false;
     btnSubmit.classList.remove('is-loading');
-    btnSubmit.innerHTML = '<span class="btn-icon">＋</span> Simpan';
+    btnSubmit.innerHTML = '<i class="ph-bold ph-plus-circle btn-icon"></i> Simpan';
     btnCancel.style.display = 'none';
 
-    [inputDate, inputTitle, inputCategory, inputAmount].forEach(function (f) {
-      f.classList.remove('invalid');
+    [inputDate, inputTitle, inputCategory, inputAmount, inputWallet].forEach(function (f) {
+      if (f) f.classList.remove('invalid');
     });
   }
 
@@ -634,12 +726,22 @@
     btnSubmit.classList.add('is-loading');
     btnSubmit.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span> Menyimpan...';
 
+    var selectedType = 'expense';
+    for (var i = 0; i < inputTypeRadios.length; i++) {
+        if (inputTypeRadios[i].checked) {
+            selectedType = inputTypeRadios[i].value;
+            break;
+        }
+    }
+
     var data = {
       id: editingId || generateId(),
+      type: selectedType,
+      wallet: inputWallet.value || 'Tunai',
       date: inputDate.value,
       title: inputTitle.value.trim(),
       category: inputCategory.value,
-      amount: Number(inputAmount.value),
+      amount: Number(inputAmount.value.replace(/,/g, '')),
     };
 
     try {
@@ -647,10 +749,26 @@
         expenses = expenses.map(function (item) {
           return item.id === editingId ? data : item;
         });
-        showToast('Pengeluaran berhasil diperbarui', 'success');
+        showToast('Transaksi berhasil diperbarui', 'success');
       } else {
         expenses.push(data);
-        showToast('Pengeluaran berhasil ditambahkan', 'success');
+        showToast('Transaksi berhasil ditambahkan', 'success');
+        
+        // Handle Recurring
+        if (inputRecurring && inputRecurring.checked) {
+          var nextDateObj = new Date(data.date);
+          nextDateObj.setMonth(nextDateObj.getMonth() + 1);
+          recurringExpenses.push({
+            id: generateId(),
+            type: data.type,
+            wallet: data.wallet,
+            title: data.title,
+            category: data.category,
+            amount: data.amount,
+            nextDate: nextDateObj.toISOString().split('T')[0]
+          });
+          saveRecurringToStorage();
+        }
       }
 
       saveToStorage();
@@ -677,8 +795,24 @@
     inputDate.value = item.date;
     inputTitle.value = item.title;
     inputCategory.value = item.category;
-    inputAmount.value = item.amount;
-    btnSubmit.innerHTML = '<span class="btn-icon">✓</span> Update';
+    inputAmount.value = item.amount.toLocaleString('en-US');
+
+    document.querySelector('.checkbox-group').style.display = 'none'; // hide when editing
+    
+    // Set wallet
+    if (item.wallet) {
+      inputWallet.value = item.wallet;
+    } else {
+      inputWallet.value = 'Tunai';
+    }
+    
+    // Set type
+    var typeVal = item.type || 'expense';
+    for (var i = 0; i < inputTypeRadios.length; i++) {
+        inputTypeRadios[i].checked = (inputTypeRadios[i].value === typeVal);
+    }
+
+    btnSubmit.innerHTML = '<i class="ph-bold ph-check btn-icon"></i> Update';
     btnCancel.style.display = 'inline-flex';
 
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1189,7 +1323,8 @@
   // ─── Calculate Split ──────────────────────
   function calculateSplit() {
     var billName = splitBillName.value.trim() || 'Split Bill';
-    var total = Number(splitTotal.value);
+    var totalText = splitTotal.value.replace(/,/g, '');
+    var total = Number(totalText);
 
     if (!total || total <= 0) {
       splitTotal.classList.add('invalid');
@@ -1207,7 +1342,8 @@
       var customAmt = 0;
 
       if (splitMode === 'custom') {
-        customAmt = Number(row.querySelector('.custom-amount').value) || 0;
+        var customAmtText = row.querySelector('.custom-amount').value.replace(/,/g, '');
+        customAmt = Number(customAmtText) || 0;
       }
 
       people.push({ name: name, customAmount: customAmt });
@@ -1233,7 +1369,7 @@
       // Custom mode: validate totals
       var customTotal = people.reduce(function (s, p) { return s + p.customAmount; }, 0);
       if (customTotal !== total) {
-        showToast('Total custom (Rp ' + customTotal.toLocaleString('id-ID') + ') tidak sama dengan total tagihan (Rp ' + total.toLocaleString('id-ID') + ')', 'error');
+        showToast('Total custom (Rp ' + customTotal.toLocaleString('en-US') + ') tidak sama dengan tagihan (Rp ' + total.toLocaleString('en-US') + ')', 'error');
         return;
       }
       people.forEach(function (p) {
@@ -1261,7 +1397,7 @@
       '<div class="result-bill-name">' + escapeHtml(splitResults.billName) + '</div>' +
       '<div class="result-total">' + formatRupiah(splitResults.total) + '</div>' +
       '<div class="result-people-count">' + splitResults.people.length + ' peserta • ' +
-        (splitResults.mode === 'equal' ? '⚖️ Bagi Rata' : '✏️ Custom') + '</div>';
+        (splitResults.mode === 'equal' ? '<i class="ph-bold ph-scales"></i> Bagi Rata' : '<i class="ph-bold ph-pencil-simple"></i> Custom') + '</div>';
 
     splitResultList.innerHTML = '';
     splitResults.people.forEach(function (p, i) {
@@ -1374,12 +1510,211 @@
     splitResultsView.style.display = 'none';
   });
 
+  // ─── Budget Modal Event Listeners ─────────
+  btnEditBudget.addEventListener('click', function () {
+    var b = getBudgetLimit();
+    inputBudgetLimit.value = b ? b.toLocaleString('en-US') : '';
+    budgetOverlay.classList.add('active');
+  });
+
+  btnCancelBudget.addEventListener('click', function () {
+    budgetOverlay.classList.remove('active');
+  });
+
+  btnSaveBudget.addEventListener('click', function () {
+    var val = Number(inputBudgetLimit.value.replace(/,/g, ''));
+    saveBudgetLimit(val);
+    budgetOverlay.classList.remove('active');
+    updateHero();
+    showToast('Batas bulanan berhasil disimpan', 'success');
+  });
+
+  budgetOverlay.addEventListener('click', function (e) {
+    if (e.target === budgetOverlay) budgetOverlay.classList.remove('active');
+  });
+  
+  // ─── Input Formatting ───────────────────
+  function formatInputCurrency(e) {
+    var value = e.target.value.replace(/\D/g, "");
+    if (value !== "") {
+      e.target.value = Number(value).toLocaleString('en-US');
+    } else {
+      e.target.value = "";
+    }
+  }
+
+  inputAmount.addEventListener('input', formatInputCurrency);
+  inputBudgetLimit.addEventListener('input', formatInputCurrency);
+  splitTotal.addEventListener('input', formatInputCurrency);
+
+  splitPersonList.addEventListener('input', function(e) {
+    if (e.target.classList.contains('custom-amount')) {
+      formatInputCurrency(e);
+    }
+  });
+
+  // ─── Custom Categories ────────────────────
+  function loadCustomCategories() {
+    try {
+      var raw = localStorage.getItem(CUSTOM_CAT_KEY);
+      customCategories = raw ? JSON.parse(raw) : [];
+      
+      var optExpense = document.getElementById('optgroup-expense');
+      var optIncome = document.getElementById('optgroup-income');
+
+      customCategories.forEach(function(cat) {
+        CATEGORY_COLORS[cat.name] = cat.color;
+        CATEGORY_ICONS[cat.name] = cat.icon;
+
+        var opt = document.createElement('option');
+        opt.value = cat.name;
+        opt.textContent = cat.name;
+
+        var filterOpt = opt.cloneNode(true);
+        filterCategory.appendChild(filterOpt);
+
+        if (cat.type === 'expense') {
+          if(optExpense) optExpense.appendChild(opt);
+        } else {
+          if(optIncome) optIncome.appendChild(opt);
+        }
+      });
+    } catch (e) {
+      customCategories = [];
+    }
+  }
+
+  function renderIconSelector() {
+    iconSelector.innerHTML = '';
+    AVAILABLE_ICONS.forEach(function(iconCls) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'icon-btn';
+      if (inputCustomCatIcon.value === iconCls) {
+        btn.classList.add('selected');
+      }
+      btn.innerHTML = '<i class="ph-bold ' + iconCls + '"></i>';
+
+      btn.addEventListener('click', function() {
+        inputCustomCatIcon.value = iconCls;
+        renderIconSelector(); // refresh selection state
+      });
+
+      iconSelector.appendChild(btn);
+    });
+  }
+
+  if (btnAddCategory) {
+    btnAddCategory.addEventListener('click', function() {
+      if (!inputCustomCatIcon.value || inputCustomCatIcon.value === "") {
+        inputCustomCatIcon.value = AVAILABLE_ICONS[0];
+      }
+      renderIconSelector();
+      inputCustomCatName.value = '';
+      categoryOverlay.classList.add('active');
+    });
+  }
+
+  if (btnCancelCategory) {
+    btnCancelCategory.addEventListener('click', function() {
+      categoryOverlay.classList.remove('active');
+    });
+  }
+
+  if (btnSaveCategory) {
+    btnSaveCategory.addEventListener('click', function() {
+      var catName = inputCustomCatName.value.trim();
+      var catType = inputCustomCatType.value;
+      var catIcon = inputCustomCatIcon.value;
+
+      if (!catName) {
+        showToast('Nama kategori tidak boleh kosong', 'error');
+        return;
+      }
+      
+      // Select a random color for this category
+      var randIndex = Math.floor(Math.random() * AVAILABLE_COLORS.length);
+      var catColor = AVAILABLE_COLORS[randIndex] || '#0ea5e9';
+      
+      var fullIconString = '<i class="ph-fill ' + catIcon + '"></i>';
+      var newCat = {
+        id: generateId(),
+        name: catName,
+        type: catType,
+        icon: fullIconString,
+        color: catColor
+      };
+
+      customCategories.push(newCat);
+      saveCustomCategories();
+
+      CATEGORY_COLORS[newCat.name] = newCat.color;
+      CATEGORY_ICONS[newCat.name] = newCat.icon;
+
+      var opt = document.createElement('option');
+      opt.value = newCat.name;
+      opt.textContent = newCat.name;
+
+      var filterOpt = opt.cloneNode(true);
+      filterCategory.appendChild(filterOpt);
+
+      if (newCat.type === 'expense') {
+        document.getElementById('optgroup-expense').appendChild(opt);
+      } else {
+        document.getElementById('optgroup-income').appendChild(opt);
+      }
+
+      inputCategory.value = newCat.name;
+      categoryOverlay.classList.remove('active');
+      showToast('Kategori baru ditambahkan', 'success');
+    });
+  }
+
+  // ─── Automated Recurring Expenses ─────────
+  function processRecurringExpenses() {
+    var todayStr = getTodayString();
+    var todayObj = new Date(todayStr);
+    var updated = false;
+
+    recurringExpenses.forEach(function(rec) {
+      if (!rec.nextDate) return;
+      var nextDateObj = new Date(rec.nextDate);
+      
+      while (nextDateObj <= todayObj) {
+        var expense = {
+          id: generateId(),
+          type: rec.type,
+          wallet: rec.wallet,
+          date: nextDateObj.toISOString().split('T')[0],
+          title: rec.title,
+          category: rec.category,
+          amount: rec.amount
+        };
+        expenses.push(expense);
+        
+        // advance 1 month
+        nextDateObj.setMonth(nextDateObj.getMonth() + 1);
+        rec.nextDate = nextDateObj.toISOString().split('T')[0];
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      saveToStorage();
+      saveRecurringToStorage();
+    }
+  }
+
   // ─── Init ─────────────────────────────────
   function init() {
+    loadRecurringFromStorage();
+    expenses = getFromStorage(); // Must load expenses before processing recurring
+    processRecurringExpenses();
+    
     setTheme(getTheme());
+    loadCustomCategories();
     inputDate.value = getTodayString();
     inputDate.max = getTodayString();
-    expenses = getFromStorage();
     loadFilters();
     updateUndoIndicator();
     setupCanvas();
