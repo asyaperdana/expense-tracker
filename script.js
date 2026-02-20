@@ -57,6 +57,7 @@
   var amountHelp = document.getElementById('amount-help');
   var filterCategory = document.getElementById('filter-category');
   var filterMonth = document.getElementById('filter-month');
+  var filterSort = document.getElementById('filter-sort');
   var btnResetFilter = document.getElementById('btn-reset-filter');
   var btnExportCsv = document.getElementById('btn-export-csv');
   var btnExportJson = document.getElementById('btn-export-json');
@@ -74,6 +75,7 @@
   var chartEmpty = document.getElementById('chart-empty');
   var chartTooltip = document.getElementById('chart-tooltip');
   var toastContainer = document.getElementById('toast-container');
+  var renderStateEl = document.getElementById('render-state');
   var importOverlay = document.getElementById('import-overlay');
   var btnConfirmImport = document.getElementById('btn-confirm-import');
   var btnCancelImport = document.getElementById('btn-cancel-import');
@@ -94,6 +96,7 @@
   var MAX_UNDO = 10;
   var chartSlices = [];
   var chartGeom = null;
+  var renderTimer = null;
 
   // ─── UUID Generator ───────────────────────
   function generateId() {
@@ -318,22 +321,33 @@
   function getFilteredData() {
     var selectedCat = filterCategory.value;
     var selectedMonth = filterMonth.value; // YYYY-MM or ""
+    var selectedSort = filterSort.value || 'date-desc';
 
-    return expenses.filter(function (e) {
+    var filtered = expenses.filter(function (e) {
       var catMatch = selectedCat === 'Semua' || e.category === selectedCat;
       var monthMatch = !selectedMonth || e.date.substring(0, 7) === selectedMonth;
       return catMatch && monthMatch;
     });
+
+    filtered.sort(function (a, b) {
+      if (selectedSort === 'date-asc') return a.date.localeCompare(b.date);
+      if (selectedSort === 'amount-desc') return b.amount - a.amount || b.date.localeCompare(a.date);
+      if (selectedSort === 'amount-asc') return a.amount - b.amount || b.date.localeCompare(a.date);
+      return b.date.localeCompare(a.date);
+    });
+
+    return filtered;
+  }
+
+  function setRenderState(message) {
+    if (!renderStateEl) return;
+    renderStateEl.textContent = message || '';
+    renderStateEl.classList.toggle('visible', Boolean(message));
   }
 
   // ─── Render Table ─────────────────────────
-  function renderTable() {
+  function renderTableNow() {
     var data = getFilteredData();
-
-    // Sort by date desc
-    data.sort(function (a, b) {
-      return b.date.localeCompare(a.date);
-    });
 
     tbody.innerHTML = '';
     updateHero();
@@ -346,6 +360,7 @@
     }
 
     emptyState.classList.remove('visible');
+    var fragment = document.createDocumentFragment();
 
     data.forEach(function (item, index) {
       var tr = document.createElement('tr');
@@ -365,11 +380,24 @@
           '</div>' +
         '</td>';
 
-      tbody.appendChild(tr);
+      fragment.appendChild(tr);
     });
 
+    tbody.appendChild(fragment);
     updateSummary(data);
     renderChart(data);
+  }
+
+  function renderTable() {
+    if (renderTimer) {
+      clearTimeout(renderTimer);
+    }
+    setRenderState('Memuat transaksi...');
+    renderTimer = setTimeout(function () {
+      renderTimer = null;
+      renderTableNow();
+      setRenderState('');
+    }, 0);
   }
 
   // ─── Escape HTML ──────────────────────────
@@ -575,6 +603,8 @@
     categoryHelp.textContent = '';
     amountHelp.textContent = '';
     editingId = null;
+    btnSubmit.disabled = false;
+    btnSubmit.classList.remove('is-loading');
     btnSubmit.innerHTML = '<span class="btn-icon">＋</span> Simpan';
     btnCancel.style.display = 'none';
 
@@ -596,6 +626,13 @@
     e.preventDefault();
 
     if (!validateForm()) return;
+    if (btnSubmit.disabled) return;
+
+    var submitLabel = btnSubmit.innerHTML;
+    var completed = false;
+    btnSubmit.disabled = true;
+    btnSubmit.classList.add('is-loading');
+    btnSubmit.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span> Menyimpan...';
 
     var data = {
       id: editingId || generateId(),
@@ -605,19 +642,28 @@
       amount: Number(inputAmount.value),
     };
 
-    if (editingId) {
-      expenses = expenses.map(function (item) {
-        return item.id === editingId ? data : item;
-      });
-      showToast('Pengeluaran berhasil diperbarui', 'success');
-    } else {
-      expenses.push(data);
-      showToast('Pengeluaran berhasil ditambahkan', 'success');
-    }
+    try {
+      if (editingId) {
+        expenses = expenses.map(function (item) {
+          return item.id === editingId ? data : item;
+        });
+        showToast('Pengeluaran berhasil diperbarui', 'success');
+      } else {
+        expenses.push(data);
+        showToast('Pengeluaran berhasil ditambahkan', 'success');
+      }
 
-    saveToStorage();
-    renderTable();
-    resetForm();
+      saveToStorage();
+      renderTable();
+      resetForm();
+      completed = true;
+    } finally {
+      if (!completed) {
+        btnSubmit.innerHTML = submitLabel;
+      }
+      btnSubmit.disabled = false;
+      btnSubmit.classList.remove('is-loading');
+    }
   }
 
   // ─── Edit Expense ────────────────────────
@@ -652,9 +698,10 @@
 
   function confirmDelete() {
     if (!deleteTargetId) return;
-    var row = tbody.querySelector('tr[data-id="' + deleteTargetId + '"]');
+    var targetId = deleteTargetId;
+    var row = tbody.querySelector('tr[data-id="' + targetId + '"]');
     var deletedItem = expenses.find(function (e) {
-      return e.id === deleteTargetId;
+      return e.id === targetId;
     });
 
     hideDeleteConfirm();
@@ -662,7 +709,7 @@
     function finalizeDelete() {
       pushUndo(expenses);
       expenses = expenses.filter(function (e) {
-        return e.id !== deleteTargetId;
+        return e.id !== targetId;
       });
       saveToStorage();
       renderTable();
@@ -876,6 +923,7 @@
   function resetFilters() {
     filterCategory.value = 'Semua';
     filterMonth.value = '';
+    filterSort.value = 'date-desc';
     localStorage.removeItem(FILTER_KEY);
     renderTable();
     showToast('Filter direset', 'info');
@@ -885,6 +933,7 @@
     var payload = {
       category: filterCategory.value,
       month: filterMonth.value,
+      sort: filterSort.value,
     };
     localStorage.setItem(FILTER_KEY, JSON.stringify(payload));
   }
@@ -898,6 +947,9 @@
       }
       if (saved && typeof saved.month === 'string') {
         filterMonth.value = saved.month;
+      }
+      if (saved && typeof saved.sort === 'string') {
+        filterSort.value = saved.sort;
       }
     } catch (e) {
       // ignore corrupted filters
@@ -919,6 +971,11 @@
   });
 
   filterMonth.addEventListener('change', function () {
+    saveFilters();
+    renderTable();
+  });
+
+  filterSort.addEventListener('change', function () {
     saveFilters();
     renderTable();
   });

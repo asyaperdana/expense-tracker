@@ -2,28 +2,54 @@
    CSS Variables & Reset
    =========================== */
 :root {
-  --clr-bg: #f4f6f8;
-  --clr-surface: #fafafa;
-  --clr-surface-solid: #ffffff;
+  --primary-500: #0f766e;
+  --primary-600: #0b5f59;
+  --success-500: #16a34a;
+  --danger-500: #ef4444;
+  --danger-600: #dc2626;
+  --neutral-0: #ffffff;
+  --neutral-50: #fafafa;
+  --neutral-100: #f4f6f8;
+  --neutral-200: #e2e8f0;
+  --neutral-300: #cbd5e1;
+  --neutral-500: #6b7280;
+  --neutral-700: #334155;
+  --neutral-900: #111827;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-low: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-medium: 0 8px 20px rgba(15, 23, 42, 0.1);
+  --font-size-lg: 1.25rem;
+  --font-size-md: 1rem;
+  --font-size-sm: 0.875rem;
+  --line-height-base: 1.5;
+  --line-height-tight: 1.25;
+  --clr-bg: var(--neutral-100);
+  --clr-surface: var(--neutral-50);
+  --clr-surface-solid: var(--neutral-0);
   --clr-surface-hover: #f3f4f6;
-  --clr-border: #e2e8f0;
+  --clr-border: var(--neutral-200);
   --clr-border-subtle: #edf2f7;
-  --clr-text: #111827;
-  --clr-text-secondary: #6b7280;
-  --clr-primary: #0f766e;
-  --clr-primary-hover: #0b5f59;
+  --clr-text: var(--neutral-900);
+  --clr-text-secondary: var(--neutral-500);
+  --clr-primary: var(--primary-500);
+  --clr-primary-hover: var(--primary-600);
   --clr-primary-light: rgba(15, 118, 110, 0.12);
-  --clr-danger: #ef4444;
-  --clr-danger-hover: #dc2626;
+  --clr-danger: var(--danger-500);
+  --clr-danger-hover: var(--danger-600);
   --clr-danger-light: rgba(239, 68, 68, 0.12);
   --clr-accent: #0891b2;
   --clr-accent-hover: #0e7490;
   --clr-warning: #f59e0b;
-  --clr-success: #16a34a;
-  --radius: 14px;
-  --radius-sm: 10px;
-  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
-  --shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  --clr-success: var(--success-500);
+  --radius: var(--radius-md);
+  --shadow-sm: var(--shadow-low);
+  --shadow: var(--shadow-medium);
   --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.12);
   --shadow-glow: 0 0 18px rgba(15, 118, 110, 0.16);
   --transition: 0.2s ease;
@@ -102,17 +128,32 @@ html {
   scroll-behavior: smooth;
 }
 
+h1,
+h2,
+h3 {
+  line-height: var(--line-height-tight);
+}
+
 body {
   font-family: var(--font-body);
   background: var(--clr-bg);
   color: var(--clr-text);
-  line-height: 1.6;
+  line-height: var(--line-height-base);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   transition:
     background var(--transition),
     color var(--transition);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 2px;
 }
 
 /* ===========================
@@ -152,7 +193,7 @@ body {
 }
 
 .header-inner {
-  max-width: 960px;
+  max-width: 1100px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -167,14 +208,15 @@ body {
 }
 
 .header h1 {
-  font-size: 1.5rem;
+  font-size: var(--font-size-lg);
   font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: var(--line-height-tight);
   font-family: var(--font-heading);
 }
 
 .header-subtitle {
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
   opacity: 0.8;
   margin-top: 0.2rem;
   color: var(--clr-text-secondary);
@@ -213,13 +255,13 @@ body {
    Container
    =========================== */
 .container {
-  max-width: 1000px;
+  max-width: 1100px;
   width: 100%;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-3);
   flex: 1;
 }
 
@@ -229,8 +271,8 @@ body {
 .card {
   background: var(--clr-surface);
   border: 1px solid var(--clr-border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
@@ -269,9 +311,9 @@ body {
 }
 
 .card-title {
-  font-size: 1.05rem;
+  font-size: var(--font-size-md);
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-2);
   color: var(--clr-text);
   display: flex;
   align-items: center;
@@ -317,7 +359,7 @@ body {
   font-size: 1.05rem;
   font-weight: 700;
   font-family: var(--font-heading);
-  margin-top: 0.25rem;
+  margin: 0.25rem 0 0;
 }
 
 .hero-value {
@@ -446,6 +488,32 @@ body {
   gap: 0.75rem;
 }
 
+#btn-submit.is-loading {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+#btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ===========================
    Buttons
    =========================== */
@@ -454,7 +522,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  padding: 0.65rem 1.5rem;
+  padding: 0.65rem 1.25rem;
+  min-height: 44px;
   font-size: 0.9rem;
   font-weight: 600;
   font-family: var(--font-body);
@@ -533,6 +602,7 @@ body {
 
 .btn-sm {
   padding: 0.4rem 0.85rem;
+  min-height: 44px;
   font-size: 0.8rem;
   border-radius: 8px;
 }
@@ -782,10 +852,21 @@ body {
    Table
    =========================== */
 .table-wrapper {
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 440px;
   margin: 0 -1.5rem;
   padding: 0 1.5rem;
   position: relative;
+}
+
+.table-wrapper::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--clr-border);
+  border-radius: 999px;
 }
 
 #expense-table {
@@ -892,13 +973,36 @@ body {
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 2.5rem 1rem;
+  padding: 2rem 1rem;
   color: var(--clr-text-secondary);
-  font-size: 0.95rem;
+  font-size: var(--font-size-sm);
   display: none;
+  border: 1px dashed var(--clr-border);
+  border-radius: var(--radius);
+  background: var(--clr-surface-solid);
 }
 
 .empty-state.visible {
+  display: block;
+}
+
+.empty-state::before {
+  content: "Belum ada data";
+  display: block;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--clr-text);
+  margin-bottom: 6px;
+}
+
+.render-state {
+  display: none;
+  font-size: 0.8rem;
+  color: var(--clr-text-secondary);
+  margin: -0.25rem 0 0.75rem;
+}
+
+.render-state.visible {
   display: block;
 }
 
@@ -1725,6 +1829,7 @@ body {
   .table-wrapper {
     margin: 0;
     padding: 0;
+    max-height: none;
   }
 
   #expense-table thead {

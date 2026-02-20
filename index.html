@@ -39,7 +39,7 @@
         <span class="card-illus" aria-hidden="true">✶</span>
         <div class="hero-content">
           <div class="hero-kicker">Ringkas Hari Ini</div>
-          <div class="hero-title">Pengeluaran Hari Ini</div>
+          <h2 class="hero-title">Pengeluaran Hari Ini</h2>
           <div class="hero-value" id="today-amount">Rp 0</div>
           <div class="hero-meta">
             <span>Transaksi <strong id="today-count">0</strong></span>
@@ -57,7 +57,7 @@
       <!-- Form Section -->
       <section class="card glass form-card">
         <span class="card-illus" aria-hidden="true">◈</span>
-        <h2 class="card-title">Tambah Pengeluaran</h2>
+        <h3 class="card-title">Tambah Pengeluaran</h3>
         <form id="expense-form" novalidate>
           <div class="form-grid">
             <div class="form-group">
@@ -93,16 +93,16 @@
               <label for="input-amount">Nominal (Rp)</label>
               <input
                 type="number"
-              id="input-amount"
-              placeholder="cth: 25000"
-              min="0"
-              step="1"
-              inputmode="numeric"
-              required
-            />
-            <small class="help-text" id="amount-help" aria-live="polite"></small>
+                id="input-amount"
+                placeholder="cth: 25000"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                required
+              />
+              <small class="help-text" id="amount-help" aria-live="polite"></small>
+            </div>
           </div>
-        </div>
           <div class="form-actions">
             <button type="submit" id="btn-submit" class="btn btn-primary">
               <span class="btn-icon">＋</span> Simpan
@@ -147,7 +147,7 @@
       <!-- Chart Section -->
       <section class="card glass chart-card">
         <span class="card-illus" aria-hidden="true">◔</span>
-        <h2 class="card-title">Grafik Pengeluaran</h2>
+        <h3 class="card-title">Grafik Pengeluaran</h3>
         <div class="chart-container">
           <canvas id="category-chart" width="280" height="280"></canvas>
           <div class="chart-legend" id="chart-legend"></div>
@@ -180,6 +180,15 @@
             <label for="filter-month">Bulan:</label>
             <input type="month" id="filter-month" />
           </div>
+          <div class="filter-group">
+            <label for="filter-sort">Urutkan:</label>
+            <select id="filter-sort">
+              <option value="date-desc">Tanggal terbaru</option>
+              <option value="date-asc">Tanggal terlama</option>
+              <option value="amount-desc">Nominal tertinggi</option>
+              <option value="amount-asc">Nominal terendah</option>
+            </select>
+          </div>
           <div class="filter-group undo-group">
             <span class="undo-indicator" id="undo-indicator">Undo: 0</span>
             <button class="btn btn-ghost btn-sm" id="btn-undo" type="button" disabled>
@@ -208,7 +217,8 @@
       <!-- Table Section -->
       <section class="card glass table-card">
         <span class="card-illus" aria-hidden="true">▦</span>
-        <h2 class="card-title">Daftar Pengeluaran</h2>
+        <h3 class="card-title">Daftar Pengeluaran</h3>
+        <p class="render-state" id="render-state" aria-live="polite"></p>
         <div class="table-wrapper">
           <table id="expense-table">
             <thead>
@@ -226,7 +236,7 @@
           </table>
         </div>
         <p class="empty-state" id="empty-state">
-          Belum ada pengeluaran. Mulai tambahkan data di atas! ☝️
+          Belum ada pengeluaran. Tambahkan transaksi pertama dari form di atas.
         </p>
       </section>
     </main>
