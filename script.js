@@ -629,7 +629,7 @@
 
     var icon = CATEGORY_ICONS[match.category] || '';
     var pct = match.percent.toFixed(1);
-    chartTooltip.textContent =
+    chartTooltip.innerHTML =
       icon + ' ' + match.category + ' — ' + formatRupiah(match.amount) + ' (' + pct + '%)';
 
     var containerRect = chartCanvas.parentElement.getBoundingClientRect();
