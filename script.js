@@ -178,6 +178,11 @@
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     themeIcon.innerHTML = theme === 'dark' ? '<i class="ph-fill ph-sun"></i>' : '<i class="ph-fill ph-moon"></i>';
+    
+    // Refresh chart to apply theme-specific colors (e.g., center text)
+    if (typeof renderTable === 'function') {
+      renderTable();
+    }
   }
 
   function toggleTheme() {
