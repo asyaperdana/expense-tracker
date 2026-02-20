@@ -328,7 +328,7 @@
           topCat = cat;
         }
       });
-      topCategoryEl.textContent = (CATEGORY_ICONS[topCat] || '') + ' ' + topCat;
+      topCategoryEl.innerHTML = (CATEGORY_ICONS[topCat] || '') + ' ' + topCat;
     } else {
       topCategoryEl.textContent = '—';
     }
@@ -573,13 +573,18 @@
     });
 
     // Center text
-    ctx.fillStyle = getComputedStyle(document.body).color || '#1a1d26';
+    var theme = getTheme();
+    var textColor = theme === 'dark' ? '#e2e8f0' : '#0f172a';
+    var textSecondaryColor = theme === 'dark' ? '#94a3b8' : '#64748b';
+
+    ctx.fillStyle = textColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '700 1rem system-ui, -apple-system, "Segoe UI", Arial, sans-serif';
+    ctx.font = '700 1rem "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
     ctx.fillText(formatRupiah(total), center, center - 8);
-    ctx.font = '500 0.7rem system-ui, -apple-system, "Segoe UI", Arial, sans-serif';
-    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--clr-text-secondary') || '#6b7280';
+
+    ctx.font = '500 0.7rem "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = textSecondaryColor;
     ctx.fillText('Total', center, center + 14);
   }
 
