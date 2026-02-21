@@ -618,7 +618,9 @@
     chartSlices = [];
     chartGeom = { center: size / 2, innerRadius: innerRadius, outerRadius: outerRadius };
 
-    if (!data || data.length === 0) {
+    var hasExpense = data && data.some(function(item) { return item.type === 'expense'; });
+
+    if (!hasExpense) {
       chartEmpty.classList.add('visible');
       chartCanvas.style.display = 'none';
       chartLegend.style.display = 'none';
