@@ -15,6 +15,8 @@
   var SPLIT_HISTORY_KEY = 'expense_tracker_split_history';
   var CUSTOM_CAT_KEY = 'expense_tracker_custom_cat';
   var RECURRING_KEY = 'expense_tracker_recurring';
+  var GOALS_KEY = 'expense_tracker_goals';
+
 
   var CATEGORY_COLORS = {
     Makanan: '#f97316',
@@ -46,10 +48,15 @@
   var form = document.getElementById('expense-form');
   var inputDate = document.getElementById('input-date');
   var inputTitle = document.getElementById('input-title');
+  var titleSuggestions = document.getElementById('title-suggestions');
   var inputCategory = document.getElementById('input-category');
   var inputAmount = document.getElementById('input-amount');
   var inputTypeRadios = document.getElementsByName('input-type');
   var inputWallet = document.getElementById('input-wallet');
+  var inputWalletTo = document.getElementById('input-wallet-to');
+  var groupWalletTo = document.getElementById('group-wallet-to');
+  var groupCategory = document.getElementById('group-category');
+  var labelWallet = document.getElementById('label-wallet');
   var btnSubmit = document.getElementById('btn-submit');
   var btnCancel = document.getElementById('btn-cancel');
   var tbody = document.getElementById('expense-tbody');
@@ -59,6 +66,7 @@
   var topCategoryEl = document.getElementById('top-category');
   
   var totalBalanceEl = document.getElementById('total-balance');
+  var walletBalancesEl = document.getElementById('wallet-balances');
   var budgetTextUsed = document.getElementById('budget-text-used');
   var budgetTextLimit = document.getElementById('budget-text-limit');
   var budgetPct = document.getElementById('budget-pct');
@@ -115,10 +123,28 @@
 
   var inputRecurring = document.getElementById('input-recurring');
 
+  var goalListEl = document.getElementById('goal-list');
+  var btnAddGoal = document.getElementById('btn-add-goal');
+  var goalAddOverlay = document.getElementById('goal-add-overlay');
+  var inputGoalName = document.getElementById('input-goal-name');
+  var inputGoalTarget = document.getElementById('input-goal-target');
+  var btnSaveGoal = document.getElementById('btn-save-goal');
+  var btnCancelGoal = document.getElementById('btn-cancel-goal');
+
+  var goalFundOverlay = document.getElementById('goal-fund-overlay');
+  var inputGoalFundId = document.getElementById('input-goal-fund-id');
+  var inputGoalFundSource = document.getElementById('input-goal-fund-source');
+  var inputGoalFundAmount = document.getElementById('input-goal-fund-amount');
+  var btnSaveGoalFund = document.getElementById('btn-save-goal-fund');
+  var btnCancelGoalFund = document.getElementById('btn-cancel-goal-fund');
+  var goalFundSubtitle = document.getElementById('goal-fund-subtitle');
+  var goalSection = document.getElementById('goal-section');
+
   // ─── State ────────────────────────────────
   var expenses = [];
   var customCategories = [];
   var recurringExpenses = [];
+  var goals = [];
   var editingId = null;
   var deleteTargetId = null;
   var lastDeleted = null;
@@ -167,6 +193,19 @@
 
   function saveCustomCategories() {
     localStorage.setItem(CUSTOM_CAT_KEY, JSON.stringify(customCategories));
+  }
+
+  function loadGoalsFromStorage() {
+    try {
+      var raw = localStorage.getItem(GOALS_KEY);
+      goals = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      goals = [];
+    }
+  }
+
+  function saveGoalsToStorage() {
+    localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
   }
 
   // ─── Theme (Dark Mode) ───────────────────
@@ -295,7 +334,7 @@
     return data.reduce(function (res, item) {
       if (item.type === 'income') {
         res.income += item.amount;
-      } else {
+      } else if (item.type === 'expense') {
         res.expense += item.amount;
       }
       res.balance = res.income - res.expense;
@@ -348,10 +387,58 @@
     localStorage.setItem(BUDGET_KEY, val);
   }
 
+  // ─── Calculate Individual Wallets ────────
+  function calculateWalletBalances(data) {
+    var wallets = {
+      'Tunai': 0,
+      'Rekening Bank': 0,
+      'E-Wallet': 0
+    };
+    
+    data.forEach(function(item) {
+      var w = item.wallet || 'Tunai';
+      if (typeof wallets[w] === 'undefined') wallets[w] = 0;
+      
+      if (item.type === 'income') {
+        wallets[w] += item.amount;
+      } else if (item.type === 'expense') {
+        wallets[w] -= item.amount;
+      } else if (item.type === 'transfer') {
+        var wTo = item.walletTo || 'Tunai';
+        if (typeof wallets[wTo] === 'undefined') wallets[wTo] = 0;
+        
+        wallets[w] -= item.amount;
+        wallets[wTo] += item.amount;
+      }
+    });
+    
+    return wallets;
+  }
+
   // ─── Update Hero (Balance & Budget) ──────
   function updateHero() {
     var totals = calculateTotal(expenses);
     totalBalanceEl.textContent = formatRupiah(totals.balance);
+
+    if (walletBalancesEl) {
+      var wals = calculateWalletBalances(expenses);
+      walletBalancesEl.innerHTML = '';
+      Object.keys(wals).forEach(function(w) {
+        var bal = wals[w];
+        var icon = '<i class="ph-bold ph-wallet"></i>';
+        if (w === 'Tunai') icon = '<i class="ph-bold ph-money"></i>';
+        if (w === 'Rekening Bank') icon = '<i class="ph-bold ph-bank"></i>';
+        if (w === 'E-Wallet') icon = '<i class="ph-bold ph-device-mobile"></i>';
+        
+        var wDiv = document.createElement('div');
+        wDiv.style.background = 'rgba(255,255,255,0.15)';
+        wDiv.style.padding = '4px 10px';
+        wDiv.style.borderRadius = '8px';
+        wDiv.style.fontSize = '0.85rem';
+        wDiv.innerHTML = '<span style="opacity: 0.8; margin-right: 4px;">' + icon + ' ' + w + ':</span> <strong>' + formatRupiah(bal) + '</strong>';
+        walletBalancesEl.appendChild(wDiv);
+      });
+    }
 
     // Calculate this month's expense
     var today = new Date();
@@ -434,6 +521,7 @@
 
     tbody.innerHTML = '';
     updateHero();
+    updateTitleSuggestions();
 
     if (data.length === 0) {
       emptyState.classList.add('visible');
@@ -452,13 +540,19 @@
       tr.dataset.id = item.id;
 
       var isIncome = item.type === 'income';
-      var indicatorHtml = isIncome ? '<span style="color:var(--clr-success)"><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</span>' : '<span style="color:var(--clr-danger)"><i class="ph-bold ph-arrow-up-right"></i> Pengeluaran</span>';
+      var isTransfer = item.type === 'transfer';
+      var indicatorHtml = isIncome ? '<span style="color:var(--clr-success)"><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</span>' : 
+                          (isTransfer ? '<span style="color:var(--clr-accent)"><i class="ph-bold ph-arrows-left-right"></i> Transfer</span>' :
+                          '<span style="color:var(--clr-danger)"><i class="ph-bold ph-arrow-up-right"></i> Pengeluaran</span>');
       
+      var walletText = isTransfer ? (escapeHtml(item.wallet || 'Tunai') + ' <i class="ph-bold ph-arrow-right"></i> ' + escapeHtml(item.walletTo || 'Tunai')) : escapeHtml(item.wallet || 'Tunai');
+      var categoryContent = isTransfer ? '<i class="ph-fill ph-arrows-left-right"></i> Transfer Dompet' : ((CATEGORY_ICONS[item.category] || '') + ' ' + escapeHtml(item.category));
+
       tr.innerHTML =
         '<td data-label="Tanggal">' + formatDate(item.date) + '</td>' +
         '<td data-label="Tipe & Nama"><div style="font-weight:600">' + escapeHtml(item.title) + '</div><div style="font-size:0.75rem">' + indicatorHtml + '</div></td>' +
-        '<td data-label="Kategori & Dompet"><span class="badge">' + (CATEGORY_ICONS[item.category] || '') + ' ' + escapeHtml(item.category) + '</span><div style="font-size:0.75rem; margin-top:4px; opacity:0.7;"><i class="ph-fill ph-wallet"></i> ' + escapeHtml(item.wallet || 'Tunai') + '</div></td>' +
-        '<td class="text-right" data-label="Nominal"><span class="amount ' + (isIncome ? 'text-success' : '') + '" style="font-weight:600">' + (isIncome ? '+' : '-') + formatRupiah(item.amount) + '</span></td>' +
+        '<td data-label="Kategori & Dompet"><span class="badge">' + categoryContent + '</span><div style="font-size:0.75rem; margin-top:4px; opacity:0.7;"><i class="ph-fill ph-wallet"></i> ' + walletText + '</div></td>' +
+        '<td class="text-right" data-label="Nominal"><span class="amount ' + (isIncome ? 'text-success' : (isTransfer ? 'text-accent' : '')) + '" style="font-weight:600">' + (isIncome ? '+' : (isTransfer ? '' : '-')) + formatRupiah(item.amount) + '</span></td>' +
         '<td class="text-center" data-label="Aksi">' +
           '<div class="action-group">' +
             '<button class="btn btn-sm btn-edit" data-action="edit" data-id="' + item.id + '" title="Edit"><i class="ph-bold ph-pencil-simple"></i> Edit</button>' +
@@ -484,6 +578,23 @@
       renderTableNow();
       setRenderState('');
     }, 0);
+  }
+
+  // ─── Title Suggestions (Autocomplete) ─────
+  function updateTitleSuggestions() {
+    if (!titleSuggestions) return;
+    var uniqueTitles = {};
+    expenses.forEach(function(e) {
+      if (!uniqueTitles[e.title]) {
+        uniqueTitles[e.title] = e;
+      }
+    });
+    titleSuggestions.innerHTML = '';
+    Object.keys(uniqueTitles).forEach(function(title) {
+      var option = document.createElement('option');
+      option.value = title;
+      titleSuggestions.appendChild(option);
+    });
   }
 
   // ─── Escape HTML ──────────────────────────
@@ -523,7 +634,7 @@
     var catTotals = {};
     var total = 0;
     data.forEach(function (item) {
-      if (item.type !== 'income') {
+      if (item.type === 'expense') {
         catTotals[item.category] = (catTotals[item.category] || 0) + item.amount;
         total += item.amount;
       }
@@ -669,12 +780,22 @@
       inputTitle.classList.add('invalid');
       valid = false;
     }
-    if (!inputCategory.value) {
+    
+    var isTransfer = document.querySelector('input[name="input-type"]:checked').value === 'transfer';
+
+    if (!isTransfer && !inputCategory.value) {
       inputCategory.classList.add('invalid');
       categoryHelp.textContent = 'Kategori wajib diisi';
       valid = false;
     } else {
       categoryHelp.textContent = '';
+    }
+    
+    if (isTransfer) {
+      if (inputWallet.value === inputWalletTo.value) {
+        showToast('Dompet asal dan tujuan tidak boleh sama', 'error');
+        valid = false;
+      }
     }
     var rawAmount = inputAmount.value.replace(/,/g, '');
     if (!rawAmount || Number(rawAmount) <= 0) {
@@ -701,6 +822,10 @@
     // reset type to expense and background to Tunai
     document.querySelector('input[name="input-type"][value="expense"]').checked = true;
     inputWallet.value = 'Tunai';
+    inputWalletTo.value = 'Tunai';
+    groupWalletTo.style.display = 'none';
+    groupCategory.style.display = 'flex';
+    labelWallet.textContent = 'Sumber Dana';
 
     inputRecurring.checked = false;
     document.querySelector('.checkbox-group').style.display = 'flex'; // show when adding
@@ -710,7 +835,7 @@
     btnSubmit.innerHTML = '<i class="ph-bold ph-plus-circle btn-icon"></i> Simpan';
     btnCancel.style.display = 'none';
 
-    [inputDate, inputTitle, inputCategory, inputAmount, inputWallet].forEach(function (f) {
+    [inputDate, inputTitle, inputCategory, inputAmount, inputWallet, inputWalletTo].forEach(function (f) {
       if (f) f.classList.remove('invalid');
     });
   }
@@ -748,9 +873,10 @@
       id: editingId || generateId(),
       type: selectedType,
       wallet: inputWallet.value || 'Tunai',
+      walletTo: selectedType === 'transfer' ? (inputWalletTo.value || 'Tunai') : undefined,
       date: inputDate.value,
       title: inputTitle.value.trim(),
-      category: inputCategory.value,
+      category: selectedType === 'transfer' ? 'Transfer' : inputCategory.value,
       amount: Number(inputAmount.value.replace(/,/g, '')),
     };
 
@@ -814,6 +940,17 @@
       inputWallet.value = item.wallet;
     } else {
       inputWallet.value = 'Tunai';
+    }
+    
+    if (item.type === 'transfer') {
+      inputWalletTo.value = item.walletTo || 'Tunai';
+      groupWalletTo.style.display = 'flex';
+      groupCategory.style.display = 'none';
+      labelWallet.textContent = 'Dari Dompet';
+    } else {
+      groupWalletTo.style.display = 'none';
+      groupCategory.style.display = 'flex';
+      labelWallet.textContent = 'Sumber Dana';
     }
     
     // Set type
@@ -1557,6 +1694,48 @@
   inputBudgetLimit.addEventListener('input', formatInputCurrency);
   splitTotal.addEventListener('input', formatInputCurrency);
 
+  inputTitle.addEventListener('input', function(e) {
+    var val = e.target.value.trim().toLowerCase();
+    if (!val) return;
+    
+    var match = null;
+    for (var i = expenses.length - 1; i >= 0; i--) {
+      if (expenses[i].title.toLowerCase() === val) {
+        match = expenses[i];
+        break; // take latest
+      }
+    }
+
+    if (match) {
+      // auto-fill type
+      var typeRadio = document.querySelector('input[name="input-type"][value="' + match.type + '"]');
+      if (typeRadio) {
+        typeRadio.checked = true;
+      }
+      // auto-fill wallet & category
+      if (match.wallet) inputWallet.value = match.wallet;
+      if (match.category) inputCategory.value = match.category;
+    }
+  });
+
+  for (var i = 0; i < inputTypeRadios.length; i++) {
+    inputTypeRadios[i].addEventListener('change', function(e) {
+      if (e.target.value === 'transfer') {
+        groupWalletTo.style.display = 'flex';
+        groupCategory.style.display = 'none';
+        labelWallet.textContent = 'Dari Dompet';
+        inputCategory.removeAttribute('required');
+        inputWalletTo.setAttribute('required', 'required');
+      } else {
+        groupWalletTo.style.display = 'none';
+        groupCategory.style.display = 'flex';
+        labelWallet.textContent = 'Sumber Dana';
+        inputCategory.setAttribute('required', 'required');
+        inputWalletTo.removeAttribute('required');
+      }
+    });
+  }
+
   splitPersonList.addEventListener('input', function(e) {
     if (e.target.classList.contains('custom-amount')) {
       formatInputCurrency(e);
@@ -1680,45 +1859,250 @@
     });
   }
 
+  var pendingRecurring = [];
+
   // ─── Automated Recurring Expenses ─────────
   function processRecurringExpenses() {
     var todayStr = getTodayString();
     var todayObj = new Date(todayStr);
-    var updated = false;
+    pendingRecurring = [];
 
     recurringExpenses.forEach(function(rec) {
       if (!rec.nextDate) return;
       var nextDateObj = new Date(rec.nextDate);
       
       while (nextDateObj <= todayObj) {
-        var expense = {
-          id: generateId(),
-          type: rec.type,
-          wallet: rec.wallet,
-          date: nextDateObj.toISOString().split('T')[0],
-          title: rec.title,
-          category: rec.category,
-          amount: rec.amount
-        };
-        expenses.push(expense);
-        
-        // advance 1 month
+        pendingRecurring.push({
+          recRef: rec,
+          expenseData: {
+            id: generateId(),
+            type: rec.type,
+            wallet: rec.wallet,
+            date: nextDateObj.toISOString().split('T')[0],
+            title: rec.title,
+            category: rec.category,
+            amount: rec.amount
+          }
+        });
         nextDateObj.setMonth(nextDateObj.getMonth() + 1);
-        rec.nextDate = nextDateObj.toISOString().split('T')[0];
-        updated = true;
       }
     });
 
-    if (updated) {
-      saveToStorage();
-      saveRecurringToStorage();
+    if (pendingRecurring.length > 0) {
+      showRecurringPrompt();
     }
   }
+
+  function showRecurringPrompt() {
+    var recurringOverlay = document.getElementById('recurring-overlay');
+    var recurringList = document.getElementById('recurring-list');
+    var btnConfirm = document.getElementById('btn-confirm-recurring');
+    var btnCancel = document.getElementById('btn-cancel-recurring');
+
+    if (!recurringOverlay || !recurringList) return;
+
+    recurringList.innerHTML = '';
+    pendingRecurring.forEach(function(item) {
+      var div = document.createElement('div');
+      div.style.marginBottom = '8px';
+      div.innerHTML = '<strong>' + escapeHtml(item.expenseData.title) + '</strong><br>' +
+                      '<span style="font-size:0.8rem; opacity:0.8">' + formatDate(item.expenseData.date) + ' - ' + formatRupiah(item.expenseData.amount) + '</span>';
+      recurringList.appendChild(div);
+    });
+
+    // Handle Confirm
+    btnConfirm.onclick = function() {
+      var updated = false;
+      pendingRecurring.forEach(function(item) {
+        expenses.push(item.expenseData);
+        var currentNextDateObj = new Date(item.expenseData.date);
+        currentNextDateObj.setMonth(currentNextDateObj.getMonth() + 1);
+        item.recRef.nextDate = currentNextDateObj.toISOString().split('T')[0];
+        updated = true;
+      });
+      if (updated) {
+        saveToStorage();
+        saveRecurringToStorage();
+        renderTable();
+        showToast('Tagihan otomatis berhasil dicatat!', 'success');
+      }
+      recurringOverlay.classList.remove('active');
+    };
+
+    // Handle Skip
+    btnCancel.onclick = function() {
+      var updated = false;
+      pendingRecurring.forEach(function(item) {
+        var currentNextDateObj = new Date(item.expenseData.date);
+        currentNextDateObj.setMonth(currentNextDateObj.getMonth() + 1);
+        item.recRef.nextDate = currentNextDateObj.toISOString().split('T')[0];
+        updated = true;
+      });
+      if (updated) {
+        saveRecurringToStorage();
+      }
+      recurringOverlay.classList.remove('active');
+    };
+
+    recurringOverlay.classList.add('active');
+  }
+
+  // ─── Goal Tracking (Tabungan Impian) ─────
+  function renderGoals() {
+    if (!goalListEl) return;
+    goalListEl.innerHTML = '';
+    
+    // Calculate current amounts for each goal based on transfer transactions
+    var goalBalances = {};
+    expenses.forEach(function(e) {
+      if (e.type === 'transfer' && e.walletTo && e.walletTo.startsWith('Goal-')) {
+        var gid = e.walletTo.replace('Goal-', '');
+        goalBalances[gid] = (goalBalances[gid] || 0) + e.amount;
+      }
+    });
+
+    if (goals.length === 0) {
+      goalListEl.innerHTML = '<div style="text-align:center; padding: 1.5rem; color: var(--clr-text-secondary); font-size: 0.9rem;">Belum ada tabungan impian. <br><span style="font-size:0.8rem;opacity:0.6;">Buat goal baru untuk mulai menabung!</span></div>';
+      return;
+    }
+
+    goals.forEach(function(g) {
+      var current = goalBalances[g.id] || 0;
+      var pct = Math.min((current / g.target) * 100, 100).toFixed(1);
+      
+      var card = document.createElement('div');
+      card.style.background = 'var(--clr-surface-solid)';
+      card.style.border = '1px solid var(--clr-border)';
+      card.style.borderRadius = '12px';
+      card.style.padding = '1rem';
+      
+      card.innerHTML = 
+        '<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 8px;">' +
+          '<div style="font-weight:700; font-size:1.05rem;">' + escapeHtml(g.name) + '</div>' +
+          '<div style="font-size:0.85rem; color:var(--clr-text-secondary);">' + formatRupiah(current) + ' / ' + formatRupiah(g.target) + '</div>' +
+        '</div>' +
+        '<div style="height: 8px; background: var(--clr-border); border-radius: 8px; overflow: hidden; margin-bottom: 12px; position:relative;">' +
+          '<div style="position:absolute; top:0; left:0; height:100%; background: var(--clr-accent); width: ' + pct + '%; border-radius: 8px; transition: width 0.5s;"></div>' +
+        '</div>' +
+        '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+          '<div style="font-size:0.8rem; font-weight:600; color:var(--clr-accent);">' + pct + '% Tercapai</div>' +
+          '<div style="display:flex; gap:0.5rem;">' +
+            '<button class="btn btn-sm btn-ghost btn-fund-goal" data-id="' + g.id + '" style="padding:4px 8px; font-size:0.75rem;"><i class="ph-bold ph-piggy-bank"></i> Isi Dana</button>' +
+            '<button class="btn btn-sm btn-ghost btn-del-goal" data-id="' + g.id + '" style="padding:4px 8px; font-size:0.75rem; color:var(--clr-danger); border-color:transparent;"><i class="ph-bold ph-trash"></i></button>' +
+          '</div>' +
+        '</div>';
+      
+      goalListEl.appendChild(card);
+    });
+
+    var fundBtns = goalListEl.querySelectorAll('.btn-fund-goal');
+    fundBtns.forEach(function(b) {
+      b.addEventListener('click', function() {
+        var gid = this.dataset.id;
+        var goal = goals.find(function(g) { return g.id === gid; });
+        if(goal) {
+          inputGoalFundId.value = gid;
+          goalFundSubtitle.textContent = 'Menabung untuk: ' + goal.name;
+          inputGoalFundAmount.value = '';
+          goalFundOverlay.classList.add('active');
+        }
+      });
+    });
+
+    var delBtns = goalListEl.querySelectorAll('.btn-del-goal');
+    delBtns.forEach(function(b) {
+      b.addEventListener('click', function() {
+        var gid = this.dataset.id;
+        if(confirm('Hapus tabungan impian ini? (Dana yang sudah dialokasikan tidak akan kembali ke dompet secara otomatis)')) {
+          goals = goals.filter(function(g) { return g.id !== gid; });
+          saveGoalsToStorage();
+          renderGoals();
+          showToast('Tabungan impian dihapus', 'info');
+        }
+      });
+    });
+  }
+
+  if (btnAddGoal) {
+    btnAddGoal.addEventListener('click', function() {
+      inputGoalName.value = '';
+      inputGoalTarget.value = '';
+      goalAddOverlay.classList.add('active');
+    });
+  }
+
+  if (btnCancelGoal) {
+    btnCancelGoal.addEventListener('click', function() {
+      goalAddOverlay.classList.remove('active');
+    });
+  }
+
+  if (btnSaveGoal) {
+    btnSaveGoal.addEventListener('click', function() {
+      var name = inputGoalName.value.trim();
+      var target = Number(inputGoalTarget.value.replace(/,/g, ''));
+      if (!name || !target) {
+        showToast('Lengkapi nama dan target dana', 'error');
+        return;
+      }
+      
+      goals.push({ id: generateId(), name: name, target: target });
+      saveGoalsToStorage();
+      renderGoals();
+      goalAddOverlay.classList.remove('active');
+      showToast('Tabungan impian ditambahkan', 'success');
+    });
+  }
+
+  if (btnCancelGoalFund) {
+    btnCancelGoalFund.addEventListener('click', function() {
+      goalFundOverlay.classList.remove('active');
+    });
+  }
+
+  if (btnSaveGoalFund) {
+    btnSaveGoalFund.addEventListener('click', function() {
+      var gid = inputGoalFundId.value;
+      var amt = Number(inputGoalFundAmount.value.replace(/,/g, ''));
+      var src = inputGoalFundSource.value;
+      
+      if (!amt || amt <= 0) {
+        showToast('Nominal tidak valid', 'error');
+        return;
+      }
+      
+      var goal = goals.find(function(g) { return g.id === gid; });
+      if(!goal) return;
+
+      var data = {
+        id: generateId(),
+        type: 'transfer',
+        wallet: src,
+        walletTo: 'Goal-' + gid,
+        date: getTodayString(),
+        title: 'Tabungan: ' + goal.name,
+        category: 'Transfer',
+        amount: amt
+      };
+      
+      expenses.push(data);
+      saveToStorage();
+      renderTable();
+      renderGoals();
+      
+      goalFundOverlay.classList.remove('active');
+      showToast('Dana berhasil dialokasikan', 'success');
+    });
+  }
+  
+  if (inputGoalTarget) inputGoalTarget.addEventListener('input', formatInputCurrency);
+  if (inputGoalFundAmount) inputGoalFundAmount.addEventListener('input', formatInputCurrency);
 
   // ─── Init ─────────────────────────────────
   function init() {
     loadRecurringFromStorage();
     expenses = getFromStorage(); // Must load expenses before processing recurring
+    loadGoalsFromStorage();
     processRecurringExpenses();
     
     setTheme(getTheme());
@@ -1730,6 +2114,17 @@
     setupCanvas();
     loadSplitHistory();
     renderTable();
+    renderGoals();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./service-worker.js').then(function(reg) {
+          console.log('ServiceWorker registration successful with scope: ', reg.scope);
+        }).catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      });
+    }
   }
 
   init();

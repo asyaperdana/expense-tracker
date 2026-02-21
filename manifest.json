@@ -1,0 +1,17 @@
+{
+  "name": "Expense Tracker",
+  "short_name": "ExpenseApp",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f766e",
+  "description": "Aplikasi tracking pengeluaran uang harian dengan penyimpanan lokal.",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

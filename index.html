@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="css/style.css" />
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
     <link rel="apple-touch-icon" href="assets/icon.svg" />
+    <link rel="manifest" href="manifest.json" />
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
   </head>
   <body>
@@ -50,6 +51,7 @@
           <div class="hero-kicker">Ringkasan Keuangan</div>
           <h2 class="hero-title">Total Saldo Aktif</h2>
           <div class="hero-value" id="total-balance">Rp 0</div>
+          <div class="wallet-balances" id="wallet-balances" style="display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;"></div>
           
           <div class="budget-container" style="margin-top: 1.5rem; background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
             <div class="budget-header" style="display:flex; justify-content:space-between; align-items:center; font-size: 0.9rem; font-weight:600; margin-bottom: 0.6rem;">
@@ -94,12 +96,23 @@
                 <input type="radio" id="type-inc" name="input-type" value="income" />
                 <label for="type-inc"><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</label>
                 
+                <input type="radio" id="type-trf" name="input-type" value="transfer" />
+                <label for="type-trf"><i class="ph-bold ph-arrows-left-right"></i> Transfer</label>
+                
                 <div class="segmented-bg"></div>
               </div>
             </div>
             <div class="form-group">
-              <label for="input-wallet">Sumber Dana</label>
+              <label for="input-wallet" id="label-wallet">Sumber Dana</label>
               <select id="input-wallet" required>
+                <option value="Tunai">Tunai</option>
+                <option value="Rekening Bank">Rekening Bank</option>
+                <option value="E-Wallet">E-Wallet</option>
+              </select>
+            </div>
+            <div class="form-group" id="group-wallet-to" style="display:none">
+              <label for="input-wallet-to">Tujuan Dana</label>
+              <select id="input-wallet-to">
                 <option value="Tunai">Tunai</option>
                 <option value="Rekening Bank">Rekening Bank</option>
                 <option value="E-Wallet">E-Wallet</option>
@@ -116,10 +129,12 @@
                 type="text"
                 id="input-title"
                 placeholder="cth: Makan siang"
+                list="title-suggestions"
                 required
               />
+              <datalist id="title-suggestions"></datalist>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="group-category">
               <div style="display:flex; justify-content:space-between; align-items:flex-end;">
                 <label for="input-category">Kategori</label>
                 <button class="btn-ghost" id="btn-add-category" type="button" style="font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--clr-primary-light); color: var(--clr-primary); font-weight: 600; cursor: pointer;">
@@ -197,6 +212,20 @@
             <span class="summary-label">Kategori Teratas</span>
             <span class="summary-value summary-value-sm" id="top-category">—</span>
           </div>
+        </div>
+      </section>
+
+      <!-- Goal Tracking Section -->
+      <section class="card glass goal-card" id="goal-section" style="margin-bottom: var(--space-3); border-top: 4px solid var(--clr-accent);">
+        <span class="card-illus" aria-hidden="true" style="display:block!important; color:var(--clr-accent)!important; opacity:0.1;">★</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; position: relative; z-index: 1;">
+          <h3 class="card-title" style="margin-bottom:0;"><i class="ph-bold ph-target" style="color:var(--clr-accent)"></i> Tabungan Impian</h3>
+          <button class="btn btn-sm btn-ghost" id="btn-add-goal" type="button" style="padding: 4px 10px; border-color: var(--clr-accent); color: var(--clr-accent);">
+            <i class="ph-bold ph-plus"></i> <span style="display:inline-block; font-weight:700;">Goal Baru</span>
+          </button>
+        </div>
+        <div class="goal-list" id="goal-list" style="display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 1;">
+          <!-- Goals rendered via JS -->
         </div>
       </section>
 
@@ -429,6 +458,60 @@
           <button class="btn btn-primary" id="btn-save-category" type="button">Tambah Kategori</button>
           <button class="btn btn-ghost" id="btn-cancel-category" type="button">Batal</button>
         </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Goal Modal -->
+    <div class="modal-overlay" id="goal-add-overlay">
+      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-goal-add-title">
+        <div class="modal-icon"><i class="ph-fill ph-star" style="color: var(--clr-accent);"></i></div>
+        <h2 class="modal-text" id="modal-goal-add-title">Tambah Tabungan Impian</h2>
+        
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="input-goal-name">Nama Tabungan</label>
+          <input type="text" id="input-goal-name" placeholder="cth: Beli Laptop Baru" />
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="input-goal-target">Target Dana (Rp)</label>
+          <input type="text" id="input-goal-target" placeholder="cth: 15,000,000" inputmode="numeric" />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="btn-save-goal" type="button" style="background:var(--clr-accent)">Simpan Goal</button>
+          <button class="btn btn-ghost" id="btn-cancel-goal" type="button">Batal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Funds Goal Modal -->
+    <div class="modal-overlay" id="goal-fund-overlay">
+      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-goal-fund-title">
+        <div class="modal-icon"><i class="ph-fill ph-piggy-bank" style="color: var(--clr-success);"></i></div>
+        <h2 class="modal-text" id="modal-goal-fund-title" style="margin-bottom:0.2rem;">Alokasi Dana Tabungan</h2>
+        <p style="font-size:0.85rem; color:var(--clr-text-secondary); text-align:center; margin-bottom:1rem;" id="goal-fund-subtitle"></p>
+        
+        <input type="hidden" id="input-goal-fund-id" />
+        
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="input-goal-fund-source">Sumber Dana (Dompet)</label>
+          <select id="input-goal-fund-source">
+            <option value="Tunai">Tunai</option>
+            <option value="Rekening Bank">Rekening Bank</option>
+            <option value="E-Wallet">E-Wallet</option>
+          </select>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="input-goal-fund-amount">Nominal Masuk (Rp)</label>
+          <input type="text" id="input-goal-fund-amount" placeholder="cth: 500,000" inputmode="numeric" />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="btn-save-goal-fund" type="button" style="background:var(--clr-success)">Simpan Dana</button>
+          <button class="btn btn-ghost" id="btn-cancel-goal-fund" type="button">Batal</button>
+        </div>
       </div>
     </div>
 
@@ -489,6 +572,22 @@
         </div>
         <div class="modal-actions">
           <button class="btn btn-primary" id="btn-close-import-summary" type="button">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recurring Expense Modal -->
+    <div class="modal-overlay" id="recurring-overlay">
+      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="recurring-title">
+        <div class="modal-icon"><i class="ph-fill ph-calendar-check" style="color: var(--clr-primary);"></i></div>
+        <h2 class="modal-text" id="recurring-title">Tagihan Berulang</h2>
+        <p class="modal-subtext" id="recurring-desc">Ada tagihan rutin yang sudah jatuh tempo. Tambahkan ke pengeluaran bulan ini?</p>
+        <div id="recurring-list" style="max-height: 200px; overflow-y: auto; text-align: left; margin-bottom: 1rem; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); padding: 0.5rem; border-radius: 8px;">
+          <!-- Items go here -->
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="btn-confirm-recurring" type="button">Catat Semua</button>
+          <button class="btn btn-ghost" id="btn-cancel-recurring" type="button">Lewati</button>
         </div>
       </div>
     </div>
