@@ -1708,7 +1708,7 @@
   function setupCanvas() {
     var dpr = window.devicePixelRatio || 1;
     var rect = chartCanvas.getBoundingClientRect();
-    var displaySize = isPerfLite ? 240 : 280;
+    var displaySize = isPerfLite ? 260 : 320;
     chartCanvas.style.width = displaySize + 'px';
     chartCanvas.style.height = displaySize + 'px';
     chartCanvas.width = displaySize * dpr;
