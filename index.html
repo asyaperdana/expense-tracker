@@ -51,26 +51,26 @@
           <div class="hero-kicker">Ringkasan Keuangan</div>
           <h2 class="hero-title">Total Saldo Aktif</h2>
           <div class="hero-value" id="total-balance">Rp 0</div>
-          <div class="wallet-balances" id="wallet-balances" style="display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;"></div>
+          <div class="wallet-balances" id="wallet-balances"></div>
           
-          <div class="budget-container" style="margin-top: 1.5rem; background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-            <div class="budget-header" style="display:flex; justify-content:space-between; align-items:center; font-size: 0.9rem; font-weight:600; margin-bottom: 0.6rem;">
-              <span style="display:flex; align-items:center; gap: 0.4rem"><i class="ph-bold ph-target"></i> Anggaran Bulanan</span>
-              <button class="btn btn-ghost" id="btn-edit-budget" type="button" title="Atur Batasan" style="padding:4px 8px; color:#fff; background: rgba(255,255,255,0.1); border-radius: 6px; height: auto; min-height: unset;"><i class="ph-bold ph-pencil-simple"></i> Atur</button>
+          <div class="budget-container">
+            <div class="budget-header">
+              <span class="budget-header-label"><i class="ph-bold ph-target"></i> Anggaran Bulanan</span>
+              <button class="btn btn-ghost btn-budget-edit" id="btn-edit-budget" type="button" title="Atur Batasan"><i class="ph-bold ph-pencil-simple"></i> Atur</button>
             </div>
             
-            <div class="budget-stats" style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 0.4rem;">
-              <div style="font-size: 1.15rem; font-weight: 700; letter-spacing: -0.5px;" id="budget-text-used">Rp 0</div>
-              <div style="font-size: 0.85rem; opacity: 0.8;" id="budget-text-limit">/ Tidak ada batas</div>
+            <div class="budget-stats">
+              <div class="budget-text-used" id="budget-text-used">Rp 0</div>
+              <div class="budget-text-limit" id="budget-text-limit">/ Tidak ada batas</div>
             </div>
 
-            <div class="budget-bar" style="height: 8px; background: rgba(255,255,255,0.2); border-radius: 8px; overflow: hidden; position: relative; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);">
-              <div class="budget-fill" id="budget-fill" style="position: absolute; top:0; left:0; height: 100%; background: #fff; width: 0%; border-radius: 8px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s;"></div>
+            <div class="budget-bar">
+              <div class="budget-fill" id="budget-fill"></div>
             </div>
             
-            <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 0.6rem;">
-              <p class="hero-note" id="budget-note" style="margin: 0; font-size: 0.8rem; opacity: 0.9;">Atur untuk kontrol pengeluaran.</p>
-              <div id="budget-pct" style="font-size: 0.8rem; font-weight: 600; background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px; display: none;">0%</div>
+            <div class="budget-footer">
+              <p class="hero-note budget-note" id="budget-note">Atur untuk kontrol pengeluaran.</p>
+              <div id="budget-pct" class="budget-pct">0%</div>
             </div>
           </div>
         </div>
@@ -110,7 +110,7 @@
                 <option value="E-Wallet">E-Wallet</option>
               </select>
             </div>
-            <div class="form-group" id="group-wallet-to" style="display:none">
+            <div class="form-group" id="group-wallet-to">
               <label for="input-wallet-to">Tujuan Dana</label>
               <select id="input-wallet-to">
                 <option value="Tunai">Tunai</option>
@@ -135,9 +135,9 @@
               <datalist id="title-suggestions"></datalist>
             </div>
             <div class="form-group" id="group-category">
-              <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+              <div class="field-header">
                 <label for="input-category">Kategori</label>
-                <button class="btn-ghost" id="btn-add-category" type="button" style="font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--clr-primary-light); color: var(--clr-primary); font-weight: 600; cursor: pointer;">
+                <button class="btn-ghost btn-add-category" id="btn-add-category" type="button">
                   + Custom
                 </button>
               </div>
@@ -176,7 +176,7 @@
             <input type="checkbox" id="input-recurring" />
             <label for="input-recurring">Tagihan berulang tiap bulan</label>
           </div>
-          <div class="form-actions" style="margin-top: 1rem;">
+          <div class="form-actions">
             <button type="submit" id="btn-submit" class="btn btn-primary">
               <i class="ph-bold ph-plus-circle btn-icon"></i> Simpan
             </button>
@@ -198,11 +198,11 @@
         <div class="summary-grid">
           <div class="summary-item">
             <span class="summary-label">Total Pemasukan</span>
-            <span class="summary-value" id="total-income" style="color: var(--clr-success);">Rp 0</span>
+            <span class="summary-value summary-value-income" id="total-income">Rp 0</span>
           </div>
           <div class="summary-item">
             <span class="summary-label">Total Pengeluaran</span>
-            <span class="summary-value" id="total-expense" style="color: var(--clr-danger);">Rp 0</span>
+            <span class="summary-value summary-value-expense" id="total-expense">Rp 0</span>
           </div>
           <div class="summary-item">
             <span class="summary-label">Jumlah Transaksi</span>
@@ -216,15 +216,15 @@
       </section>
 
       <!-- Goal Tracking Section -->
-      <section class="card glass goal-card" id="goal-section" style="margin-bottom: var(--space-3); border-top: 4px solid var(--clr-accent);">
-        <span class="card-illus" aria-hidden="true" style="display:block!important; color:var(--clr-accent)!important; opacity:0.1;">★</span>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; position: relative; z-index: 1;">
-          <h3 class="card-title" style="margin-bottom:0;"><i class="ph-bold ph-target" style="color:var(--clr-accent)"></i> Tabungan Impian</h3>
-          <button class="btn btn-sm btn-ghost" id="btn-add-goal" type="button" style="padding: 4px 10px; border-color: var(--clr-accent); color: var(--clr-accent);">
-            <i class="ph-bold ph-plus"></i> <span style="display:inline-block; font-weight:700;">Goal Baru</span>
+      <section class="card glass goal-card" id="goal-section">
+        <span class="card-illus goal-illus" aria-hidden="true">★</span>
+        <div class="goal-header">
+          <h3 class="card-title goal-title"><i class="ph-bold ph-target"></i> Tabungan Impian</h3>
+          <button class="btn btn-sm btn-ghost btn-add-goal" id="btn-add-goal" type="button">
+            <i class="ph-bold ph-plus"></i> <span class="goal-btn-label">Goal Baru</span>
           </button>
         </div>
-        <div class="goal-list" id="goal-list" style="display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 1;">
+        <div class="goal-list" id="goal-list">
           <!-- Goals rendered via JS -->
         </div>
       </section>
