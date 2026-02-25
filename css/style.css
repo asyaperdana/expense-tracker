@@ -3968,3 +3968,69 @@ h3,
     grid-template-columns: 1fr;
   }
 }
+
+/* ===========================
+   Performance Lite Mode
+   =========================== */
+html.perf-lite,
+body.perf-lite {
+  --transition: 0.18s ease-out;
+}
+
+body.perf-lite::before,
+body.perf-lite::after {
+  animation: none !important;
+}
+
+body.perf-lite .glass,
+body.perf-lite .header,
+body.perf-lite .card,
+body.perf-lite .wallet-pill,
+body.perf-lite .modal-overlay {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.perf-lite .card,
+body.perf-lite .summary-item,
+body.perf-lite .report-item,
+body.perf-lite .goal-item,
+body.perf-lite .category-budget-item,
+body.perf-lite .modal,
+body.perf-lite .toast {
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08) !important;
+}
+
+body.perf-lite .card::after,
+body.perf-lite .summary-card::after {
+  display: none !important;
+}
+
+body.perf-lite .header-icon,
+body.perf-lite .card-illus,
+body.perf-lite .hero-card::before,
+body.perf-lite .hero-value,
+body.perf-lite .hero-orb,
+body.perf-lite .hero-lines::before,
+body.perf-lite .hero-lines::after,
+body.perf-lite #category-chart,
+body.perf-lite .toast,
+body.perf-lite .row-animate {
+  animation: none !important;
+}
+
+body.perf-lite .card:hover,
+body.perf-lite .summary-item:hover,
+body.perf-lite .btn:hover,
+body.perf-lite .hero-card:hover,
+body.perf-lite #expense-table tbody tr:hover {
+  transform: none !important;
+}
+
+body.perf-lite .reveal-ready,
+body.perf-lite .reveal-ready.revealed {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+  transition: none !important;
+}

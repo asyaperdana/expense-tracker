@@ -174,6 +174,9 @@
   var chartSlices = [];
   var chartGeom = null;
   var renderTimer = null;
+  var isPerfLite = false;
+  var chartHoverRaf = null;
+  var chartHoverEvent = null;
   var categoryBudgets = {};
   
   var AVAILABLE_ICONS = ['ph-star', 'ph-heart', 'ph-airplane-tilt', 'ph-bag', 'ph-game-controller', 'ph-cat', 'ph-dog', 'ph-car', 'ph-house', 'ph-monitor', 'ph-music-note', 'ph-camera', 'ph-coffee', 'ph-bicycle', 'ph-barbell', 'ph-books', 'ph-graduation-cap', 'ph-bandaids', 'ph-bed', 'ph-plug'];
@@ -852,8 +855,10 @@
 
     data.forEach(function (item, index) {
       var tr = document.createElement('tr');
-      tr.classList.add('row-animate');
-      tr.style.animationDelay = (index * 0.04) + 's';
+      if (!isPerfLite) {
+        tr.classList.add('row-animate');
+        tr.style.animationDelay = (index * 0.04) + 's';
+      }
       tr.dataset.id = item.id;
 
       var isIncome = item.type === 'income';
@@ -1025,6 +1030,21 @@
 
   function hideChartTooltip() {
     chartTooltip.classList.remove('visible');
+  }
+
+  function handleChartHoverQueued(e) {
+    if (isPerfLite) {
+      hideChartTooltip();
+      return;
+    }
+    chartHoverEvent = e;
+    if (chartHoverRaf) return;
+    chartHoverRaf = requestAnimationFrame(function () {
+      chartHoverRaf = null;
+      if (!chartHoverEvent) return;
+      handleChartHover(chartHoverEvent);
+      chartHoverEvent = null;
+    });
   }
 
   function handleChartHover(e) {
@@ -1648,7 +1668,7 @@
   btnCancelDelete.addEventListener('click', hideDeleteConfirm);
 
   btnThemeToggle.addEventListener('click', toggleTheme);
-  chartCanvas.addEventListener('mousemove', handleChartHover);
+  chartCanvas.addEventListener('mousemove', handleChartHoverQueued);
   chartCanvas.addEventListener('mouseleave', hideChartTooltip);
 
   // Close modal on overlay click
@@ -1688,7 +1708,7 @@
   function setupCanvas() {
     var dpr = window.devicePixelRatio || 1;
     var rect = chartCanvas.getBoundingClientRect();
-    var displaySize = 280;
+    var displaySize = isPerfLite ? 240 : 280;
     chartCanvas.style.width = displaySize + 'px';
     chartCanvas.style.height = displaySize + 'px';
     chartCanvas.width = displaySize * dpr;
@@ -1697,11 +1717,37 @@
     ctx.scale(dpr, dpr);
   }
 
+  function detectPerfLite(prefersReduced) {
+    if (prefersReduced) return true;
+
+    var memory = navigator.deviceMemory || 0;
+    var cores = navigator.hardwareConcurrency || 0;
+    var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    var saveData = conn && conn.saveData;
+    var effectiveType = conn && conn.effectiveType ? String(conn.effectiveType) : '';
+    var slowNetwork = effectiveType.indexOf('2g') !== -1;
+    var coarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+
+    if (saveData || slowNetwork) return true;
+    if (memory && memory <= 4) return true;
+    if (cores && cores <= 4) return true;
+    if (coarsePointer && cores && cores <= 6) return true;
+    return false;
+  }
+
+  function applyPerformanceMode(enabled) {
+    document.documentElement.classList.toggle('perf-lite', enabled);
+    document.body.classList.toggle('perf-lite', enabled);
+  }
+
   function initVisualEffects() {
     var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    setupScrollReveal(prefersReduced);
-    setupCardGlow(prefersReduced);
-    setupHeroTilt(prefersReduced);
+    isPerfLite = detectPerfLite(prefersReduced);
+    applyPerformanceMode(isPerfLite);
+    setupCanvas();
+    setupScrollReveal(prefersReduced || isPerfLite);
+    setupCardGlow(prefersReduced || isPerfLite);
+    setupHeroTilt(prefersReduced || isPerfLite);
   }
 
   function setupScrollReveal(prefersReduced) {
@@ -1740,17 +1786,30 @@
 
     var cards = document.querySelectorAll('.card');
     cards.forEach(function (card) {
+      var frame = null;
+      var nextX = 50;
+      var nextY = 50;
+
       card.addEventListener('pointermove', function (e) {
         var rect = card.getBoundingClientRect();
         if (!rect.width || !rect.height) return;
-        var x = ((e.clientX - rect.left) / rect.width) * 100;
-        var y = ((e.clientY - rect.top) / rect.height) * 100;
-        card.style.setProperty('--mx', x.toFixed(2) + '%');
-        card.style.setProperty('--my', y.toFixed(2) + '%');
+        nextX = ((e.clientX - rect.left) / rect.width) * 100;
+        nextY = ((e.clientY - rect.top) / rect.height) * 100;
+        if (!frame) {
+          frame = requestAnimationFrame(function () {
+            frame = null;
+            card.style.setProperty('--mx', nextX.toFixed(2) + '%');
+            card.style.setProperty('--my', nextY.toFixed(2) + '%');
+          });
+        }
         card.classList.add('card-glow');
       });
 
       card.addEventListener('pointerleave', function () {
+        if (frame) {
+          cancelAnimationFrame(frame);
+          frame = null;
+        }
         card.classList.remove('card-glow');
         card.style.setProperty('--mx', '50%');
         card.style.setProperty('--my', '50%');
@@ -1764,6 +1823,8 @@
 
     var hero = document.querySelector('.hero-card');
     if (!hero) return;
+    var frame = null;
+    var next = { x: 0, y: 0, mx: 50, my: 50 };
 
     hero.addEventListener('pointermove', function (e) {
       var rect = hero.getBoundingClientRect();
@@ -1771,16 +1832,27 @@
 
       var px = (e.clientX - rect.left) / rect.width;
       var py = (e.clientY - rect.top) / rect.height;
-      var tiltX = (0.5 - py) * 8;
-      var tiltY = (px - 0.5) * 12;
+      next.x = (0.5 - py) * 8;
+      next.y = (px - 0.5) * 12;
+      next.mx = px * 100;
+      next.my = py * 100;
 
-      hero.style.setProperty('--hero-tilt-x', tiltX.toFixed(2) + 'deg');
-      hero.style.setProperty('--hero-tilt-y', tiltY.toFixed(2) + 'deg');
-      hero.style.setProperty('--hero-mx', (px * 100).toFixed(2) + '%');
-      hero.style.setProperty('--hero-my', (py * 100).toFixed(2) + '%');
+      if (!frame) {
+        frame = requestAnimationFrame(function () {
+          frame = null;
+          hero.style.setProperty('--hero-tilt-x', next.x.toFixed(2) + 'deg');
+          hero.style.setProperty('--hero-tilt-y', next.y.toFixed(2) + 'deg');
+          hero.style.setProperty('--hero-mx', next.mx.toFixed(2) + '%');
+          hero.style.setProperty('--hero-my', next.my.toFixed(2) + '%');
+        });
+      }
     });
 
     hero.addEventListener('pointerleave', function () {
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = null;
+      }
       hero.style.setProperty('--hero-tilt-x', '0deg');
       hero.style.setProperty('--hero-tilt-y', '0deg');
       hero.style.setProperty('--hero-mx', '50%');
@@ -2553,6 +2625,8 @@
     expenses = getFromStorage(); // Must load expenses before processing recurring
     loadGoalsFromStorage();
     processRecurringExpenses();
+    isPerfLite = detectPerfLite(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    applyPerformanceMode(isPerfLite);
     
     setTheme(getTheme());
     loadCustomCategories();
@@ -2561,11 +2635,10 @@
     inputDate.max = getTodayString();
     loadFilters();
     updateUndoIndicator();
-    setupCanvas();
     loadSplitHistory();
+    initVisualEffects();
     renderTable();
     renderGoals();
-    initVisualEffects();
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
