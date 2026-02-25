@@ -215,6 +215,39 @@
         </div>
       </section>
 
+      <!-- Monthly Report Section -->
+      <section class="card glass report-card" id="report-section">
+        <span class="card-illus" aria-hidden="true">◍</span>
+        <div class="report-header">
+          <h3 class="card-title"><i class="ph-bold ph-chart-line-up"></i> Laporan Bulanan Otomatis</h3>
+          <span class="report-month" id="report-month-label">Bulan Ini</span>
+        </div>
+        <div class="report-grid">
+          <div class="report-item">
+            <span class="report-label">Pemasukan</span>
+            <strong class="report-value report-value-income" id="report-income">Rp 0</strong>
+          </div>
+          <div class="report-item">
+            <span class="report-label">Pengeluaran</span>
+            <strong class="report-value report-value-expense" id="report-expense">Rp 0</strong>
+          </div>
+          <div class="report-item">
+            <span class="report-label">Net</span>
+            <strong class="report-value" id="report-net">Rp 0</strong>
+          </div>
+          <div class="report-item">
+            <span class="report-label">Transaksi</span>
+            <strong class="report-value" id="report-count">0</strong>
+          </div>
+        </div>
+        <div class="report-highlights">
+          <p class="report-line" id="report-top-category">Kategori teratas: —</p>
+          <p class="report-line" id="report-largest-expense">Pengeluaran terbesar: —</p>
+          <p class="report-line" id="report-trend">Tren vs bulan lalu: —</p>
+          <p class="report-advice" id="report-advice">Belum ada rekomendasi.</p>
+        </div>
+      </section>
+
       <!-- Goal Tracking Section -->
       <section class="card glass goal-card" id="goal-section">
         <span class="card-illus goal-illus" aria-hidden="true">★</span>
@@ -243,12 +276,37 @@
         </p>
       </section>
 
+      <!-- Category Budget Section -->
+      <section class="card glass category-budget-card" id="category-budget-section">
+        <span class="card-illus" aria-hidden="true">◎</span>
+        <div class="category-budget-header">
+          <h3 class="card-title"><i class="ph-bold ph-target"></i> Budget per Kategori</h3>
+          <button class="btn btn-ghost btn-sm" id="btn-edit-category-budget" type="button">
+            <i class="ph-bold ph-sliders-horizontal"></i> Atur
+          </button>
+        </div>
+        <p class="category-budget-meta" id="category-budget-meta">Belum ada budget kategori aktif.</p>
+        <div class="category-budget-list" id="category-budget-list"></div>
+        <p class="category-budget-empty" id="category-budget-empty">
+          Tambahkan batas per kategori agar pengeluaran lebih terkontrol.
+        </p>
+      </section>
+
       <!-- Filter -->
       <section class="card glass filter-card">
         <span class="card-illus" aria-hidden="true">◳</span>
         <h3 class="card-title">Filter dan Aksi</h3>
         <div class="filter-layout">
           <div class="filter-fields">
+            <div class="filter-group">
+              <label for="filter-search">Cari Transaksi</label>
+              <input
+                type="search"
+                id="filter-search"
+                placeholder="judul, kategori, dompet, nominal..."
+                autocomplete="off"
+              />
+            </div>
             <div class="filter-group">
               <label for="filter-category">Kategori</label>
               <select id="filter-category">
@@ -364,6 +422,22 @@
         <div class="modal-actions">
           <button class="btn btn-primary" id="btn-save-budget" type="button">Simpan Batas</button>
           <button class="btn btn-ghost" id="btn-cancel-budget" type="button">Batal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Budget Modal -->
+    <div class="modal-overlay" id="category-budget-overlay">
+      <div class="modal glass category-budget-modal" role="dialog" aria-modal="true" aria-labelledby="modal-category-budget-title">
+        <div class="modal-icon"><i class="ph-fill ph-target" style="color: var(--clr-accent);"></i></div>
+        <h2 class="modal-text" id="modal-category-budget-title">Atur Budget per Kategori</h2>
+        <p class="modal-subtext">Isi nominal untuk kategori yang ingin dibatasi. Isi 0 untuk menonaktifkan.</p>
+        <div class="category-budget-editor" id="category-budget-editor">
+          <!-- Rendered via JS -->
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="btn-save-category-budget" type="button">Simpan Budget</button>
+          <button class="btn btn-ghost" id="btn-cancel-category-budget" type="button">Batal</button>
         </div>
       </div>
     </div>

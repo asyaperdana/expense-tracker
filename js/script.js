@@ -12,6 +12,7 @@
   var THEME_KEY = 'expense_tracker_theme';
   var FILTER_KEY = 'expense_tracker_filters';
   var BUDGET_KEY = 'expense_tracker_budget';
+  var CATEGORY_BUDGET_KEY = 'expense_tracker_category_budget';
   var SPLIT_HISTORY_KEY = 'expense_tracker_split_history';
   var CUSTOM_CAT_KEY = 'expense_tracker_custom_cat';
   var RECURRING_KEY = 'expense_tracker_recurring';
@@ -77,6 +78,7 @@
   var categoryHelp = document.getElementById('category-help');
   var amountHelp = document.getElementById('amount-help');
   var filterCategory = document.getElementById('filter-category');
+  var filterSearch = document.getElementById('filter-search');
   var filterMonth = document.getElementById('filter-month');
   var filterSort = document.getElementById('filter-sort');
   var btnResetFilter = document.getElementById('btn-reset-filter');
@@ -120,6 +122,23 @@
   var inputBudgetLimit = document.getElementById('input-budget-limit');
   var btnSaveBudget = document.getElementById('btn-save-budget');
   var btnCancelBudget = document.getElementById('btn-cancel-budget');
+  var btnEditCategoryBudget = document.getElementById('btn-edit-category-budget');
+  var categoryBudgetMeta = document.getElementById('category-budget-meta');
+  var categoryBudgetList = document.getElementById('category-budget-list');
+  var categoryBudgetEmpty = document.getElementById('category-budget-empty');
+  var categoryBudgetOverlay = document.getElementById('category-budget-overlay');
+  var categoryBudgetEditor = document.getElementById('category-budget-editor');
+  var btnSaveCategoryBudget = document.getElementById('btn-save-category-budget');
+  var btnCancelCategoryBudget = document.getElementById('btn-cancel-category-budget');
+  var reportMonthLabel = document.getElementById('report-month-label');
+  var reportIncomeEl = document.getElementById('report-income');
+  var reportExpenseEl = document.getElementById('report-expense');
+  var reportNetEl = document.getElementById('report-net');
+  var reportCountEl = document.getElementById('report-count');
+  var reportTopCategoryEl = document.getElementById('report-top-category');
+  var reportLargestExpenseEl = document.getElementById('report-largest-expense');
+  var reportTrendEl = document.getElementById('report-trend');
+  var reportAdviceEl = document.getElementById('report-advice');
 
   var inputRecurring = document.getElementById('input-recurring');
 
@@ -155,6 +174,7 @@
   var chartSlices = [];
   var chartGeom = null;
   var renderTimer = null;
+  var categoryBudgets = {};
   
   var AVAILABLE_ICONS = ['ph-star', 'ph-heart', 'ph-airplane-tilt', 'ph-bag', 'ph-game-controller', 'ph-cat', 'ph-dog', 'ph-car', 'ph-house', 'ph-monitor', 'ph-music-note', 'ph-camera', 'ph-coffee', 'ph-bicycle', 'ph-barbell', 'ph-books', 'ph-graduation-cap', 'ph-bandaids', 'ph-bed', 'ph-plug'];
   var AVAILABLE_COLORS = ['#f43f5e', '#ec4899', '#d946ef', '#a855f7', '#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e', '#84cc16', '#eab308', '#f59e0b', '#f97316', '#ef4444'];
@@ -329,6 +349,34 @@
     });
   }
 
+  function getCurrentMonthKey() {
+    var now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  }
+
+  function getMonthLabel(monthKey) {
+    if (!monthKey || monthKey.length !== 7) return 'Bulan Ini';
+    var monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    var parts = monthKey.split('-');
+    var year = Number(parts[0]);
+    var monthIndex = Number(parts[1]) - 1;
+    if (monthIndex < 0 || monthIndex > 11 || !year) return 'Bulan Ini';
+    return monthNames[monthIndex] + ' ' + year;
+  }
+
+  function getPreviousMonthKey(monthKey) {
+    var parts = (monthKey || getCurrentMonthKey()).split('-');
+    var year = Number(parts[0]);
+    var month = Number(parts[1]);
+    if (!year || !month) return getCurrentMonthKey();
+    month -= 1;
+    if (month === 0) {
+      month = 12;
+      year -= 1;
+    }
+    return year + '-' + String(month).padStart(2, '0');
+  }
+
   // ─── Calculate Total ─────────────────────
   function calculateTotal(data) {
     return data.reduce(function (res, item) {
@@ -378,6 +426,93 @@
     }
   }
 
+  function getReportMonthKey() {
+    if (filterMonth && filterMonth.value) return filterMonth.value;
+    return getCurrentMonthKey();
+  }
+
+  function renderMonthlyReport() {
+    if (!reportMonthLabel) return;
+
+    var monthKey = getReportMonthKey();
+    var previousMonthKey = getPreviousMonthKey(monthKey);
+    var monthData = expenses.filter(function (item) {
+      return item.date && item.date.substring(0, 7) === monthKey;
+    });
+
+    var monthIncome = 0;
+    var monthExpense = 0;
+    var categoryTotals = {};
+    var largestExpense = null;
+
+    monthData.forEach(function (item) {
+      if (item.type === 'income') {
+        monthIncome += item.amount;
+      } else if (item.type !== 'transfer') {
+        monthExpense += item.amount;
+        categoryTotals[item.category] = (categoryTotals[item.category] || 0) + item.amount;
+        if (!largestExpense || item.amount > largestExpense.amount) {
+          largestExpense = item;
+        }
+      }
+    });
+
+    var topCategory = '—';
+    var topCategoryAmount = 0;
+    Object.keys(categoryTotals).forEach(function (cat) {
+      if (categoryTotals[cat] > topCategoryAmount) {
+        topCategoryAmount = categoryTotals[cat];
+        topCategory = cat;
+      }
+    });
+
+    var prevExpense = expenses.reduce(function (sum, item) {
+      if (item.type !== 'income' && item.type !== 'transfer' && item.date && item.date.substring(0, 7) === previousMonthKey) {
+        return sum + item.amount;
+      }
+      return sum;
+    }, 0);
+
+    var net = monthIncome - monthExpense;
+    var trendText = 'Stabil terhadap bulan lalu.';
+    if (prevExpense === 0 && monthExpense > 0) {
+      trendText = 'Ada pengeluaran baru dibanding bulan lalu.';
+    } else if (prevExpense > 0) {
+      var diff = monthExpense - prevExpense;
+      var pct = Math.abs((diff / prevExpense) * 100);
+      if (diff > 0) {
+        trendText = 'Naik ' + pct.toFixed(1) + '% dibanding bulan lalu.';
+      } else if (diff < 0) {
+        trendText = 'Turun ' + pct.toFixed(1) + '% dibanding bulan lalu.';
+      }
+    }
+
+    var advice = 'Belum ada rekomendasi.';
+    if (monthExpense === 0) {
+      advice = 'Belum ada pengeluaran tercatat di bulan ini. Jaga konsistensi pencatatan.';
+    } else if (net < 0) {
+      advice = 'Pengeluaran melebihi pemasukan. Prioritaskan biaya wajib dan kurangi pos non-esensial.';
+    } else if (topCategoryAmount > 0 && (topCategoryAmount / monthExpense) >= 0.45) {
+      advice = 'Kategori ' + topCategory + ' mendominasi pengeluaran. Pertimbangkan set budget lebih ketat di kategori ini.';
+    } else if (monthIncome > 0 && (monthExpense / monthIncome) >= 0.8) {
+      advice = 'Pengeluaran sudah mendekati pemasukan. Sisakan buffer minimal 20% untuk tabungan/darurat.';
+    } else {
+      advice = 'Arus kas bulan ini cukup sehat. Pertahankan ritme dan tingkatkan porsi tabungan.';
+    }
+
+    reportMonthLabel.textContent = getMonthLabel(monthKey);
+    reportIncomeEl.textContent = formatRupiah(monthIncome);
+    reportExpenseEl.textContent = formatRupiah(monthExpense);
+    reportNetEl.textContent = formatRupiah(net);
+    reportNetEl.classList.remove('report-value-positive', 'report-value-negative');
+    reportNetEl.classList.add(net >= 0 ? 'report-value-positive' : 'report-value-negative');
+    reportCountEl.textContent = String(monthData.length);
+    reportTopCategoryEl.textContent = 'Kategori teratas: ' + (topCategory === '—' ? '—' : (topCategory + ' (' + formatRupiah(topCategoryAmount) + ')'));
+    reportLargestExpenseEl.textContent = largestExpense ? ('Pengeluaran terbesar: ' + largestExpense.title + ' (' + formatRupiah(largestExpense.amount) + ')') : 'Pengeluaran terbesar: —';
+    reportTrendEl.textContent = 'Tren vs bulan lalu: ' + trendText;
+    reportAdviceEl.textContent = advice;
+  }
+
   // ─── Budget Logic ──────────────────────────
   function getBudgetLimit() {
     return Number(localStorage.getItem(BUDGET_KEY)) || 0;
@@ -385,6 +520,54 @@
   
   function saveBudgetLimit(val) {
     localStorage.setItem(BUDGET_KEY, val);
+  }
+
+  function loadCategoryBudgets() {
+    try {
+      var raw = localStorage.getItem(CATEGORY_BUDGET_KEY);
+      var parsed = raw ? JSON.parse(raw) : {};
+      categoryBudgets = {};
+      if (parsed && typeof parsed === 'object') {
+        Object.keys(parsed).forEach(function (cat) {
+          var val = Number(parsed[cat]);
+          if (cat && val > 0) categoryBudgets[cat] = val;
+        });
+      }
+    } catch (e) {
+      categoryBudgets = {};
+    }
+  }
+
+  function saveCategoryBudgets() {
+    localStorage.setItem(CATEGORY_BUDGET_KEY, JSON.stringify(categoryBudgets));
+  }
+
+  function getExpenseCategories() {
+    var seen = {};
+    var out = [];
+    var expenseGroup = document.getElementById('optgroup-expense');
+
+    if (expenseGroup) {
+      var options = expenseGroup.querySelectorAll('option');
+      options.forEach(function (opt) {
+        var value = (opt.value || '').trim();
+        if (!value || seen[value]) return;
+        seen[value] = true;
+        out.push(value);
+      });
+    }
+
+    expenses.forEach(function (item) {
+      if (item.type === 'income' || item.type === 'transfer') return;
+      var cat = (item.category || '').trim();
+      if (!cat || seen[cat]) return;
+      seen[cat] = true;
+      out.push(cat);
+    });
+
+    return out.sort(function (a, b) {
+      return a.localeCompare(b, 'id');
+    });
   }
 
   // ─── Calculate Individual Wallets ────────
@@ -440,10 +623,7 @@
     }
 
     // Calculate this month's expense
-    var today = new Date();
-    var yyyy = today.getFullYear();
-    var mm = String(today.getMonth() + 1).padStart(2, '0');
-    var currentMonth = yyyy + '-' + mm;
+    var currentMonth = getCurrentMonthKey();
     
     var monthExpenses = expenses.filter(function(item) {
       return (item.type !== 'income') && item.date.startsWith(currentMonth);
@@ -486,16 +666,152 @@
     }
   }
 
+  function getMonthlyExpenseByCategory(monthKey) {
+    var totals = {};
+    expenses.forEach(function (item) {
+      if (item.type === 'income' || item.type === 'transfer') return;
+      if (!item.date || item.date.substring(0, 7) !== monthKey) return;
+      var cat = item.category || 'Lainnya (Keluar)';
+      totals[cat] = (totals[cat] || 0) + item.amount;
+    });
+    return totals;
+  }
+
+  function renderCategoryBudgetSummary() {
+    if (!categoryBudgetList || !categoryBudgetMeta || !categoryBudgetEmpty) return;
+
+    var monthKey = getReportMonthKey();
+    var monthCategoryExpense = getMonthlyExpenseByCategory(monthKey);
+    var categories = Object.keys(categoryBudgets).filter(function (cat) {
+      return Number(categoryBudgets[cat]) > 0;
+    });
+
+    categoryBudgetList.innerHTML = '';
+    if (!categories.length) {
+      categoryBudgetMeta.textContent = 'Belum ada budget kategori aktif.';
+      categoryBudgetEmpty.classList.add('visible');
+      return;
+    }
+
+    categoryBudgetEmpty.classList.remove('visible');
+    categoryBudgetMeta.textContent = getMonthLabel(monthKey) + ' • ' + categories.length + ' kategori dipantau';
+
+    categories.sort(function (a, b) {
+      var aLimit = Number(categoryBudgets[a]) || 1;
+      var bLimit = Number(categoryBudgets[b]) || 1;
+      var aPct = ((monthCategoryExpense[a] || 0) / aLimit);
+      var bPct = ((monthCategoryExpense[b] || 0) / bLimit);
+      return bPct - aPct;
+    });
+
+    categories.forEach(function (cat) {
+      var limit = Number(categoryBudgets[cat]) || 0;
+      var spent = Number(monthCategoryExpense[cat]) || 0;
+      var pct = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
+      var statusClass = pct >= 100 ? 'is-over' : (pct >= 75 ? 'is-warn' : 'is-safe');
+
+      var item = document.createElement('div');
+      item.className = 'category-budget-item';
+      item.innerHTML =
+        '<div class="category-budget-row">' +
+          '<div class="category-budget-name">' + (CATEGORY_ICONS[cat] || '<i class="ph-fill ph-tag"></i>') + ' ' + escapeHtml(cat) + '</div>' +
+          '<div class="category-budget-amount">' + formatRupiah(spent) + ' / ' + formatRupiah(limit) + ' (' + Math.round(pct) + '%)</div>' +
+        '</div>' +
+        '<div class="category-budget-track">' +
+          '<div class="category-budget-fill ' + statusClass + '" style="width:' + pct.toFixed(2) + '%;"></div>' +
+        '</div>';
+      categoryBudgetList.appendChild(item);
+    });
+  }
+
+  function renderCategoryBudgetEditor() {
+    if (!categoryBudgetEditor) return;
+    var categories = getExpenseCategories();
+    if (!categories.length) {
+      categoryBudgetEditor.innerHTML = '<p class="category-budget-empty visible">Belum ada kategori pengeluaran yang tersedia.</p>';
+      return;
+    }
+
+    categoryBudgetEditor.innerHTML = '';
+    categories.forEach(function (cat) {
+      var val = Number(categoryBudgets[cat]) || 0;
+      var row = document.createElement('div');
+      row.className = 'category-budget-edit-row';
+      var label = document.createElement('label');
+      label.className = 'category-budget-edit-label';
+      label.innerHTML = (CATEGORY_ICONS[cat] || '<i class="ph-fill ph-tag"></i>') + ' ' + escapeHtml(cat);
+
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'category-budget-input';
+      input.setAttribute('inputmode', 'numeric');
+      input.setAttribute('placeholder', '0 = nonaktif');
+      input.dataset.category = cat;
+      input.value = val > 0 ? val.toLocaleString('en-US') : '';
+
+      row.appendChild(label);
+      row.appendChild(input);
+      categoryBudgetEditor.appendChild(row);
+    });
+
+    var inputs = categoryBudgetEditor.querySelectorAll('.category-budget-input');
+    inputs.forEach(function (input) {
+      input.addEventListener('input', formatInputCurrency);
+    });
+  }
+
+  function openCategoryBudgetModal() {
+    if (!categoryBudgetOverlay) return;
+    renderCategoryBudgetEditor();
+    categoryBudgetOverlay.classList.add('active');
+  }
+
+  function closeCategoryBudgetModal() {
+    if (!categoryBudgetOverlay) return;
+    categoryBudgetOverlay.classList.remove('active');
+  }
+
+  function saveCategoryBudgetFromEditor() {
+    if (!categoryBudgetEditor) return;
+    var inputs = categoryBudgetEditor.querySelectorAll('.category-budget-input');
+    var next = {};
+    inputs.forEach(function (input) {
+      var cat = input.dataset.category;
+      var val = Number((input.value || '').replace(/,/g, ''));
+      if (cat && val > 0) {
+        next[cat] = val;
+      }
+    });
+    categoryBudgets = next;
+    saveCategoryBudgets();
+    renderCategoryBudgetSummary();
+    closeCategoryBudgetModal();
+    showToast('Budget per kategori berhasil disimpan', 'success');
+  }
+
   // ─── Get Filtered Data ───────────────────
   function getFilteredData() {
+    var selectedSearch = (filterSearch && filterSearch.value ? filterSearch.value : '').trim().toLowerCase();
     var selectedCat = filterCategory.value;
     var selectedMonth = filterMonth.value; // YYYY-MM or ""
     var selectedSort = filterSort.value || 'date-desc';
 
     var filtered = expenses.filter(function (e) {
+      var haystack = [
+        e.date || '',
+        e.title || '',
+        e.category || '',
+        e.wallet || '',
+        e.walletTo || '',
+        e.type || '',
+        String(e.amount || ''),
+        Number(e.amount || 0).toLocaleString('en-US'),
+        Number(e.amount || 0).toLocaleString('id-ID'),
+      ].join(' ').toLowerCase();
+      var searchMatch = !selectedSearch || haystack.indexOf(selectedSearch) !== -1;
       var catMatch = selectedCat === 'Semua' || e.category === selectedCat;
       var monthMatch = !selectedMonth || e.date.substring(0, 7) === selectedMonth;
-      return catMatch && monthMatch;
+      return searchMatch && catMatch && monthMatch;
     });
 
     filtered.sort(function (a, b) {
@@ -521,6 +837,8 @@
     tbody.innerHTML = '';
     updateHero();
     updateTitleSuggestions();
+    renderMonthlyReport();
+    renderCategoryBudgetSummary();
 
     if (data.length === 0) {
       emptyState.classList.add('visible');
@@ -1203,6 +1521,7 @@
 
   // ─── Reset Filters ──────────────────────
   function resetFilters() {
+    if (filterSearch) filterSearch.value = '';
     filterCategory.value = 'Semua';
     filterMonth.value = '';
     filterSort.value = 'date-desc';
@@ -1213,6 +1532,7 @@
 
   function saveFilters() {
     var payload = {
+      search: filterSearch ? filterSearch.value : '',
       category: filterCategory.value,
       month: filterMonth.value,
       sort: filterSort.value,
@@ -1224,6 +1544,9 @@
     try {
       var raw = localStorage.getItem(FILTER_KEY);
       var saved = raw ? JSON.parse(raw) : null;
+      if (saved && typeof saved.search === 'string' && filterSearch) {
+        filterSearch.value = saved.search;
+      }
       if (saved && saved.category) {
         filterCategory.value = saved.category;
       }
@@ -1246,6 +1569,13 @@
   });
 
   tbody.addEventListener('click', handleTableClick);
+
+  if (filterSearch) {
+    filterSearch.addEventListener('input', function () {
+      saveFilters();
+      renderTable();
+    });
+  }
 
   filterCategory.addEventListener('change', function () {
     saveFilters();
@@ -1348,6 +1678,9 @@
     }
     if (e.key === 'Escape' && importSummaryOverlay.classList.contains('active')) {
       closeImportSummary();
+    }
+    if (categoryBudgetOverlay && e.key === 'Escape' && categoryBudgetOverlay.classList.contains('active')) {
+      closeCategoryBudgetModal();
     }
   });
 
@@ -1771,6 +2104,24 @@
   budgetOverlay.addEventListener('click', function (e) {
     if (e.target === budgetOverlay) budgetOverlay.classList.remove('active');
   });
+
+  if (btnEditCategoryBudget) {
+    btnEditCategoryBudget.addEventListener('click', openCategoryBudgetModal);
+  }
+
+  if (btnCancelCategoryBudget) {
+    btnCancelCategoryBudget.addEventListener('click', closeCategoryBudgetModal);
+  }
+
+  if (btnSaveCategoryBudget) {
+    btnSaveCategoryBudget.addEventListener('click', saveCategoryBudgetFromEditor);
+  }
+
+  if (categoryBudgetOverlay) {
+    categoryBudgetOverlay.addEventListener('click', function (e) {
+      if (e.target === categoryBudgetOverlay) closeCategoryBudgetModal();
+    });
+  }
   
   // ─── Input Formatting ───────────────────
   function formatInputCurrency(e) {
@@ -1947,6 +2298,10 @@
 
       inputCategory.value = newCat.name;
       categoryOverlay.classList.remove('active');
+      renderCategoryBudgetSummary();
+      if (categoryBudgetOverlay && categoryBudgetOverlay.classList.contains('active')) {
+        renderCategoryBudgetEditor();
+      }
       showToast('Kategori baru ditambahkan', 'success');
     });
   }
@@ -2201,6 +2556,7 @@
     
     setTheme(getTheme());
     loadCustomCategories();
+    loadCategoryBudgets();
     inputDate.value = getTodayString();
     inputDate.max = getTodayString();
     loadFilters();
