@@ -138,12 +138,14 @@
   background: var(--clr-surface-solid);
 }
 
-[data-theme="dark"] #expense-table thead th {
+[data-theme="dark"] #expense-table thead th,
+[data-theme="dark"] #split-ledger-table thead th {
   background: rgba(10, 19, 35, 0.86);
   border-bottom: 1px solid var(--clr-border);
 }
 
-[data-theme="dark"] #expense-table tbody tr:nth-child(even) {
+[data-theme="dark"] #expense-table tbody tr:nth-child(even),
+[data-theme="dark"] #split-ledger-table tbody tr:nth-child(even) {
   background: #0f172a;
 }
 
@@ -1099,6 +1101,108 @@ input[value="transfer"]:checked ~ .segmented-bg {
   text-align: center !important;
 }
 
+/* Split Ledger Table */
+.split-ledger-card {
+  overflow: hidden;
+}
+
+.split-ledger-header {
+  margin-bottom: 0.85rem;
+}
+
+.split-ledger-subtitle {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--clr-text-secondary);
+}
+
+.split-ledger-wrapper {
+  max-height: 360px;
+}
+
+#split-ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+#split-ledger-table thead th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--clr-text-secondary);
+  padding: 0.72rem 0.9rem;
+  background: rgba(241, 245, 249, 0.86);
+  border-bottom: 1px solid var(--clr-border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+#split-ledger-table tbody tr {
+  transition: background var(--transition);
+}
+
+#split-ledger-table tbody tr:hover {
+  background: var(--clr-surface-hover);
+}
+
+#split-ledger-table tbody tr:nth-child(even) {
+  background: rgba(248, 250, 252, 0.82);
+}
+
+#split-ledger-table tbody td {
+  padding: 0.78rem 0.9rem;
+  border-bottom: 1px solid var(--clr-border-subtle);
+  vertical-align: middle;
+}
+
+#split-ledger-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.split-ledger-status,
+.split-ledger-sync {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.split-ledger-status.receive {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--clr-success);
+}
+
+.split-ledger-status.pay {
+  background: rgba(239, 68, 68, 0.14);
+  color: var(--clr-danger);
+}
+
+.split-ledger-status.even {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--clr-text-secondary);
+}
+
+.split-ledger-sync.synced {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--clr-success);
+}
+
+.split-ledger-sync.pending {
+  background: rgba(2, 132, 199, 0.12);
+  color: var(--clr-accent);
+}
+
+.split-ledger-empty::before {
+  content: "Belum ada split bill";
+}
+
 /* Category Badge */
 .badge {
   display: inline-block;
@@ -1743,6 +1847,16 @@ input[value="transfer"]:checked ~ .segmented-bg {
   margin-bottom: 1.25rem;
 }
 
+.split-owner-group {
+  margin-bottom: 1rem;
+}
+
+.split-owner-group .help-text,
+.split-payer-group .help-text {
+  color: var(--clr-text-secondary);
+  min-height: 0;
+}
+
 .split-participants-header {
   display: flex;
   align-items: center;
@@ -1875,6 +1989,12 @@ input[value="transfer"]:checked ~ .segmented-bg {
   font-size: 0.8rem;
   opacity: 0.95;
   margin-top: 0.35rem;
+}
+
+.split-result-summary .result-owner-status {
+  font-size: 0.8rem;
+  opacity: 0.95;
+  margin-top: 0.2rem;
 }
 
 .split-result-list {

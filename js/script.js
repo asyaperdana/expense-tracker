@@ -13,7 +13,8 @@
   var FILTER_KEY = 'expense_tracker_filters';
   var BUDGET_KEY = 'expense_tracker_budget';
   var CATEGORY_BUDGET_KEY = 'expense_tracker_category_budget';
-  var SPLIT_HISTORY_KEY = 'expense_tracker_split_history';
+  var SPLIT_LEDGER_KEY = 'expense_tracker_splits';
+  var PROFILE_KEY = 'expense_tracker_profile';
   var CUSTOM_CAT_KEY = 'expense_tracker_custom_cat';
   var RECURRING_KEY = 'expense_tracker_recurring';
   var GOALS_KEY = 'expense_tracker_goals';
@@ -158,12 +159,15 @@
   var btnCancelGoalFund = document.getElementById('btn-cancel-goal-fund');
   var goalFundSubtitle = document.getElementById('goal-fund-subtitle');
   var goalSection = document.getElementById('goal-section');
+  var splitLedgerTbody = document.getElementById('split-ledger-tbody');
+  var splitLedgerEmpty = document.getElementById('split-ledger-empty');
 
   // ─── State ────────────────────────────────
   var expenses = [];
   var customCategories = [];
   var recurringExpenses = [];
   var goals = [];
+  var userProfile = { name: '' };
   var editingId = null;
   var deleteTargetId = null;
   var lastDeleted = null;
@@ -229,6 +233,26 @@
 
   function saveGoalsToStorage() {
     localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
+  }
+
+  function loadProfileFromStorage() {
+    try {
+      var raw = localStorage.getItem(PROFILE_KEY);
+      var parsed = raw ? JSON.parse(raw) : null;
+      if (parsed && typeof parsed.name === 'string') {
+        userProfile.name = parsed.name.trim();
+      } else {
+        userProfile.name = '';
+      }
+    } catch (e) {
+      userProfile.name = '';
+    }
+  }
+
+  function saveProfileToStorage() {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({
+      name: (userProfile.name || '').trim(),
+    }));
   }
 
   // ─── Theme (Dark Mode) ───────────────────
@@ -350,6 +374,10 @@
       month: 'short',
       year: 'numeric',
     });
+  }
+
+  function normalizePersonName(name) {
+    return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
   }
 
   function getCurrentMonthKey() {
@@ -1864,13 +1892,12 @@
   // ═══════════════════════════════════════════
   //  SPLIT BILL MODULE
   // ═══════════════════════════════════════════
-  var SPLIT_HISTORY_KEY = 'expense_tracker_splits';
-
   var splitOverlay = document.getElementById('split-overlay');
   var btnOpenSplit = document.getElementById('btn-open-split');
   var btnCloseSplit = document.getElementById('btn-close-split');
   var splitBillName = document.getElementById('split-bill-name');
   var splitTotal = document.getElementById('split-total');
+  var splitOwnerName = document.getElementById('split-owner-name');
   var splitPayer = document.getElementById('split-payer');
   var modeEqual = document.getElementById('mode-equal');
   var modeCustom = document.getElementById('mode-custom');
@@ -1887,7 +1914,7 @@
 
   var splitMode = 'equal'; // 'equal' or 'custom'
   var splitResults = null;
-  var splitHistory = [];
+  var splitLedger = [];
   var splitPersonIdCounter = 0;
 
   var AVATAR_COLORS = [
@@ -1912,13 +1939,17 @@
   function resetSplitForm() {
     splitBillName.value = '';
     splitTotal.value = '';
+    if (splitOwnerName) {
+      splitOwnerName.value = userProfile.name || '';
+      splitOwnerName.classList.remove('invalid');
+    }
     splitMode = 'equal';
     splitPersonIdCounter = 0;
     modeEqual.classList.add('active');
     modeCustom.classList.remove('active');
     splitPersonList.innerHTML = '';
     // Add 2 default persons
-    addPersonRow('');
+    addPersonRow((userProfile.name || '').trim());
     addPersonRow('');
     syncSplitPayerOptions();
     updateCustomAmountVisibility();
@@ -1981,6 +2012,48 @@
     splitPayer.value = hasPrev ? prevPayerId : firstId;
   }
 
+  function getOwnerSettlementDescriptor(net) {
+    if (net > 0) {
+      return { key: 'receive', text: 'Teman harus bayar saya ' + formatRupiah(net) };
+    }
+    if (net < 0) {
+      return { key: 'pay', text: 'Saya harus bayar ' + formatRupiah(Math.abs(net)) };
+    }
+    return { key: 'even', text: 'Lunas' };
+  }
+
+  function getOwnerSettlement(ownerName, results) {
+    var ownerKey = normalizePersonName(ownerName);
+    if (!ownerKey) return null;
+
+    var owner = null;
+    results.forEach(function (p) {
+      if (!owner && normalizePersonName(p.name) === ownerKey) {
+        owner = p;
+      }
+    });
+    if (!owner) return null;
+
+    var status = getOwnerSettlementDescriptor(owner.net);
+    return {
+      id: owner.id,
+      name: owner.name,
+      share: owner.share,
+      paid: owner.paid,
+      net: owner.net,
+      statusKey: status.key,
+      statusText: status.text,
+    };
+  }
+
+  function persistProfileNameFromSplit() {
+    if (!splitOwnerName) return;
+    var nextName = splitOwnerName.value.trim();
+    if (!nextName) return;
+    userProfile.name = nextName;
+    saveProfileToStorage();
+  }
+
   function updateCustomAmountVisibility() {
     var fields = splitPersonList.querySelectorAll('.custom-amount');
     fields.forEach(function (f) {
@@ -2008,6 +2081,15 @@
   // ─── Calculate Split ──────────────────────
   function calculateSplit() {
     syncSplitPayerOptions();
+    persistProfileNameFromSplit();
+
+    var ownerNameInput = (splitOwnerName && splitOwnerName.value ? splitOwnerName.value : '').trim();
+    if (!ownerNameInput) {
+      if (splitOwnerName) splitOwnerName.classList.add('invalid');
+      showToast('Isi Nama Saya untuk tracking split bill', 'error');
+      return;
+    }
+    if (splitOwnerName) splitOwnerName.classList.remove('invalid');
 
     var billName = splitBillName.value.trim() || 'Split Bill';
     var totalText = splitTotal.value.replace(/,/g, '');
@@ -2082,12 +2164,25 @@
       };
     });
 
+    var ownerSettlement = getOwnerSettlement(ownerNameInput, results);
+    if (!ownerSettlement) {
+      showToast('Nama Saya harus ada di daftar peserta', 'error');
+      return;
+    }
+
     splitResults = {
       billName: billName,
       total: total,
       mode: splitMode,
       payerId: payerId,
       payerName: payer.name,
+      ownerId: ownerSettlement.id,
+      ownerName: ownerSettlement.name,
+      ownerShare: ownerSettlement.share,
+      ownerPaid: ownerSettlement.paid,
+      ownerNet: ownerSettlement.net,
+      ownerStatusKey: ownerSettlement.statusKey,
+      ownerStatusText: ownerSettlement.statusText,
       people: results,
       date: getTodayString(),
     };
@@ -2105,7 +2200,8 @@
       '<div class="result-total">' + formatRupiah(splitResults.total) + '</div>' +
       '<div class="result-people-count">' + splitResults.people.length + ' peserta • ' +
         (splitResults.mode === 'equal' ? '<i class="ph-bold ph-scales"></i> Bagi Rata' : '<i class="ph-bold ph-pencil-simple"></i> Custom') + '</div>' +
-      '<div class="result-payer">Dibayar oleh: ' + escapeHtml(splitResults.payerName) + '</div>';
+      '<div class="result-payer">Dibayar oleh: ' + escapeHtml(splitResults.payerName) + '</div>' +
+      '<div class="result-owner-status">Status Saya (' + escapeHtml(splitResults.ownerName) + '): ' + escapeHtml(splitResults.ownerStatusText) + '</div>';
 
     splitResultList.innerHTML = '';
     splitResults.people.forEach(function (p, i) {
@@ -2128,7 +2224,7 @@
         '<div class="person-info">' +
           '<div class="person-avatar" style="background:' + color + '">' + initials + '</div>' +
           '<div class="person-text">' +
-            '<span class="person-name">' + escapeHtml(p.name) + (p.id === splitResults.payerId ? ' (Pembayar)' : '') + '</span>' +
+            '<span class="person-name">' + escapeHtml(p.name) + (p.id === splitResults.payerId ? ' (Pembayar)' : '') + (p.id === splitResults.ownerId ? ' (Saya)' : '') + '</span>' +
             '<span class="person-detail">Bayar: ' + formatRupiah(p.paid) + '</span>' +
           '</div>' +
         '</div>' +
@@ -2141,22 +2237,10 @@
     });
   }
 
-  // ─── Save Split to Expenses ───────────────
-  function saveSplitToExpenses() {
+  // ─── Save Split to Ledger ──────────────────
+  function saveSplitToLedger() {
     if (!splitResults) return;
 
-    splitResults.people.forEach(function (p) {
-      var expense = {
-        id: generateId(),
-        date: splitResults.date,
-        title: splitResults.billName + ' (' + p.name + ')',
-        category: 'Makanan',
-        amount: p.share,
-      };
-      expenses.push(expense);
-    });
-
-    // Save to split history
     var historyEntry = {
       id: generateId(),
       date: splitResults.date,
@@ -2164,48 +2248,205 @@
       total: splitResults.total,
       people: splitResults.people,
       mode: splitResults.mode,
+      payerId: splitResults.payerId,
       payerName: splitResults.payerName,
+      ownerId: splitResults.ownerId,
+      ownerName: splitResults.ownerName,
+      ownerShare: splitResults.ownerShare,
+      ownerPaid: splitResults.ownerPaid,
+      ownerNet: splitResults.ownerNet,
+      ownerStatusKey: splitResults.ownerStatusKey,
+      ownerStatusText: splitResults.ownerStatusText,
+      syncedExpenseId: null,
+      syncedAt: null,
     };
-    splitHistory.unshift(historyEntry);
-    if (splitHistory.length > 20) splitHistory = splitHistory.slice(0, 20);
-    localStorage.setItem(SPLIT_HISTORY_KEY, JSON.stringify(splitHistory));
+    splitLedger.unshift(historyEntry);
+    if (splitLedger.length > 100) splitLedger = splitLedger.slice(0, 100);
+    localStorage.setItem(SPLIT_LEDGER_KEY, JSON.stringify(splitLedger));
 
+    renderSplitHistory();
+    renderSplitLedgerTable();
+    showToast('Split bill disimpan ke ledger. Sync ke pengeluaran bersifat opsional.', 'success');
+    closeSplitModal();
+  }
+
+  function syncSplitLedgerToExpense(splitId) {
+    var entry = splitLedger.find(function (item) { return item.id === splitId; });
+    if (!entry) {
+      showToast('Data split tidak ditemukan', 'error');
+      return;
+    }
+    if (entry.syncedExpenseId) {
+      showToast('Split ini sudah tersinkron ke pengeluaran', 'info');
+      return;
+    }
+    if (!entry.ownerShare || Number(entry.ownerShare) <= 0) {
+      showToast('Porsi Anda tidak valid untuk disinkron', 'error');
+      return;
+    }
+
+    pushUndo(expenses);
+
+    var expense = {
+      id: generateId(),
+      type: 'expense',
+      wallet: 'Tunai',
+      date: entry.date || getTodayString(),
+      title: 'Split Bill: ' + entry.billName + ' (' + entry.ownerName + ')',
+      category: 'Makanan',
+      amount: Number(entry.ownerShare),
+      splitLedgerId: entry.id,
+    };
+    expenses.push(expense);
     saveToStorage();
     renderTable();
-    showToast('Split bill disimpan sebagai ' + splitResults.people.length + ' pengeluaran', 'success');
-    closeSplitModal();
+
+    entry.syncedExpenseId = expense.id;
+    entry.syncedAt = getTodayString();
+    localStorage.setItem(SPLIT_LEDGER_KEY, JSON.stringify(splitLedger));
+    renderSplitHistory();
+    renderSplitLedgerTable();
+    showToast('Porsi Anda berhasil disinkron ke pengeluaran', 'success');
   }
 
   // ─── Split History ────────────────────────
   function loadSplitHistory() {
     try {
-      var raw = localStorage.getItem(SPLIT_HISTORY_KEY);
-      splitHistory = raw ? JSON.parse(raw) : [];
+      var raw = localStorage.getItem(SPLIT_LEDGER_KEY);
+      var parsed = raw ? JSON.parse(raw) : [];
+      splitLedger = Array.isArray(parsed) ? parsed : [];
+
+      splitLedger = splitLedger
+        .filter(function (entry) {
+          return entry && entry.id && entry.billName && Number(entry.total || 0) > 0;
+        })
+        .map(function (entry) {
+          var people = Array.isArray(entry.people) ? entry.people : [];
+          var ownerName = (entry.ownerName || '').trim();
+          var ownerShare = Number(entry.ownerShare);
+          var ownerPaid = Number(entry.ownerPaid);
+          var ownerNet = Number(entry.ownerNet);
+
+          if (!ownerName && userProfile.name) {
+            var byProfile = people.find(function (p) {
+              return normalizePersonName(p.name) === normalizePersonName(userProfile.name);
+            });
+            if (byProfile) ownerName = byProfile.name;
+          }
+          if (!ownerName && people.length) ownerName = people[0].name;
+
+          var ownerEntry = people.find(function (p) {
+            return normalizePersonName(p.name) === normalizePersonName(ownerName);
+          });
+
+          if (!Number.isFinite(ownerShare) && ownerEntry) ownerShare = Number(ownerEntry.share) || 0;
+          if (!Number.isFinite(ownerPaid) && ownerEntry) ownerPaid = Number(ownerEntry.paid) || 0;
+          if (!Number.isFinite(ownerNet) && ownerEntry) {
+            ownerNet = Number(ownerEntry.net);
+            if (!Number.isFinite(ownerNet)) ownerNet = ownerPaid - ownerShare;
+          }
+
+          ownerShare = Number.isFinite(ownerShare) ? ownerShare : 0;
+          ownerPaid = Number.isFinite(ownerPaid) ? ownerPaid : 0;
+          ownerNet = Number.isFinite(ownerNet) ? ownerNet : (ownerPaid - ownerShare);
+
+          var ownerStatus = getOwnerSettlementDescriptor(ownerNet);
+
+          return {
+            id: entry.id,
+            date: entry.date || getTodayString(),
+            billName: entry.billName || 'Split Bill',
+            total: Number(entry.total) || 0,
+            people: people,
+            mode: entry.mode || 'equal',
+            payerId: entry.payerId || '',
+            payerName: entry.payerName || '',
+            ownerId: entry.ownerId || '',
+            ownerName: ownerName,
+            ownerShare: ownerShare,
+            ownerPaid: ownerPaid,
+            ownerNet: ownerNet,
+            ownerStatusKey: entry.ownerStatusKey || ownerStatus.key,
+            ownerStatusText: entry.ownerStatusText || ownerStatus.text,
+            syncedExpenseId: entry.syncedExpenseId || null,
+            syncedAt: entry.syncedAt || null,
+          };
+        });
+
+      localStorage.setItem(SPLIT_LEDGER_KEY, JSON.stringify(splitLedger));
     } catch (e) {
-      splitHistory = [];
+      splitLedger = [];
     }
   }
 
   function renderSplitHistory() {
     splitHistoryList.innerHTML = '';
 
-    if (splitHistory.length === 0) {
+    if (splitLedger.length === 0) {
       splitHistoryList.innerHTML = '<p class="split-history-empty">Belum ada riwayat split</p>';
       return;
     }
 
-    splitHistory.forEach(function (entry) {
+    splitLedger.slice(0, 12).forEach(function (entry) {
       var payerText = entry.payerName ? (' • Dibayar: ' + escapeHtml(entry.payerName)) : '';
+      var ownerText = entry.ownerName ? (' • Saya: ' + escapeHtml(entry.ownerName)) : '';
       var item = document.createElement('div');
       item.className = 'split-history-item';
       item.innerHTML =
         '<div>' +
           '<div class="hist-name">' + escapeHtml(entry.billName) + '</div>' +
-          '<div class="hist-meta">' + formatDate(entry.date) + ' • ' + entry.people.length + ' peserta' + payerText + '</div>' +
+          '<div class="hist-meta">' + formatDate(entry.date) + ' • ' + entry.people.length + ' peserta' + payerText + ownerText + '</div>' +
         '</div>' +
         '<span class="hist-amount">' + formatRupiah(entry.total) + '</span>';
       splitHistoryList.appendChild(item);
     });
+  }
+
+  function renderSplitLedgerTable() {
+    if (!splitLedgerTbody || !splitLedgerEmpty) return;
+
+    splitLedgerTbody.innerHTML = '';
+    if (splitLedger.length === 0) {
+      splitLedgerEmpty.classList.add('visible');
+      return;
+    }
+
+    splitLedgerEmpty.classList.remove('visible');
+    var fragment = document.createDocumentFragment();
+
+    splitLedger.forEach(function (entry) {
+      var tr = document.createElement('tr');
+      var statusKey = entry.ownerStatusKey || 'even';
+      var statusText = entry.ownerStatusText || 'Status belum tersedia';
+      var syncDone = Boolean(entry.syncedExpenseId);
+      var syncClass = syncDone ? 'synced' : 'pending';
+      var syncText = syncDone
+        ? ('Tersinkron' + (entry.syncedAt ? (' • ' + formatDate(entry.syncedAt)) : ''))
+        : 'Belum sync';
+
+      var actionHtml = '';
+      if (syncDone) {
+        actionHtml = '<button class="btn btn-sm btn-ghost" type="button" disabled><i class="ph-bold ph-check-circle"></i> Tersinkron</button>';
+      } else if (Number(entry.ownerShare) > 0) {
+        actionHtml = '<button class="btn btn-sm btn-primary" type="button" data-split-action="sync" data-id="' + entry.id + '"><i class="ph-bold ph-arrows-clockwise"></i> Sync ke Pengeluaran Saya</button>';
+      } else {
+        actionHtml = '<button class="btn btn-sm btn-ghost" type="button" disabled>Tidak ada porsi</button>';
+      }
+
+      tr.innerHTML =
+        '<td data-label="Tanggal">' + formatDate(entry.date) + '</td>' +
+        '<td data-label="Bill"><div style="font-weight:700">' + escapeHtml(entry.billName) + '</div>' +
+          '<div style="font-size:0.78rem; color:var(--clr-text-secondary)">Saya: ' + escapeHtml(entry.ownerName || '-') + ' • Dibayar: ' + escapeHtml(entry.payerName || '-') + '</div></td>' +
+        '<td class="text-right" data-label="Total"><strong>' + formatRupiah(entry.total) + '</strong></td>' +
+        '<td class="text-right" data-label="Porsi Saya"><strong>' + formatRupiah(entry.ownerShare || 0) + '</strong></td>' +
+        '<td data-label="Status Saya"><span class="split-ledger-status ' + statusKey + '">' + escapeHtml(statusText) + '</span></td>' +
+        '<td data-label="Sync"><span class="split-ledger-sync ' + syncClass + '">' + escapeHtml(syncText) + '</span></td>' +
+        '<td class="text-center" data-label="Aksi">' + actionHtml + '</td>';
+
+      fragment.appendChild(tr);
+    });
+
+    splitLedgerTbody.appendChild(fragment);
   }
 
   // ─── Split Bill Event Listeners ───────────
@@ -2228,12 +2469,32 @@
   btnAddPerson.addEventListener('click', function () { addPersonRow(''); });
 
   btnCalculateSplit.addEventListener('click', calculateSplit);
-  btnSaveSplit.addEventListener('click', saveSplitToExpenses);
+  btnSaveSplit.addEventListener('click', saveSplitToLedger);
 
   btnBackSplit.addEventListener('click', function () {
     splitFormView.style.display = 'block';
     splitResultsView.style.display = 'none';
   });
+
+  if (splitOwnerName) {
+    splitOwnerName.addEventListener('input', function () {
+      splitOwnerName.classList.remove('invalid');
+    });
+    splitOwnerName.addEventListener('change', persistProfileNameFromSplit);
+    splitOwnerName.addEventListener('blur', persistProfileNameFromSplit);
+  }
+
+  if (splitLedgerTbody) {
+    splitLedgerTbody.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-split-action]');
+      if (!btn) return;
+      var action = btn.dataset.splitAction;
+      var id = btn.dataset.id;
+      if (action === 'sync' && id) {
+        syncSplitLedgerToExpense(id);
+      }
+    });
+  }
 
   // ─── Budget Modal Event Listeners ─────────
   btnEditBudget.addEventListener('click', function () {
@@ -2708,6 +2969,7 @@
     loadRecurringFromStorage();
     expenses = getFromStorage(); // Must load expenses before processing recurring
     loadGoalsFromStorage();
+    loadProfileFromStorage();
     processRecurringExpenses();
     isPerfLite = detectPerfLite(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     applyPerformanceMode(isPerfLite);
@@ -2720,6 +2982,7 @@
     loadFilters();
     updateUndoIndicator();
     loadSplitHistory();
+    renderSplitLedgerTable();
     initVisualEffects();
     renderTable();
     renderGoals();

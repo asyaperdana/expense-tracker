@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/style.css?v=20260225-2" />
+    <link rel="stylesheet" href="css/style.css?v=20260226-1" />
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
     <link rel="apple-touch-icon" href="assets/icon.svg" />
     <link rel="manifest" href="manifest.json" />
@@ -396,6 +396,35 @@
           Belum ada pengeluaran. Tambahkan transaksi pertama dari form di atas.
         </p>
       </section>
+
+      <section class="card glass split-ledger-card" id="split-ledger-section">
+        <span class="card-illus" aria-hidden="true">◫</span>
+        <div class="split-ledger-header">
+          <h3 class="card-title"><i class="ph-bold ph-handshake"></i> Ledger Split Bill</h3>
+          <p class="split-ledger-subtitle">Tracking split bill terpisah dari pengeluaran utama.</p>
+        </div>
+        <div class="table-wrapper split-ledger-wrapper">
+          <table id="split-ledger-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Bill</th>
+                <th class="text-right">Total</th>
+                <th class="text-right">Porsi Saya</th>
+                <th>Status Saya</th>
+                <th>Sync</th>
+                <th class="text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="split-ledger-tbody">
+              <!-- Rows rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+        <p class="empty-state split-ledger-empty" id="split-ledger-empty">
+          Belum ada data split bill. Gunakan tombol Split Bill untuk menambahkan.
+        </p>
+      </section>
     </main>
 
     <!-- Confirm Delete Modal -->
@@ -463,6 +492,12 @@
             </div>
           </div>
 
+          <div class="form-group split-owner-group">
+            <label for="split-owner-name">Nama Saya (untuk tracking)</label>
+            <input type="text" id="split-owner-name" placeholder="cth: Asya" />
+            <small class="help-text">Nama ini harus ada di daftar peserta agar status piutang/hutang bisa dihitung.</small>
+          </div>
+
           <div class="split-mode-toggle">
             <button class="split-mode-btn active" data-mode="equal" id="mode-equal" type="button"><i class="ph-bold ph-scales"></i> Bagi Rata</button>
             <button class="split-mode-btn" data-mode="custom" id="mode-custom" type="button"><i class="ph-bold ph-pencil-simple"></i> Custom</button>
@@ -494,7 +529,7 @@
           <div class="split-result-summary" id="split-result-summary"></div>
           <div class="split-result-list" id="split-result-list"></div>
           <div class="split-form-actions">
-            <button class="btn btn-primary" id="btn-save-split" type="button"><i class="ph-bold ph-floppy-disk"></i> Simpan ke Pengeluaran</button>
+            <button class="btn btn-primary" id="btn-save-split" type="button"><i class="ph-bold ph-floppy-disk"></i> Simpan ke Ledger Split</button>
             <button class="btn btn-ghost" id="btn-back-split" type="button"><i class="ph-bold ph-arrow-left"></i> Kembali</button>
           </div>
         </div>
@@ -682,6 +717,6 @@
       </p>
     </footer>
 
-    <script src="js/script.js?v=20260225-2"></script>
+    <script src="js/script.js?v=20260226-1"></script>
   </body>
 </html>
