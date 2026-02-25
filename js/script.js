@@ -431,11 +431,10 @@
         if (w === 'E-Wallet') icon = '<i class="ph-bold ph-device-mobile"></i>';
         
         var wDiv = document.createElement('div');
-        wDiv.style.background = 'rgba(255,255,255,0.15)';
-        wDiv.style.padding = '4px 10px';
-        wDiv.style.borderRadius = '8px';
-        wDiv.style.fontSize = '0.85rem';
-        wDiv.innerHTML = '<span style="opacity: 0.8; margin-right: 4px;">' + icon + ' ' + w + ':</span> <strong>' + formatRupiah(bal) + '</strong>';
+        wDiv.className = 'wallet-pill';
+        wDiv.innerHTML =
+          '<span class="wallet-pill-label">' + icon + ' ' + escapeHtml(w) + '</span>' +
+          '<strong class="wallet-pill-value">' + formatRupiah(bal) + '</strong>';
         walletBalancesEl.appendChild(wDiv);
       });
     }
@@ -1365,6 +1364,97 @@
     ctx.scale(dpr, dpr);
   }
 
+  function initVisualEffects() {
+    var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setupScrollReveal(prefersReduced);
+    setupCardGlow(prefersReduced);
+    setupHeroTilt(prefersReduced);
+  }
+
+  function setupScrollReveal(prefersReduced) {
+    var sections = document.querySelectorAll('.container > section');
+    if (!sections || sections.length === 0) return;
+    if (prefersReduced || !('IntersectionObserver' in window)) return;
+
+    var viewport = window.innerHeight || document.documentElement.clientHeight;
+    sections.forEach(function (section) {
+      var rect = section.getBoundingClientRect();
+      if (rect.top <= viewport * 0.9) return;
+      section.classList.add('reveal-ready');
+    });
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('revealed');
+        observer.unobserve(entry.target);
+      });
+    }, {
+      threshold: 0.18,
+      rootMargin: '0px 0px -8% 0px'
+    });
+
+    sections.forEach(function (section) {
+      if (section.classList.contains('reveal-ready')) {
+        observer.observe(section);
+      }
+    });
+  }
+
+  function setupCardGlow(prefersReduced) {
+    if (prefersReduced) return;
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+
+    var cards = document.querySelectorAll('.card');
+    cards.forEach(function (card) {
+      card.addEventListener('pointermove', function (e) {
+        var rect = card.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        var x = ((e.clientX - rect.left) / rect.width) * 100;
+        var y = ((e.clientY - rect.top) / rect.height) * 100;
+        card.style.setProperty('--mx', x.toFixed(2) + '%');
+        card.style.setProperty('--my', y.toFixed(2) + '%');
+        card.classList.add('card-glow');
+      });
+
+      card.addEventListener('pointerleave', function () {
+        card.classList.remove('card-glow');
+        card.style.setProperty('--mx', '50%');
+        card.style.setProperty('--my', '50%');
+      });
+    });
+  }
+
+  function setupHeroTilt(prefersReduced) {
+    if (prefersReduced) return;
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+
+    var hero = document.querySelector('.hero-card');
+    if (!hero) return;
+
+    hero.addEventListener('pointermove', function (e) {
+      var rect = hero.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      var px = (e.clientX - rect.left) / rect.width;
+      var py = (e.clientY - rect.top) / rect.height;
+      var tiltX = (0.5 - py) * 8;
+      var tiltY = (px - 0.5) * 12;
+
+      hero.style.setProperty('--hero-tilt-x', tiltX.toFixed(2) + 'deg');
+      hero.style.setProperty('--hero-tilt-y', tiltY.toFixed(2) + 'deg');
+      hero.style.setProperty('--hero-mx', (px * 100).toFixed(2) + '%');
+      hero.style.setProperty('--hero-my', (py * 100).toFixed(2) + '%');
+    });
+
+    hero.addEventListener('pointerleave', function () {
+      hero.style.setProperty('--hero-tilt-x', '0deg');
+      hero.style.setProperty('--hero-tilt-y', '0deg');
+      hero.style.setProperty('--hero-mx', '50%');
+      hero.style.setProperty('--hero-my', '50%');
+    });
+  }
+
   // ═══════════════════════════════════════════
   //  SPLIT BILL MODULE
   // ═══════════════════════════════════════════
@@ -1964,33 +2054,35 @@
     });
 
     if (goals.length === 0) {
-      goalListEl.innerHTML = '<div style="text-align:center; padding: 1.5rem; color: var(--clr-text-secondary); font-size: 0.9rem;">Belum ada tabungan impian. <br><span style="font-size:0.8rem;opacity:0.6;">Buat goal baru untuk mulai menabung!</span></div>';
+      goalListEl.innerHTML =
+        '<div class="goal-empty">Belum ada tabungan impian.' +
+        '<span class="goal-empty-hint">Buat goal baru untuk mulai menabung.</span>' +
+        '</div>';
       return;
     }
 
     goals.forEach(function(g) {
       var current = goalBalances[g.id] || 0;
-      var pct = Math.min((current / g.target) * 100, 100).toFixed(1);
+      var safeTarget = g.target > 0 ? g.target : 1;
+      var pctValue = Math.min((current / safeTarget) * 100, 100);
+      var pct = pctValue.toFixed(1);
       
-      var card = document.createElement('div');
-      card.style.background = 'var(--clr-surface-solid)';
-      card.style.border = '1px solid var(--clr-border)';
-      card.style.borderRadius = '12px';
-      card.style.padding = '1rem';
+      var card = document.createElement('article');
+      card.className = 'goal-item';
       
       card.innerHTML = 
-        '<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 8px;">' +
-          '<div style="font-weight:700; font-size:1.05rem;">' + escapeHtml(g.name) + '</div>' +
-          '<div style="font-size:0.85rem; color:var(--clr-text-secondary);">' + formatRupiah(current) + ' / ' + formatRupiah(g.target) + '</div>' +
+        '<div class="goal-item-header">' +
+          '<div class="goal-item-name">' + escapeHtml(g.name) + '</div>' +
+          '<div class="goal-item-amount">' + formatRupiah(current) + ' / ' + formatRupiah(g.target) + '</div>' +
         '</div>' +
-        '<div style="height: 8px; background: var(--clr-border); border-radius: 8px; overflow: hidden; margin-bottom: 12px; position:relative;">' +
-          '<div style="position:absolute; top:0; left:0; height:100%; background: var(--clr-accent); width: ' + pct + '%; border-radius: 8px; transition: width 0.5s;"></div>' +
+        '<div class="goal-progress-track">' +
+          '<div class="goal-progress-fill" style="width: ' + pct + '%;"></div>' +
         '</div>' +
-        '<div style="display:flex; justify-content:space-between; align-items:center;">' +
-          '<div style="font-size:0.8rem; font-weight:600; color:var(--clr-accent);">' + pct + '% Tercapai</div>' +
-          '<div style="display:flex; gap:0.5rem;">' +
-            '<button class="btn btn-sm btn-ghost btn-fund-goal" data-id="' + g.id + '" style="padding:4px 8px; font-size:0.75rem;"><i class="ph-bold ph-piggy-bank"></i> Isi Dana</button>' +
-            '<button class="btn btn-sm btn-ghost btn-del-goal" data-id="' + g.id + '" style="padding:4px 8px; font-size:0.75rem; color:var(--clr-danger); border-color:transparent;"><i class="ph-bold ph-trash"></i></button>' +
+        '<div class="goal-item-footer">' +
+          '<div class="goal-progress-label">' + pct + '% Tercapai</div>' +
+          '<div class="goal-action-group">' +
+            '<button class="btn btn-sm btn-ghost btn-fund-goal" data-id="' + g.id + '" type="button"><i class="ph-bold ph-piggy-bank"></i> Isi Dana</button>' +
+            '<button class="btn btn-sm btn-ghost btn-del-goal" data-id="' + g.id + '" type="button" aria-label="Hapus goal"><i class="ph-bold ph-trash"></i></button>' +
           '</div>' +
         '</div>';
       
@@ -2117,6 +2209,7 @@
     loadSplitHistory();
     renderTable();
     renderGoals();
+    initVisualEffects();
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
