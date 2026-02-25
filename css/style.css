@@ -1739,6 +1739,10 @@ input[value="transfer"]:checked ~ .segmented-bg {
   margin-bottom: 1.25rem;
 }
 
+.split-payer-group {
+  margin-bottom: 1.25rem;
+}
+
 .split-participants-header {
   display: flex;
   align-items: center;
@@ -1767,7 +1771,7 @@ input[value="transfer"]:checked ~ .segmented-bg {
   animation: fadeSlideIn 0.25s ease forwards;
 }
 
-.split-person-row input[type="text"] {
+.split-person-row .person-name-input {
   flex: 1;
   padding: 0.55rem 0.8rem;
   font-size: 0.9rem;
@@ -1780,12 +1784,12 @@ input[value="transfer"]:checked ~ .segmented-bg {
   transition: border-color var(--transition);
 }
 
-.split-person-row input[type="text"]:focus {
+.split-person-row .person-name-input:focus {
   border-color: var(--clr-primary);
   box-shadow: 0 0 0 2px var(--clr-primary-light);
 }
 
-.split-person-row input[type="number"] {
+.split-person-row .custom-amount {
   width: 120px;
   padding: 0.55rem 0.8rem;
   font-size: 0.9rem;
@@ -1798,7 +1802,7 @@ input[value="transfer"]:checked ~ .segmented-bg {
   transition: border-color var(--transition);
 }
 
-.split-person-row input[type="number"]:focus {
+.split-person-row .custom-amount:focus {
   border-color: var(--clr-primary);
   box-shadow: 0 0 0 2px var(--clr-primary-light);
 }
@@ -1867,6 +1871,12 @@ input[value="transfer"]:checked ~ .segmented-bg {
   margin-top: 0.15rem;
 }
 
+.split-result-summary .result-payer {
+  font-size: 0.8rem;
+  opacity: 0.95;
+  margin-top: 0.35rem;
+}
+
 .split-result-list {
   display: flex;
   flex-direction: column;
@@ -1889,6 +1899,13 @@ input[value="transfer"]:checked ~ .segmented-bg {
   font-size: 0.95rem;
 }
 
+.split-result-item .person-detail {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.78rem;
+  color: var(--clr-text-secondary);
+}
+
 .split-result-item .person-avatar {
   width: 32px;
   height: 32px;
@@ -1908,11 +1925,40 @@ input[value="transfer"]:checked ~ .segmented-bg {
   gap: 0.6rem;
 }
 
+.split-result-item .person-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.split-result-item .person-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+}
+
 .split-result-item .person-share {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.85rem;
   color: var(--clr-primary);
   font-variant-numeric: tabular-nums;
+}
+
+.split-result-item .person-settlement {
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.split-result-item .person-settlement.receive {
+  color: var(--clr-success);
+}
+
+.split-result-item .person-settlement.pay {
+  color: var(--clr-danger);
+}
+
+.split-result-item .person-settlement.even {
+  color: var(--clr-text-secondary);
 }
 
 /* Split History */

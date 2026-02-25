@@ -1640,8 +1640,9 @@
   });
 
   inputAmount.addEventListener('input', function () {
-    var value = Number(inputAmount.value);
-    if (!inputAmount.value || value <= 0) {
+    var rawValue = inputAmount.value.replace(/,/g, '');
+    var value = Number(rawValue);
+    if (!rawValue || value <= 0) {
       amountHelp.textContent = 'Nominal harus lebih dari 0';
       inputAmount.classList.add('invalid');
       return;
@@ -1870,6 +1871,7 @@
   var btnCloseSplit = document.getElementById('btn-close-split');
   var splitBillName = document.getElementById('split-bill-name');
   var splitTotal = document.getElementById('split-total');
+  var splitPayer = document.getElementById('split-payer');
   var modeEqual = document.getElementById('mode-equal');
   var modeCustom = document.getElementById('mode-custom');
   var splitPersonList = document.getElementById('split-person-list');
@@ -1886,6 +1888,7 @@
   var splitMode = 'equal'; // 'equal' or 'custom'
   var splitResults = null;
   var splitHistory = [];
+  var splitPersonIdCounter = 0;
 
   var AVATAR_COLORS = [
     '#6366f1', '#ec4899', '#f97316', '#10b981',
@@ -1910,34 +1913,72 @@
     splitBillName.value = '';
     splitTotal.value = '';
     splitMode = 'equal';
+    splitPersonIdCounter = 0;
     modeEqual.classList.add('active');
     modeCustom.classList.remove('active');
     splitPersonList.innerHTML = '';
     // Add 2 default persons
     addPersonRow('');
     addPersonRow('');
+    syncSplitPayerOptions();
     updateCustomAmountVisibility();
   }
 
   // ─── Person Rows ──────────────────────────
   function addPersonRow(name) {
+    var personId = 'p-' + (++splitPersonIdCounter);
     var row = document.createElement('div');
     row.className = 'split-person-row';
+    row.dataset.personId = personId;
     row.innerHTML =
       '<input type="text" class="person-name-input" placeholder="Nama peserta" value="' + escapeHtml(name || '') + '" />' +
-      '<input type="number" class="custom-amount' + (splitMode === 'custom' ? ' visible' : '') + '" placeholder="Nominal" min="0" step="1" inputmode="numeric" />' +
+      '<input type="text" class="custom-amount' + (splitMode === 'custom' ? ' visible' : '') + '" placeholder="Nominal" inputmode="numeric" />' +
       '<button class="btn-remove-person" title="Hapus" type="button">×</button>';
 
     // Remove button
     row.querySelector('.btn-remove-person').addEventListener('click', function () {
       if (splitPersonList.children.length > 2) {
         row.remove();
+        syncSplitPayerOptions();
       } else {
         showToast('Minimal 2 peserta', 'error');
       }
     });
 
     splitPersonList.appendChild(row);
+    syncSplitPayerOptions();
+  }
+
+  function getSplitParticipantLabel(row, index) {
+    var nameInput = row.querySelector('.person-name-input');
+    var name = nameInput ? nameInput.value.trim() : '';
+    return name || ('Peserta ' + (index + 1));
+  }
+
+  function syncSplitPayerOptions() {
+    if (!splitPayer) return;
+
+    var rows = splitPersonList.querySelectorAll('.split-person-row');
+    var prevPayerId = splitPayer.value;
+    var hasPrev = false;
+    var firstId = '';
+    splitPayer.innerHTML = '';
+
+    rows.forEach(function (row, i) {
+      var personId = row.dataset.personId || ('p-auto-' + i);
+      row.dataset.personId = personId;
+
+      var opt = document.createElement('option');
+      opt.value = personId;
+      opt.textContent = getSplitParticipantLabel(row, i);
+      splitPayer.appendChild(opt);
+
+      if (!firstId) firstId = personId;
+      if (personId === prevPayerId) hasPrev = true;
+    });
+
+    if (!firstId) return;
+    splitPayer.value = hasPrev ? prevPayerId : firstId;
   }
 
   function updateCustomAmountVisibility() {
@@ -1966,6 +2007,8 @@
 
   // ─── Calculate Split ──────────────────────
   function calculateSplit() {
+    syncSplitPayerOptions();
+
     var billName = splitBillName.value.trim() || 'Split Bill';
     var totalText = splitTotal.value.replace(/,/g, '');
     var total = Number(totalText);
@@ -1981,6 +2024,8 @@
     var people = [];
 
     rows.forEach(function (row, i) {
+      var personId = row.dataset.personId || ('p-' + (i + 1));
+      row.dataset.personId = personId;
       var nameInput = row.querySelector('.person-name-input');
       var name = nameInput.value.trim() || 'Peserta ' + (i + 1);
       var customAmt = 0;
@@ -1990,13 +2035,17 @@
         customAmt = Number(customAmtText) || 0;
       }
 
-      people.push({ name: name, customAmount: customAmt });
+      people.push({ id: personId, name: name, customAmount: customAmt });
     });
 
     if (people.length < 2) {
       showToast('Minimal 2 peserta', 'error');
       return;
     }
+
+    var payerId = splitPayer && splitPayer.value ? splitPayer.value : people[0].id;
+    var payer = people.find(function (p) { return p.id === payerId; }) || people[0];
+    payerId = payer.id;
 
     // Calculate shares
     var results = [];
@@ -2005,6 +2054,7 @@
       var remainder = total - (share * people.length);
       people.forEach(function (p, i) {
         results.push({
+          id: p.id,
           name: p.name,
           share: share + (i === 0 ? remainder : 0),
         });
@@ -2017,14 +2067,27 @@
         return;
       }
       people.forEach(function (p) {
-        results.push({ name: p.name, share: p.customAmount });
+        results.push({ id: p.id, name: p.name, share: p.customAmount });
       });
     }
+
+    results = results.map(function (p) {
+      var paid = p.id === payerId ? total : 0;
+      return {
+        id: p.id,
+        name: p.name,
+        share: p.share,
+        paid: paid,
+        net: paid - p.share,
+      };
+    });
 
     splitResults = {
       billName: billName,
       total: total,
       mode: splitMode,
+      payerId: payerId,
+      payerName: payer.name,
       people: results,
       date: getTodayString(),
     };
@@ -2041,12 +2104,22 @@
       '<div class="result-bill-name">' + escapeHtml(splitResults.billName) + '</div>' +
       '<div class="result-total">' + formatRupiah(splitResults.total) + '</div>' +
       '<div class="result-people-count">' + splitResults.people.length + ' peserta • ' +
-        (splitResults.mode === 'equal' ? '<i class="ph-bold ph-scales"></i> Bagi Rata' : '<i class="ph-bold ph-pencil-simple"></i> Custom') + '</div>';
+        (splitResults.mode === 'equal' ? '<i class="ph-bold ph-scales"></i> Bagi Rata' : '<i class="ph-bold ph-pencil-simple"></i> Custom') + '</div>' +
+      '<div class="result-payer">Dibayar oleh: ' + escapeHtml(splitResults.payerName) + '</div>';
 
     splitResultList.innerHTML = '';
     splitResults.people.forEach(function (p, i) {
       var color = AVATAR_COLORS[i % AVATAR_COLORS.length];
       var initials = p.name.split(' ').map(function (w) { return w[0]; }).slice(0, 2).join('').toUpperCase();
+      var settlementText = 'Lunas';
+      var settlementClass = 'even';
+      if (p.net > 0) {
+        settlementText = 'Harus terima ' + formatRupiah(p.net);
+        settlementClass = 'receive';
+      } else if (p.net < 0) {
+        settlementText = 'Harus bayar ' + formatRupiah(Math.abs(p.net));
+        settlementClass = 'pay';
+      }
 
       var item = document.createElement('div');
       item.className = 'split-result-item';
@@ -2054,9 +2127,15 @@
       item.innerHTML =
         '<div class="person-info">' +
           '<div class="person-avatar" style="background:' + color + '">' + initials + '</div>' +
-          '<span class="person-name">' + escapeHtml(p.name) + '</span>' +
+          '<div class="person-text">' +
+            '<span class="person-name">' + escapeHtml(p.name) + (p.id === splitResults.payerId ? ' (Pembayar)' : '') + '</span>' +
+            '<span class="person-detail">Bayar: ' + formatRupiah(p.paid) + '</span>' +
+          '</div>' +
         '</div>' +
-        '<span class="person-share">' + formatRupiah(p.share) + '</span>';
+        '<div class="person-result">' +
+          '<span class="person-share">Porsi: ' + formatRupiah(p.share) + '</span>' +
+          '<span class="person-settlement ' + settlementClass + '">' + settlementText + '</span>' +
+        '</div>';
 
       splitResultList.appendChild(item);
     });
@@ -2085,6 +2164,7 @@
       total: splitResults.total,
       people: splitResults.people,
       mode: splitResults.mode,
+      payerName: splitResults.payerName,
     };
     splitHistory.unshift(historyEntry);
     if (splitHistory.length > 20) splitHistory = splitHistory.slice(0, 20);
@@ -2115,12 +2195,13 @@
     }
 
     splitHistory.forEach(function (entry) {
+      var payerText = entry.payerName ? (' • Dibayar: ' + escapeHtml(entry.payerName)) : '';
       var item = document.createElement('div');
       item.className = 'split-history-item';
       item.innerHTML =
         '<div>' +
           '<div class="hist-name">' + escapeHtml(entry.billName) + '</div>' +
-          '<div class="hist-meta">' + formatDate(entry.date) + ' • ' + entry.people.length + ' peserta</div>' +
+          '<div class="hist-meta">' + formatDate(entry.date) + ' • ' + entry.people.length + ' peserta' + payerText + '</div>' +
         '</div>' +
         '<span class="hist-amount">' + formatRupiah(entry.total) + '</span>';
       splitHistoryList.appendChild(item);
@@ -2254,6 +2335,9 @@
   splitPersonList.addEventListener('input', function(e) {
     if (e.target.classList.contains('custom-amount')) {
       formatInputCurrency(e);
+    }
+    if (e.target.classList.contains('person-name-input')) {
+      syncSplitPayerOptions();
     }
   });
 
