@@ -52,6 +52,9 @@
           <h2 class="hero-title">Total Saldo Aktif</h2>
           <div class="hero-value" id="total-balance">Rp 0</div>
           <div class="wallet-balances" id="wallet-balances"></div>
+          <button class="btn btn-ghost btn-manage-wallet" id="btn-manage-wallet" type="button" title="Kelola Dompet">
+            <i class="ph-bold ph-gear"></i> Kelola Dompet
+          </button>
           
           <div class="budget-container">
             <div class="budget-header">
@@ -192,6 +195,21 @@
         </form>
       </section>
 
+      <!-- Quick Add Templates -->
+      <section class="card glass quick-add-card" id="quick-add-section">
+        <span class="card-illus" aria-hidden="true">⚡</span>
+        <div class="quick-add-header">
+          <h3 class="card-title"><i class="ph-bold ph-lightning"></i> Quick Add</h3>
+          <p class="quick-add-subtitle">Tap untuk langsung input transaksi dari template</p>
+        </div>
+        <div class="quick-add-strip" id="quick-add-strip">
+          <!-- Template cards rendered via JS -->
+        </div>
+        <p class="quick-add-empty" id="quick-add-empty">
+          Belum ada template. Klik <i class="ph-bold ph-push-pin"></i> di tabel untuk menyimpan template.
+        </p>
+      </section>
+
       <!-- Summary Section -->
       <section class="card summary-card">
         <span class="card-illus" aria-hidden="true">◉</span>
@@ -276,6 +294,25 @@
         </p>
       </section>
 
+      <!-- Trend Chart Section -->
+      <section class="card glass trend-card" id="trend-section">
+        <span class="card-illus" aria-hidden="true">◈</span>
+        <div class="trend-header">
+          <h3 class="card-title"><i class="ph-bold ph-chart-bar"></i> Tren 6 Bulan</h3>
+          <div class="trend-legend">
+            <span class="trend-legend-item trend-legend-income"><span class="trend-dot"></span> Pemasukan</span>
+            <span class="trend-legend-item trend-legend-expense"><span class="trend-dot"></span> Pengeluaran</span>
+          </div>
+        </div>
+        <div class="trend-chart-wrapper">
+          <canvas id="trend-chart" width="600" height="260"></canvas>
+          <div class="trend-tooltip" id="trend-tooltip"></div>
+        </div>
+        <p class="trend-empty" id="trend-empty">
+          Belum cukup data untuk menampilkan tren <i class="ph ph-chart-bar"></i>
+        </p>
+      </section>
+
       <!-- Category Budget Section -->
       <section class="card glass category-budget-card" id="category-budget-section">
         <span class="card-illus" aria-hidden="true">◎</span>
@@ -290,6 +327,42 @@
         <p class="category-budget-empty" id="category-budget-empty">
           Tambahkan batas per kategori agar pengeluaran lebih terkontrol.
         </p>
+      </section>
+
+      <!-- Calendar View -->
+      <section class="card glass calendar-card" id="calendar-section">
+        <span class="card-illus" aria-hidden="true">◫</span>
+        <div class="calendar-header">
+          <h3 class="card-title"><i class="ph-bold ph-calendar-dots"></i> Kalender Pengeluaran</h3>
+          <div class="calendar-nav">
+            <button class="btn btn-ghost btn-sm btn-cal-nav" id="btn-cal-prev" type="button" title="Bulan sebelumnya">
+              <i class="ph-bold ph-caret-left"></i>
+            </button>
+            <span class="calendar-month-label" id="calendar-month-label">Februari 2026</span>
+            <button class="btn btn-ghost btn-sm btn-cal-nav" id="btn-cal-next" type="button" title="Bulan berikutnya">
+              <i class="ph-bold ph-caret-right"></i>
+            </button>
+          </div>
+        </div>
+        <div class="calendar-grid" id="calendar-grid">
+          <!-- Day headers -->
+          <div class="cal-day-header">Sen</div>
+          <div class="cal-day-header">Sel</div>
+          <div class="cal-day-header">Rab</div>
+          <div class="cal-day-header">Kam</div>
+          <div class="cal-day-header">Jum</div>
+          <div class="cal-day-header">Sab</div>
+          <div class="cal-day-header">Min</div>
+          <!-- Day cells rendered via JS -->
+        </div>
+        <div class="calendar-day-detail" id="calendar-day-detail" style="display:none">
+          <div class="cal-detail-header">
+            <strong id="cal-detail-date"></strong>
+            <button class="btn btn-ghost btn-sm" id="btn-cal-detail-close" type="button"><i class="ph-bold ph-x"></i></button>
+          </div>
+          <div class="cal-detail-summary" id="cal-detail-summary"></div>
+          <div class="cal-detail-list" id="cal-detail-list"></div>
+        </div>
       </section>
 
       <!-- Filter -->
@@ -384,7 +457,7 @@
                 <th>Tipe & Nama</th>
                 <th>Kategori & Dompet</th>
                 <th class="text-right">Nominal</th>
-                <th class="text-center">Aksi</th>
+                <th class="text-center" style="min-width:140px">Aksi</th>
               </tr>
             </thead>
             <tbody id="expense-tbody">
@@ -703,6 +776,35 @@
         <div class="modal-actions">
           <button class="btn btn-primary" id="btn-confirm-recurring" type="button">Catat Semua</button>
           <button class="btn btn-ghost" id="btn-cancel-recurring" type="button">Lewati</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wallet Management Modal -->
+    <div class="modal-overlay" id="wallet-overlay">
+      <div class="modal glass wallet-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
+        <div class="modal-icon"><i class="ph-fill ph-wallet" style="color: var(--clr-primary);"></i></div>
+        <h2 class="modal-text" id="wallet-modal-title">Kelola Dompet</h2>
+        <p class="modal-subtext">Tambahkan dompet custom atau hapus yang tidak digunakan.</p>
+        <div class="wallet-add-row">
+          <input type="text" id="input-wallet-name" placeholder="Nama dompet baru" maxlength="30" />
+          <select id="input-wallet-icon">
+            <option value="ph-wallet">💳 Wallet</option>
+            <option value="ph-bank">🏦 Bank</option>
+            <option value="ph-device-mobile">📱 Mobile</option>
+            <option value="ph-credit-card">💳 Kartu</option>
+            <option value="ph-money">💵 Uang</option>
+            <option value="ph-coin">🪙 Koin</option>
+            <option value="ph-piggy-bank">🐷 Celengan</option>
+            <option value="ph-storefront">🏪 Toko</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-add-wallet" type="button"><i class="ph-bold ph-plus"></i> Tambah</button>
+        </div>
+        <div class="wallet-list" id="wallet-list">
+          <!-- Rendered via JS -->
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="btn-close-wallet" type="button">Tutup</button>
         </div>
       </div>
     </div>

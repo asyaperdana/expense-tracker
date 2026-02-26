@@ -18,6 +18,10 @@
   var CUSTOM_CAT_KEY = 'expense_tracker_custom_cat';
   var RECURRING_KEY = 'expense_tracker_recurring';
   var GOALS_KEY = 'expense_tracker_goals';
+  var WALLETS_KEY = 'expense_tracker_wallets';
+  var TEMPLATES_KEY = 'expense_tracker_templates';
+  var CALENDAR_KEY = 'expense_tracker_calendar';
+  
 
 
   var CATEGORY_COLORS = {
@@ -162,6 +166,28 @@
   var splitLedgerTbody = document.getElementById('split-ledger-tbody');
   var splitLedgerEmpty = document.getElementById('split-ledger-empty');
 
+  // New Feature DOM References
+  var btnManageWallet = document.getElementById('btn-manage-wallet');
+  var walletOverlay = document.getElementById('wallet-overlay');
+  var walletList = document.getElementById('wallet-list');
+  var btnAddWallet = document.getElementById('btn-add-wallet');
+  var inputWalletName = document.getElementById('input-wallet-name');
+  var inputWalletIcon = document.getElementById('input-wallet-icon');
+  var btnCloseWallet = document.getElementById('btn-close-wallet');
+  var quickAddStrip = document.getElementById('quick-add-strip');
+  var trendChartCanvas = document.getElementById('trend-chart');
+  var trendTooltip = document.getElementById('trend-tooltip');
+  var calendarGrid = document.getElementById('calendar-grid');
+  var calendarMonthLabel = document.getElementById('calendar-month-label');
+  var btnCalPrev = document.getElementById('btn-cal-prev');
+  var btnCalNext = document.getElementById('btn-cal-next');
+  var calendarDayDetail = document.getElementById('calendar-day-detail');
+  var calDetailDate = document.getElementById('cal-detail-date');
+  var btnCalDetailClose = document.getElementById('btn-cal-detail-close');
+  var calDetailSummary = document.getElementById('cal-detail-summary');
+  var calDetailList = document.getElementById('cal-detail-list');
+  
+
   // ─── State ────────────────────────────────
   var expenses = [];
   var customCategories = [];
@@ -182,6 +208,9 @@
   var chartHoverRaf = null;
   var chartHoverEvent = null;
   var categoryBudgets = {};
+  var wallets = [];
+  var templates = [];
+  var calendarViewDate = new Date();
   
   var AVAILABLE_ICONS = ['ph-star', 'ph-heart', 'ph-airplane-tilt', 'ph-bag', 'ph-game-controller', 'ph-cat', 'ph-dog', 'ph-car', 'ph-house', 'ph-monitor', 'ph-music-note', 'ph-camera', 'ph-coffee', 'ph-bicycle', 'ph-barbell', 'ph-books', 'ph-graduation-cap', 'ph-bandaids', 'ph-bed', 'ph-plug'];
   var AVAILABLE_COLORS = ['#f43f5e', '#ec4899', '#d946ef', '#a855f7', '#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e', '#84cc16', '#eab308', '#f59e0b', '#f97316', '#ef4444'];
@@ -253,6 +282,148 @@
     localStorage.setItem(PROFILE_KEY, JSON.stringify({
       name: (userProfile.name || '').trim(),
     }));
+  }
+
+  // ─── Wallet Functions ─────────────────────
+  function loadWallets() {
+    try {
+      var raw = localStorage.getItem(WALLETS_KEY);
+      wallets = raw ? JSON.parse(raw) : [
+        { id: 'w1', name: 'Tunai', icon: 'ph-money' },
+        { id: 'w2', name: 'Rekening Bank', icon: 'ph-bank' },
+        { id: 'w3', name: 'E-Wallet', icon: 'ph-device-mobile' }
+      ];
+    } catch (e) {
+      wallets = [];
+    }
+  }
+
+  function saveWallets() {
+    localStorage.setItem(WALLETS_KEY, JSON.stringify(wallets));
+    renderWalletDropdowns();
+  }
+
+  function renderWalletList() {
+    if (!walletList) return;
+    walletList.innerHTML = '';
+    
+    wallets.forEach(function(wallet) {
+      var item = document.createElement('div');
+      item.className = 'wallet-item';
+      item.innerHTML = 
+        '<div class="wallet-item-icon"><i class="ph-fill ' + wallet.icon + '"></i></div>' +
+        '<div class="wallet-item-name">' + escapeHtml(wallet.name) + '</div>' +
+        '<button class="btn btn-ghost btn-sm btn-del-wallet" data-id="' + wallet.id + '" title="Hapus"><i class="ph-bold ph-trash"></i></button>';
+      
+      var btnDel = item.querySelector('.btn-del-wallet');
+      btnDel.addEventListener('click', function() {
+        var id = this.dataset.id;
+        var inUse = expenses.some(function(e) { return e.wallet === wallet.name || e.walletTo === wallet.name; });
+        if (inUse) {
+          showToast('Dompet masih digunakan dalam transaksi. Tidak bisa dihapus.', 'error');
+          return;
+        }
+        if (wallets.length <= 1) {
+          showToast('Minimal harus ada 1 dompet aktif.', 'error');
+          return;
+        }
+        wallets = wallets.filter(function(w) { return w.id !== id; });
+        saveWallets();
+        renderWalletList();
+        renderTable();
+        showToast('Dompet berhasil dihapus', 'success');
+      });
+      
+      walletList.appendChild(item);
+    });
+  }
+
+  function renderWalletDropdowns() {
+    var walletSelects = [inputWallet, inputWalletTo, inputGoalFundSource];
+    
+    walletSelects.forEach(function(sel) {
+      if (!sel) return;
+      var currentVal = sel.value;
+      sel.innerHTML = '';
+      
+      wallets.forEach(function(w) {
+        var opt = document.createElement('option');
+        opt.value = w.name;
+        opt.textContent = w.name;
+        sel.appendChild(opt);
+      });
+      if (currentVal) sel.value = currentVal;
+    });
+  }
+
+  // ─── Template Functions ───────────────────
+  function loadTemplates() {
+    try {
+      var raw = localStorage.getItem(TEMPLATES_KEY);
+      templates = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      templates = [];
+    }
+  }
+
+  function saveTemplates() {
+    localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+    renderTemplateStrip();
+  }
+
+  function renderTemplateStrip() {
+    if (!quickAddStrip) return;
+    quickAddStrip.innerHTML = '';
+    
+    if (templates.length === 0) {
+      if (quickAddEmpty) quickAddEmpty.classList.add('visible');
+      quickAddStrip.style.display = 'none';
+      return;
+    }
+    
+    if (quickAddEmpty) quickAddEmpty.classList.remove('visible');
+    quickAddStrip.style.display = 'flex';
+    
+    templates.forEach(function(tpl) {
+      var card = document.createElement('div');
+      card.className = 'template-card';
+      var iconHtml = CATEGORY_ICONS[tpl.category] || '<i class="ph-fill ph-tag"></i>';
+      
+      card.innerHTML = 
+        '<div class="template-icon">' + iconHtml + '</div>' + 
+        '<div class="template-name">' + escapeHtml(tpl.title) + '</div>' +
+        '<div class="template-amount">' + formatRupiah(tpl.amount) + '</div>' +
+        '<button class="btn-del-template" data-id="' + tpl.id + '"><i class="ph-bold ph-x"></i></button>';
+      
+      card.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-del-template')) return;
+        
+        inputTitle.value = tpl.title;
+        inputAmount.value = tpl.amount.toLocaleString('en-US');
+        inputCategory.value = tpl.category;
+        inputWallet.value = tpl.wallet;
+        
+        for (var i = 0; i < inputTypeRadios.length; i++) {
+          if (inputTypeRadios[i].value === tpl.type) {
+            inputTypeRadios[i].checked = true;
+            inputTypeRadios[i].dispatchEvent(new Event('change'));
+            break;
+          }
+        }
+        
+        form.dispatchEvent(new Event('submit'));
+        showToast('Template "' + tpl.title + '" dijalankan', 'success');
+      });
+      
+      var btnDel = card.querySelector('.btn-del-template');
+      btnDel.addEventListener('click', function() {
+        var id = this.dataset.id;
+        templates = templates.filter(function(t) { return t.id !== id; });
+        saveTemplates();
+      });
+      
+      quickAddStrip.appendChild(card);
+    });
   }
 
   // ─── Theme (Dark Mode) ───────────────────
@@ -542,6 +713,205 @@
     reportLargestExpenseEl.textContent = largestExpense ? ('Pengeluaran terbesar: ' + largestExpense.title + ' (' + formatRupiah(largestExpense.amount) + ')') : 'Pengeluaran terbesar: —';
     reportTrendEl.textContent = 'Tren vs bulan lalu: ' + trendText;
     reportAdviceEl.textContent = advice;
+    
+    // Trigger trend chart update if report changes
+    renderTrendChart();
+  }
+
+  // ─── Trend Chart (6 Months) ─────────────
+  function renderTrendChart() {
+    if (!trendChartCanvas) return;
+    var ctx = trendChartCanvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var canvasWidth = trendChartCanvas.width / dpr;
+    var canvasHeight = trendChartCanvas.height / dpr;
+
+    // Get last 6 months labels and keys
+    var months = [];
+    var current = getCurrentMonthKey();
+    for (var i = 0; i < 6; i++) {
+      months.unshift(current);
+      current = getPreviousMonthKey(current);
+    }
+
+    var data = months.map(function(m) {
+      var inc = 0, exp = 0;
+      expenses.forEach(function(e) {
+        if (e.date.startsWith(m)) {
+          if (e.type === 'income') inc += e.amount;
+          else if (e.type === 'expense') exp += e.amount;
+        }
+      });
+      return { month: m, income: inc, expense: exp };
+    });
+
+    var maxVal = Math.max.apply(Math, data.map(function(d) { return Math.max(d.income, d.expense); })) || 100000;
+    maxVal = Math.ceil(maxVal / 1000000) * 1000000; // Round up for padding
+
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    
+    if (expenses.length === 0) {
+      if (trendEmpty) trendEmpty.classList.add('visible');
+      trendChartCanvas.style.display = 'none';
+      return;
+    }
+    if (trendEmpty) trendEmpty.classList.remove('visible');
+    trendChartCanvas.style.display = 'block';
+
+    var padding = { top: 20, right: 20, bottom: 40, left: 60 };
+    var chartW = canvasWidth - padding.left - padding.right;
+    var chartH = canvasHeight - padding.top - padding.bottom;
+    var barGap = 20;
+    var barWidth = (chartW / 6) - barGap;
+
+    // Draw Y Axis labels
+    ctx.fillStyle = getTheme() === 'dark' ? '#94a3b8' : '#64748b';
+    ctx.font = '10px Manrope';
+    ctx.textAlign = 'right';
+    for (var j = 0; j <= 4; j++) {
+      var y = padding.top + chartH - (j * (chartH / 4));
+      var labelVal = (maxVal / 4) * j;
+      ctx.fillText(labelVal >= 1000000 ? (labelVal / 1000000).toFixed(1) + 'M' : (labelVal / 1000).toFixed(0) + 'K', padding.left - 10, y + 4);
+      
+      // Grid lines
+      ctx.beginPath();
+      ctx.strokeStyle = getTheme() === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(padding.left + chartW, y);
+      ctx.stroke();
+    }
+
+    // Draw Bars
+    data.forEach(function(d, idx) {
+      var xBase = padding.left + (idx * (chartW / 6)) + (barGap / 2);
+      var incH = (d.income / maxVal) * chartH;
+      var expH = (d.expense / maxVal) * chartH;
+      
+      // Income Bar
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.roundRect(xBase, padding.top + chartH - incH, barWidth / 2 - 2, incH, [4, 4, 0, 0]);
+      ctx.fill();
+      
+      // Expense Bar
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.roundRect(xBase + barWidth / 2 + 2, padding.top + chartH - expH, barWidth / 2 - 2, expH, [4, 4, 0, 0]);
+      ctx.fill();
+      
+      // X Label
+      var label = d.month.split('-')[1] + '/' + d.month.split('-')[0].substring(2);
+      ctx.fillStyle = getTheme() === 'dark' ? '#94a3b8' : '#64748b';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, xBase + barWidth / 2, padding.top + chartH + 20);
+    });
+  }
+
+  // ─── Calendar Functions ───────────────────
+  function updateCalendarHeader() {
+    if (!calendarMonthLabel) return;
+    var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    calendarMonthLabel.textContent = months[calendarViewDate.getMonth()] + ' ' + calendarViewDate.getFullYear();
+  }
+
+  function renderCalendar() {
+    if (!calendarGrid) return;
+    updateCalendarHeader();
+    
+    // Clear existing cells but keep headers (first 7 children)
+    while (calendarGrid.children.length > 7) {
+      calendarGrid.removeChild(calendarGrid.lastChild);
+    }
+
+    var year = calendarViewDate.getFullYear();
+    var month = calendarViewDate.getMonth();
+    var firstDay = new Date(year, month, 1).getDay(); // 0(Sun) to 6(Sat)
+    // Convert to 0(Mon) to 6(Sun)
+    var startOffset = firstDay === 0 ? 6 : firstDay - 1;
+    
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var today = getTodayString();
+
+    // Padding for start
+    for (var i = 0; i < startOffset; i++) {
+      var empty = document.createElement('div');
+      empty.className = 'cal-day empty';
+      calendarGrid.appendChild(empty);
+    }
+
+    // Days
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateKey = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      var dayExpenses = expenses.filter(function(e) { return e.date === dateKey; });
+      
+      var cell = document.createElement('div');
+      cell.className = 'cal-day' + (dateKey === today ? ' today' : '');
+      cell.dataset.date = dateKey;
+      
+      var innerHtml = '<span class="cal-num">' + d + '</span>';
+      
+      if (dayExpenses.length > 0) {
+        var dayInc = 0, dayExp = 0;
+        dayExpenses.forEach(function(e) {
+          if (e.type === 'income') dayInc += e.amount;
+          else if (e.type === 'expense') dayExp += e.amount;
+        });
+        
+        innerHtml += '<div class="cal-spending">';
+        if (dayExp > 0) innerHtml += '<span class="cal-amount cal-amount-exp">-' + (dayExp / 1000).toFixed(0) + 'k</span>';
+        if (dayInc > 0) innerHtml += '<span class="cal-amount cal-amount-inc">+' + (dayInc / 1000).toFixed(0) + 'k</span>';
+        
+        innerHtml += '<div class="cal-dots">';
+        if (dayExp > 0) innerHtml += '<span class="cal-dot" style="background:#f43f5e"></span>';
+        if (dayInc > 0) innerHtml += '<span class="cal-dot" style="background:#10b981"></span>';
+        innerHtml += '</div></div>';
+      }
+      
+      cell.innerHTML = innerHtml;
+      cell.addEventListener('click', function() {
+        renderDayDetail(this.dataset.date);
+      });
+      
+      calendarGrid.appendChild(cell);
+    }
+  }
+
+  function renderDayDetail(dateStr) {
+    if (!calendarDayDetail) return;
+    var dayData = expenses.filter(function(e) { return e.date === dateStr; });
+    
+    calDetailDate.textContent = formatDate(dateStr);
+    calDetailList.innerHTML = '';
+    
+    var totalInc = 0, totalExp = 0;
+    dayData.forEach(function(item) {
+      if (item.type === 'income') totalInc += item.amount;
+      else if (item.type === 'expense') totalExp += item.amount;
+      
+      var itemDiv = document.createElement('div');
+      itemDiv.className = 'cal-item';
+      var isInc = item.type === 'income';
+      
+      itemDiv.innerHTML = 
+        '<div class="cal-item-left">' +
+          '<div class="category-icon">' + (CATEGORY_ICONS[item.category] || '') + '</div>' +
+          '<div class="cal-item-info">' +
+            '<strong>' + escapeHtml(item.title) + '</strong>' +
+            '<span>' + escapeHtml(item.category) + ' • ' + escapeHtml(item.wallet) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="cal-item-right ' + (isInc ? 'text-success' : 'text-danger') + '">' +
+          (isInc ? '+' : '-') + formatRupiah(item.amount) +
+        '</div>';
+      calDetailList.appendChild(itemDiv);
+    });
+    
+    calDetailSummary.innerHTML = 
+      '<div><small>Pemasukan</small><br><strong class="text-success">' + formatRupiah(totalInc) + '</strong></div>' +
+      '<div><small>Pengeluaran</small><br><strong class="text-danger">' + formatRupiah(totalExp) + '</strong></div>' +
+      '<div><small>Selisih</small><br><strong>' + formatRupiah(totalInc - totalExp) + '</strong></div>';
+    
+    calendarDayDetail.style.display = 'flex';
   }
 
   // ─── Budget Logic ──────────────────────────
@@ -603,30 +973,29 @@
 
   // ─── Calculate Individual Wallets ────────
   function calculateWalletBalances(data) {
-    var wallets = {
-      'Tunai': 0,
-      'Rekening Bank': 0,
-      'E-Wallet': 0
-    };
+    var walletsResult = {};
+    wallets.forEach(function(w) {
+      walletsResult[w.name] = 0;
+    });
     
     data.forEach(function(item) {
       var w = item.wallet || 'Tunai';
-      if (typeof wallets[w] === 'undefined') wallets[w] = 0;
+      if (typeof walletsResult[w] === 'undefined') walletsResult[w] = 0;
       
       if (item.type === 'income') {
-        wallets[w] += item.amount;
+        walletsResult[w] += item.amount;
       } else if (item.type === 'expense') {
-        wallets[w] -= item.amount;
+        walletsResult[w] -= item.amount;
       } else if (item.type === 'transfer') {
         var wTo = item.walletTo || 'Tunai';
-        if (typeof wallets[wTo] === 'undefined') wallets[wTo] = 0;
+        if (typeof walletsResult[wTo] === 'undefined') walletsResult[wTo] = 0;
         
-        wallets[w] -= item.amount;
-        wallets[wTo] += item.amount;
+        walletsResult[w] -= item.amount;
+        walletsResult[wTo] += item.amount;
       }
     });
     
-    return wallets;
+    return walletsResult;
   }
 
   // ─── Update Hero (Balance & Budget) ──────
@@ -639,10 +1008,8 @@
       walletBalancesEl.innerHTML = '';
       Object.keys(wals).forEach(function(w) {
         var bal = wals[w];
-        var icon = '<i class="ph-bold ph-wallet"></i>';
-        if (w === 'Tunai') icon = '<i class="ph-bold ph-money"></i>';
-        if (w === 'Rekening Bank') icon = '<i class="ph-bold ph-bank"></i>';
-        if (w === 'E-Wallet') icon = '<i class="ph-bold ph-device-mobile"></i>';
+        var walletObj = wallets.find(function(obj) { return obj.name === w; });
+        var icon = walletObj ? ('<i class="ph-bold ' + walletObj.icon + '"></i>') : '<i class="ph-bold ph-wallet"></i>';
         
         var wDiv = document.createElement('div');
         wDiv.className = 'wallet-pill';
@@ -905,6 +1272,7 @@
         '<td class="text-right" data-label="Nominal"><span class="amount ' + (isIncome ? 'text-success' : (isTransfer ? 'text-accent' : '')) + '" style="font-weight:600">' + (isIncome ? '+' : (isTransfer ? '' : '-')) + formatRupiah(item.amount) + '</span></td>' +
         '<td class="text-center" data-label="Aksi">' +
           '<div class="action-group">' +
+            '<button class="btn btn-sm btn-pin" data-action="pin" data-id="' + item.id + '" title="Pin ke Quick Add"><i class="ph-bold ph-push-pin"></i></button>' +
             '<button class="btn btn-sm btn-edit" data-action="edit" data-id="' + item.id + '" title="Edit"><i class="ph-bold ph-pencil-simple"></i> Edit</button>' +
             '<button class="btn btn-sm btn-delete" data-action="delete" data-id="' + item.id + '" title="Hapus"><i class="ph-bold ph-trash"></i> Hapus</button>' +
           '</div>' +
@@ -916,6 +1284,8 @@
     tbody.appendChild(fragment);
     updateSummary(data);
     renderChart(data);
+    renderTemplateStrip();
+    renderCalendar();
   }
 
   function renderTable() {
@@ -1401,6 +1771,26 @@
       startEdit(id);
     } else if (action === 'delete') {
       showDeleteConfirm(id);
+    } else if (action === "pin") {
+      var item = expenses.find(function(ex) { return ex.id === id; });
+      if (item) {
+        if (templates.length >= 10) {
+          showToast("Maksimal 10 template diperbolehkan.", "error");
+          return;
+        }
+        var newTpl = {
+          id: generateId(),
+          title: item.title,
+          category: item.category,
+          amount: item.amount,
+          type: item.type,
+          wallet: item.wallet
+        };
+        templates.push(newTpl);
+        saveTemplates();
+        showToast("Transaksi berhasil di-pin ke Quick Add", "success");
+      }
+
     }
   }
 
@@ -1641,6 +2031,60 @@
   });
 
   btnUndo.addEventListener('click', undoLast);
+
+  // New Feature Event Listeners
+  if (btnManageWallet) {
+    btnManageWallet.addEventListener('click', function() {
+      walletOverlay.classList.add('visible');
+      renderWalletList();
+    });
+  }
+
+  if (btnCloseWallet) {
+    btnCloseWallet.addEventListener('click', function() {
+      walletOverlay.classList.remove('visible');
+    });
+  }
+
+  if (btnAddWallet) {
+    btnAddWallet.addEventListener('click', function() {
+      var name = inputWalletName.value.trim();
+      var icon = inputWalletIcon.value;
+      if (!name) {
+        showToast('Nama dompet harus diisi.', 'error');
+        return;
+      }
+      if (wallets.some(function(w) { return w.name.toLowerCase() === name.toLowerCase(); })) {
+        showToast('Nama dompet sudah ada.', 'error');
+        return;
+      }
+      wallets.push({ id: generateId(), name: name, icon: icon });
+      saveWallets();
+      inputWalletName.value = '';
+      renderWalletList();
+      showToast('Dompet "' + name + '" berhasil ditambah.', 'success');
+    });
+  }
+
+  if (btnCalPrev) {
+    btnCalPrev.addEventListener('click', function() {
+      calendarViewDate.setMonth(calendarViewDate.getMonth() - 1);
+      renderCalendar();
+    });
+  }
+
+  if (btnCalNext) {
+    btnCalNext.addEventListener('click', function() {
+      calendarViewDate.setMonth(calendarViewDate.getMonth() + 1);
+      renderCalendar();
+    });
+  }
+
+  if (btnCalDetailClose) {
+    btnCalDetailClose.addEventListener('click', function() {
+      calendarDayDetail.style.display = 'none';
+    });
+  }
 
   inputDate.addEventListener('input', function () {
     if (!inputDate.value) {
@@ -3199,8 +3643,11 @@
     loadRecurringFromStorage();
     expenses = getFromStorage(); // Must load expenses before processing recurring
     loadGoalsFromStorage();
+    loadWallets();
+    loadTemplates();
     loadProfileFromStorage();
     processRecurringExpenses();
+    renderCalendar();
     isPerfLite = detectPerfLite(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     applyPerformanceMode(isPerfLite);
     

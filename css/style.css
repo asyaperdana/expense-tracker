@@ -4447,3 +4447,451 @@ body.perf-lite .reveal-ready.revealed {
   filter: none !important;
   transition: none !important;
 }
+
+/* ===========================
+   Wallet Management Styles
+   =========================== */
+.btn-manage-wallet {
+  margin-top: 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.btn-manage-wallet:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+
+.wallet-modal {
+  max-width: 480px;
+}
+
+.wallet-add-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.wallet-add-row input {
+  flex: 1;
+}
+
+.wallet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.wallet-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--clr-bg);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  transition: var(--transition);
+}
+
+.wallet-item:hover {
+  border-color: var(--clr-primary);
+  background: var(--clr-primary-light);
+}
+
+.wallet-item-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--grad-primary);
+  color: #fff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.wallet-item-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* ===========================
+   Quick Add Styles
+   =========================== */
+.quick-add-card {
+  margin-bottom: 2rem;
+}
+
+.quick-add-strip {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 1rem;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.quick-add-strip::-webkit-scrollbar {
+  height: 6px;
+}
+
+.quick-add-strip::-webkit-scrollbar-thumb {
+  background: var(--clr-border);
+  border-radius: 10px;
+}
+
+.template-card {
+  flex: 0 0 auto;
+  width: 140px;
+  background: var(--clr-bg);
+  border: 1.5px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+
+.template-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--clr-primary);
+  background: var(--clr-primary-light);
+  box-shadow: var(--shadow);
+}
+
+.template-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--clr-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.template-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.template-amount {
+  font-size: 0.75rem;
+  color: var(--clr-text-secondary);
+}
+
+.btn-del-template {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--clr-danger);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: 0.2s;
+}
+
+.template-card:hover .btn-del-template {
+  opacity: 1;
+}
+
+.quick-add-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--clr-text-secondary);
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* ===========================
+   Trend Chart Styles
+   =========================== */
+.trend-card {
+  margin-bottom: 2.5rem;
+}
+
+.trend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.trend-legend {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+}
+
+.trend-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.trend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.trend-legend-income .trend-dot { background: #10b981; }
+.trend-legend-expense .trend-dot { background: #f43f5e; }
+
+.trend-chart-wrapper {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.trend-tooltip {
+  position: absolute;
+  background: rgba(15, 23, 42, 0.95);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 100;
+  font-size: 0.85rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  min-width: 140px;
+}
+
+/* ===========================
+   Calendar View Styles
+   =========================== */
+.calendar-card {
+  margin-bottom: 2.5rem;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--clr-bg);
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--clr-border);
+  border-radius: 99px;
+}
+
+.calendar-month-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  min-width: 120px;
+  text-align: center;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-day-header {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--clr-text-secondary);
+  padding-bottom: 0.5rem;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  background: var(--clr-bg);
+  border: 1px solid var(--clr-border);
+  border-radius: 8px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  transition: 0.2s;
+  min-height: 48px;
+}
+
+.cal-day:hover {
+  background: var(--clr-primary-light);
+  border-color: var(--clr-primary);
+  transform: scale(1.05);
+  z-index: 2;
+}
+
+.cal-day.empty {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+.cal-day.today {
+  border: 2px solid var(--clr-primary) !important;
+  background: rgba(0, 170, 91, 0.05);
+}
+
+.cal-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--clr-text-secondary);
+}
+
+.cal-spending {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.cal-dots {
+  display: flex;
+  gap: 2px;
+}
+
+.cal-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.cal-amount {
+  font-size: 0.6rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.cal-amount-exp { color: var(--clr-danger); }
+.cal-amount-inc { color: var(--clr-success); }
+
+/* Day Detail Drawer-like overlay */
+.calendar-day-detail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--clr-surface-solid);
+  z-index: 200;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.cal-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cal-detail-summary {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--clr-bg);
+  border-radius: 12px;
+  border: 1px solid var(--clr-border);
+}
+
+.cal-detail-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.cal-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--clr-border);
+}
+
+.cal-item:last-child { border: none; }
+
+.cal-item-left {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.cal-item-info strong {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.cal-item-info span {
+  font-size: 0.75rem;
+  color: var(--clr-text-secondary);
+}
+
+/* ===========================
+   Miscellaneous Fixes
+   =========================== */
+#expense-table th {
+  white-space: nowrap;
+}
+
+.btn-pin {
+  color: var(--clr-accent);
+}
+
+.btn-pin.active {
+  color: #fff;
+  background: var(--clr-accent);
+}
+
+@media (max-width: 640px) {
+  .trend-card {
+    padding: 1rem;
+  }
+  .trend-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .cal-num { font-size: 0.65rem; }
+  .cal-amount { display: none; }
+  .cal-day { min-height: 40px; padding: 2px; }
+}
