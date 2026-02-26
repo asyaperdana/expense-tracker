@@ -1895,6 +1895,7 @@
   var splitOverlay = document.getElementById('split-overlay');
   var btnOpenSplit = document.getElementById('btn-open-split');
   var btnCloseSplit = document.getElementById('btn-close-split');
+  var splitTitleEl = document.getElementById('split-title');
   var splitBillName = document.getElementById('split-bill-name');
   var splitTotal = document.getElementById('split-total');
   var splitOwnerName = document.getElementById('split-owner-name');
@@ -1916,6 +1917,8 @@
   var splitResults = null;
   var splitLedger = [];
   var splitPersonIdCounter = 0;
+  var splitEditingId = null;
+  var splitEditingDate = null;
 
   var AVATAR_COLORS = [
     '#6366f1', '#ec4899', '#f97316', '#10b981',
@@ -1924,7 +1927,47 @@
   ];
 
   // ─── Open / Close Split Modal ─────────────
+  function updateSplitModalHeader() {
+    if (!splitTitleEl || !btnSaveSplit) return;
+    if (splitEditingId) {
+      splitTitleEl.innerHTML = '<i class="ph-bold ph-pencil-simple"></i> Edit Split Bill';
+      btnSaveSplit.innerHTML = '<i class="ph-bold ph-check-circle"></i> Update Ledger Split';
+    } else {
+      splitTitleEl.innerHTML = '<i class="ph-bold ph-receipt"></i> Split Bill';
+      btnSaveSplit.innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Simpan ke Ledger Split';
+    }
+  }
+
+  function applySplitMode(mode) {
+    splitMode = mode === 'custom' ? 'custom' : 'equal';
+    if (splitMode === 'equal') {
+      modeEqual.classList.add('active');
+      modeCustom.classList.remove('active');
+    } else {
+      modeCustom.classList.add('active');
+      modeEqual.classList.remove('active');
+    }
+    updateCustomAmountVisibility();
+  }
+
+  function setSplitPayerByName(name) {
+    if (!splitPayer) return;
+    var target = normalizePersonName(name);
+    if (!target) return;
+    var rows = splitPersonList.querySelectorAll('.split-person-row');
+    for (var i = 0; i < rows.length; i++) {
+      if (normalizePersonName(getSplitParticipantLabel(rows[i], i)) === target) {
+        splitPayer.value = rows[i].dataset.personId || '';
+        return;
+      }
+    }
+  }
+
   function openSplitModal() {
+    splitEditingId = null;
+    splitEditingDate = null;
+    splitResults = null;
+    updateSplitModalHeader();
     splitOverlay.classList.add('active');
     splitFormView.style.display = 'block';
     splitResultsView.style.display = 'none';
@@ -1943,16 +1986,63 @@
       splitOwnerName.value = userProfile.name || '';
       splitOwnerName.classList.remove('invalid');
     }
-    splitMode = 'equal';
+    splitResults = null;
     splitPersonIdCounter = 0;
-    modeEqual.classList.add('active');
-    modeCustom.classList.remove('active');
+    applySplitMode('equal');
     splitPersonList.innerHTML = '';
     // Add 2 default persons
     addPersonRow((userProfile.name || '').trim());
     addPersonRow('');
     syncSplitPayerOptions();
-    updateCustomAmountVisibility();
+  }
+
+  function startEditSplit(splitId) {
+    var entry = splitLedger.find(function (item) { return item.id === splitId; });
+    if (!entry) {
+      showToast('Data split tidak ditemukan', 'error');
+      return;
+    }
+
+    splitEditingId = entry.id;
+    splitEditingDate = entry.date || getTodayString();
+    splitResults = null;
+    updateSplitModalHeader();
+
+    splitOverlay.classList.add('active');
+    splitFormView.style.display = 'block';
+    splitResultsView.style.display = 'none';
+
+    splitBillName.value = entry.billName || '';
+    splitTotal.value = Number(entry.total || 0).toLocaleString('en-US');
+    if (splitOwnerName) {
+      splitOwnerName.value = entry.ownerName || userProfile.name || '';
+      splitOwnerName.classList.remove('invalid');
+    }
+
+    splitPersonIdCounter = 0;
+    splitPersonList.innerHTML = '';
+    applySplitMode(entry.mode === 'custom' ? 'custom' : 'equal');
+
+    var people = Array.isArray(entry.people) ? entry.people : [];
+    if (people.length === 0) {
+      addPersonRow((entry.ownerName || userProfile.name || '').trim());
+      addPersonRow('');
+    } else {
+      people.forEach(function (p) {
+        var row = addPersonRow(p.name || '');
+        if (row && splitMode === 'custom') {
+          var customField = row.querySelector('.custom-amount');
+          if (customField) customField.value = Number(p.share || 0).toLocaleString('en-US');
+        }
+      });
+      if (people.length === 1) {
+        addPersonRow('');
+      }
+    }
+
+    syncSplitPayerOptions();
+    setSplitPayerByName(entry.payerName || '');
+    renderSplitHistory();
   }
 
   // ─── Person Rows ──────────────────────────
@@ -1978,6 +2068,7 @@
 
     splitPersonList.appendChild(row);
     syncSplitPayerOptions();
+    return row;
   }
 
   function getSplitParticipantLabel(row, index) {
@@ -2067,15 +2158,7 @@
 
   // ─── Split Mode Toggle ────────────────────
   function setSplitMode(mode) {
-    splitMode = mode;
-    if (mode === 'equal') {
-      modeEqual.classList.add('active');
-      modeCustom.classList.remove('active');
-    } else {
-      modeCustom.classList.add('active');
-      modeEqual.classList.remove('active');
-    }
-    updateCustomAmountVisibility();
+    applySplitMode(mode);
   }
 
   // ─── Calculate Split ──────────────────────
@@ -2184,7 +2267,7 @@
       ownerStatusKey: ownerSettlement.statusKey,
       ownerStatusText: ownerSettlement.statusText,
       people: results,
-      date: getTodayString(),
+      date: splitEditingDate || getTodayString(),
     };
 
     showSplitResults();
@@ -2242,7 +2325,7 @@
     if (!splitResults) return;
 
     var historyEntry = {
-      id: generateId(),
+      id: splitEditingId || generateId(),
       date: splitResults.date,
       billName: splitResults.billName,
       total: splitResults.total,
@@ -2260,6 +2343,62 @@
       syncedExpenseId: null,
       syncedAt: null,
     };
+
+    if (splitEditingId) {
+      var editIndex = splitLedger.findIndex(function (item) {
+        return item.id === splitEditingId;
+      });
+
+      if (editIndex !== -1) {
+        var prevEntry = splitLedger[editIndex];
+        historyEntry.syncedExpenseId = prevEntry.syncedExpenseId || null;
+        historyEntry.syncedAt = prevEntry.syncedAt || null;
+
+        if (historyEntry.syncedExpenseId) {
+          var expenseIndex = expenses.findIndex(function (item) {
+            return item.id === historyEntry.syncedExpenseId;
+          });
+
+          if (expenseIndex !== -1) {
+            if (Number(historyEntry.ownerShare) > 0) {
+              expenses[expenseIndex] = {
+                id: historyEntry.syncedExpenseId,
+                type: 'expense',
+                wallet: expenses[expenseIndex].wallet || 'Tunai',
+                date: historyEntry.date || getTodayString(),
+                title: 'Split Bill: ' + historyEntry.billName + ' (' + historyEntry.ownerName + ')',
+                category: 'Makanan',
+                amount: Number(historyEntry.ownerShare),
+                splitLedgerId: historyEntry.id,
+              };
+              historyEntry.syncedAt = getTodayString();
+            } else {
+              expenses.splice(expenseIndex, 1);
+              historyEntry.syncedExpenseId = null;
+              historyEntry.syncedAt = null;
+            }
+            saveToStorage();
+            renderTable();
+          } else {
+            historyEntry.syncedExpenseId = null;
+            historyEntry.syncedAt = null;
+          }
+        }
+
+        splitLedger[editIndex] = historyEntry;
+        localStorage.setItem(SPLIT_LEDGER_KEY, JSON.stringify(splitLedger));
+        renderSplitHistory();
+        renderSplitLedgerTable();
+        showToast('Split bill berhasil diperbarui', 'success');
+        splitEditingId = null;
+        splitEditingDate = null;
+        splitResults = null;
+        updateSplitModalHeader();
+        closeSplitModal();
+        return;
+      }
+    }
+
     splitLedger.unshift(historyEntry);
     if (splitLedger.length > 100) splitLedger = splitLedger.slice(0, 100);
     localStorage.setItem(SPLIT_LEDGER_KEY, JSON.stringify(splitLedger));
@@ -2267,6 +2406,10 @@
     renderSplitHistory();
     renderSplitLedgerTable();
     showToast('Split bill disimpan ke ledger. Sync ke pengeluaran bersifat opsional.', 'success');
+    splitEditingId = null;
+    splitEditingDate = null;
+    splitResults = null;
+    updateSplitModalHeader();
     closeSplitModal();
   }
 
@@ -2424,14 +2567,20 @@
         ? ('Tersinkron' + (entry.syncedAt ? (' • ' + formatDate(entry.syncedAt)) : ''))
         : 'Belum sync';
 
-      var actionHtml = '';
+      var syncButton = '';
       if (syncDone) {
-        actionHtml = '<button class="btn btn-sm btn-ghost" type="button" disabled><i class="ph-bold ph-check-circle"></i> Tersinkron</button>';
+        syncButton = '<button class="btn btn-sm btn-ghost" type="button" disabled><i class="ph-bold ph-check-circle"></i> Tersinkron</button>';
       } else if (Number(entry.ownerShare) > 0) {
-        actionHtml = '<button class="btn btn-sm btn-primary" type="button" data-split-action="sync" data-id="' + entry.id + '"><i class="ph-bold ph-arrows-clockwise"></i> Sync ke Pengeluaran Saya</button>';
+        syncButton = '<button class="btn btn-sm btn-primary" type="button" data-split-action="sync" data-id="' + entry.id + '"><i class="ph-bold ph-arrows-clockwise"></i> Sync</button>';
       } else {
-        actionHtml = '<button class="btn btn-sm btn-ghost" type="button" disabled>Tidak ada porsi</button>';
+        syncButton = '<button class="btn btn-sm btn-ghost" type="button" disabled>Tidak ada porsi</button>';
       }
+
+      var actionHtml =
+        '<div class="action-group">' +
+          '<button class="btn btn-sm btn-edit" type="button" data-split-action="edit" data-id="' + entry.id + '"><i class="ph-bold ph-pencil-simple"></i> Edit</button>' +
+          syncButton +
+        '</div>';
 
       tr.innerHTML =
         '<td data-label="Tanggal">' + formatDate(entry.date) + '</td>' +
@@ -2492,6 +2641,8 @@
       var id = btn.dataset.id;
       if (action === 'sync' && id) {
         syncSplitLedgerToExpense(id);
+      } else if (action === 'edit' && id) {
+        startEditSplit(id);
       }
     });
   }
