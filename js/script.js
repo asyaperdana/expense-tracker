@@ -175,8 +175,11 @@
   var inputWalletIcon = document.getElementById('input-wallet-icon');
   var btnCloseWallet = document.getElementById('btn-close-wallet');
   var quickAddStrip = document.getElementById('quick-add-strip');
+  var quickAddSection = document.getElementById('quick-add-section');
+  var quickAddEmpty = document.getElementById('quick-add-empty');
   var trendChartCanvas = document.getElementById('trend-chart');
   var trendTooltip = document.getElementById('trend-tooltip');
+  var trendEmpty = document.getElementById('trend-empty');
   var calendarGrid = document.getElementById('calendar-grid');
   var calendarMonthLabel = document.getElementById('calendar-month-label');
   var btnCalPrev = document.getElementById('btn-cal-prev');
@@ -376,13 +379,15 @@
     quickAddStrip.innerHTML = '';
     
     if (templates.length === 0) {
-      if (quickAddEmpty) quickAddEmpty.classList.add('visible');
+      if (quickAddEmpty) quickAddEmpty.style.display = 'block';
       quickAddStrip.style.display = 'none';
+      if (quickAddSection) quickAddSection.style.display = 'none';
       return;
     }
     
-    if (quickAddEmpty) quickAddEmpty.classList.remove('visible');
+    if (quickAddEmpty) quickAddEmpty.style.display = 'none';
     quickAddStrip.style.display = 'flex';
+    if (quickAddSection) quickAddSection.style.display = 'block';
     
     templates.forEach(function(tpl) {
       var card = document.createElement('div');
@@ -398,21 +403,21 @@
       card.addEventListener('click', function(e) {
         if (e.target.closest('.btn-del-template')) return;
         
-        inputTitle.value = tpl.title;
-        inputAmount.value = tpl.amount.toLocaleString('en-US');
-        inputCategory.value = tpl.category;
-        inputWallet.value = tpl.wallet;
+        // Directly create the expense from template
+        var newExpense = {
+          id: generateId(),
+          type: tpl.type,
+          wallet: tpl.wallet || 'Tunai',
+          date: getTodayString(),
+          title: tpl.title,
+          category: tpl.category,
+          amount: tpl.amount
+        };
         
-        for (var i = 0; i < inputTypeRadios.length; i++) {
-          if (inputTypeRadios[i].value === tpl.type) {
-            inputTypeRadios[i].checked = true;
-            inputTypeRadios[i].dispatchEvent(new Event('change'));
-            break;
-          }
-        }
-        
-        form.dispatchEvent(new Event('submit'));
-        showToast('Template "' + tpl.title + '" dijalankan', 'success');
+        expenses.push(newExpense);
+        saveToStorage();
+        renderTable();
+        showToast('Template "' + tpl.title + '" ditambahkan', 'success');
       });
       
       var btnDel = card.querySelector('.btn-del-template');
@@ -723,8 +728,14 @@
     if (!trendChartCanvas) return;
     var ctx = trendChartCanvas.getContext('2d');
     var dpr = window.devicePixelRatio || 1;
-    var canvasWidth = trendChartCanvas.width / dpr;
-    var canvasHeight = trendChartCanvas.height / dpr;
+    var parentW = trendChartCanvas.parentElement ? trendChartCanvas.parentElement.clientWidth : 580;
+    var canvasWidth = Math.max(parentW, 400);
+    var canvasHeight = 260;
+    trendChartCanvas.width = canvasWidth * dpr;
+    trendChartCanvas.height = canvasHeight * dpr;
+    trendChartCanvas.style.width = canvasWidth + 'px';
+    trendChartCanvas.style.height = canvasHeight + 'px';
+    ctx.scale(dpr, dpr);
 
     // Get last 6 months labels and keys
     var months = [];
@@ -746,16 +757,23 @@
     });
 
     var maxVal = Math.max.apply(Math, data.map(function(d) { return Math.max(d.income, d.expense); })) || 100000;
-    maxVal = Math.ceil(maxVal / 1000000) * 1000000; // Round up for padding
+    if (maxVal >= 1000000) {
+      maxVal = Math.ceil(maxVal / 1000000) * 1000000;
+    } else if (maxVal >= 100000) {
+      maxVal = Math.ceil(maxVal / 100000) * 100000;
+    } else {
+      maxVal = Math.ceil(maxVal / 10000) * 10000;
+    }
+    maxVal = Math.max(maxVal, 10000);
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     
     if (expenses.length === 0) {
-      if (trendEmpty) trendEmpty.classList.add('visible');
+      if (trendEmpty) trendEmpty.style.display = 'block';
       trendChartCanvas.style.display = 'none';
       return;
     }
-    if (trendEmpty) trendEmpty.classList.remove('visible');
+    if (trendEmpty) trendEmpty.style.display = 'none';
     trendChartCanvas.style.display = 'block';
 
     var padding = { top: 20, right: 20, bottom: 40, left: 60 };
@@ -2035,14 +2053,14 @@
   // New Feature Event Listeners
   if (btnManageWallet) {
     btnManageWallet.addEventListener('click', function() {
-      walletOverlay.classList.add('visible');
+      walletOverlay.classList.add('active');
       renderWalletList();
     });
   }
 
   if (btnCloseWallet) {
     btnCloseWallet.addEventListener('click', function() {
-      walletOverlay.classList.remove('visible');
+      walletOverlay.classList.remove('active');
     });
   }
 
@@ -3663,6 +3681,8 @@
     initVisualEffects();
     renderTable();
     renderGoals();
+    renderWalletDropdowns();
+    renderTemplateStrip();
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
