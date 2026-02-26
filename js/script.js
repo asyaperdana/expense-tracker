@@ -2342,6 +2342,8 @@
       ownerStatusText: splitResults.ownerStatusText,
       syncedExpenseId: null,
       syncedAt: null,
+      isDone: false,
+      doneAt: null,
     };
 
     if (splitEditingId) {
@@ -2353,6 +2355,8 @@
         var prevEntry = splitLedger[editIndex];
         historyEntry.syncedExpenseId = prevEntry.syncedExpenseId || null;
         historyEntry.syncedAt = prevEntry.syncedAt || null;
+        historyEntry.isDone = Boolean(prevEntry.isDone);
+        historyEntry.doneAt = prevEntry.doneAt || null;
 
         if (historyEntry.syncedExpenseId) {
           var expenseIndex = expenses.findIndex(function (item) {
@@ -2411,6 +2415,55 @@
     splitResults = null;
     updateSplitModalHeader();
     closeSplitModal();
+  }
+
+  function markSplitLedgerDone(splitId) {
+    var entryIndex = splitLedger.findIndex(function (item) {
+      return item.id === splitId;
+    });
+
+    if (entryIndex === -1) {
+      showToast('Data split tidak ditemukan', 'error');
+      return;
+    }
+
+    if (splitLedger[entryIndex].isDone) {
+      showToast('Split bill ini sudah selesai', 'info');
+      return;
+    }
+
+    splitLedger[entryIndex].isDone = true;
+    splitLedger[entryIndex].doneAt = getTodayString();
+    localStorage.setItem(SPLIT_LEDGER_KEY, JSON.stringify(splitLedger));
+
+    renderSplitHistory();
+    renderSplitLedgerTable();
+    showToast('Split bill ditandai selesai', 'success');
+  }
+
+  function deleteSplitLedgerEntry(splitId) {
+    var entryIndex = splitLedger.findIndex(function (item) {
+      return item.id === splitId;
+    });
+
+    if (entryIndex === -1) {
+      showToast('Data split tidak ditemukan', 'error');
+      return;
+    }
+
+    var deletedEntry = splitLedger.splice(entryIndex, 1)[0];
+    localStorage.setItem(SPLIT_LEDGER_KEY, JSON.stringify(splitLedger));
+
+    if (splitEditingId === splitId) {
+      splitEditingId = null;
+      splitEditingDate = null;
+      splitResults = null;
+      updateSplitModalHeader();
+    }
+
+    renderSplitHistory();
+    renderSplitLedgerTable();
+    showToast('Split bill "' + (deletedEntry.billName || 'Tanpa nama') + '" dihapus', 'info');
   }
 
   function syncSplitLedgerToExpense(splitId) {
@@ -2492,6 +2545,9 @@
           ownerShare = Number.isFinite(ownerShare) ? ownerShare : 0;
           ownerPaid = Number.isFinite(ownerPaid) ? ownerPaid : 0;
           ownerNet = Number.isFinite(ownerNet) ? ownerNet : (ownerPaid - ownerShare);
+          var isDone = Boolean(entry.isDone);
+          var doneAt = entry.doneAt || null;
+          if (isDone && !doneAt) doneAt = entry.date || getTodayString();
 
           var ownerStatus = getOwnerSettlementDescriptor(ownerNet);
 
@@ -2513,6 +2569,8 @@
             ownerStatusText: entry.ownerStatusText || ownerStatus.text,
             syncedExpenseId: entry.syncedExpenseId || null,
             syncedAt: entry.syncedAt || null,
+            isDone: isDone,
+            doneAt: doneAt,
           };
         });
 
@@ -2561,6 +2619,11 @@
       var tr = document.createElement('tr');
       var statusKey = entry.ownerStatusKey || 'even';
       var statusText = entry.ownerStatusText || 'Status belum tersedia';
+      var isDone = Boolean(entry.isDone);
+      var doneText = isDone
+        ? ('Selesai' + (entry.doneAt ? (' • ' + formatDate(entry.doneAt)) : ''))
+        : statusText;
+      var doneClass = isDone ? 'done' : statusKey;
       var syncDone = Boolean(entry.syncedExpenseId);
       var syncClass = syncDone ? 'synced' : 'pending';
       var syncText = syncDone
@@ -2576,10 +2639,18 @@
         syncButton = '<button class="btn btn-sm btn-ghost" type="button" disabled>Tidak ada porsi</button>';
       }
 
+      var doneButton = isDone
+        ? '<button class="btn btn-sm btn-ghost" type="button" disabled><i class="ph-bold ph-check"></i> Selesai</button>'
+        : '<button class="btn btn-sm btn-ghost" type="button" data-split-action="done" data-id="' + entry.id + '"><i class="ph-bold ph-check-circle"></i> Mark Done</button>';
+
+      var deleteButton = '<button class="btn btn-sm btn-delete" type="button" data-split-action="delete" data-id="' + entry.id + '"><i class="ph-bold ph-trash"></i> Hapus</button>';
+
       var actionHtml =
         '<div class="action-group">' +
           '<button class="btn btn-sm btn-edit" type="button" data-split-action="edit" data-id="' + entry.id + '"><i class="ph-bold ph-pencil-simple"></i> Edit</button>' +
+          doneButton +
           syncButton +
+          deleteButton +
         '</div>';
 
       tr.innerHTML =
@@ -2588,7 +2659,7 @@
           '<div style="font-size:0.78rem; color:var(--clr-text-secondary)">Saya: ' + escapeHtml(entry.ownerName || '-') + ' • Dibayar: ' + escapeHtml(entry.payerName || '-') + '</div></td>' +
         '<td class="text-right" data-label="Total"><strong>' + formatRupiah(entry.total) + '</strong></td>' +
         '<td class="text-right" data-label="Porsi Saya"><strong>' + formatRupiah(entry.ownerShare || 0) + '</strong></td>' +
-        '<td data-label="Status Saya"><span class="split-ledger-status ' + statusKey + '">' + escapeHtml(statusText) + '</span></td>' +
+        '<td data-label="Status Saya"><span class="split-ledger-status ' + doneClass + '">' + escapeHtml(doneText) + '</span></td>' +
         '<td data-label="Sync"><span class="split-ledger-sync ' + syncClass + '">' + escapeHtml(syncText) + '</span></td>' +
         '<td class="text-center" data-label="Aksi">' + actionHtml + '</td>';
 
@@ -2643,6 +2714,14 @@
         syncSplitLedgerToExpense(id);
       } else if (action === 'edit' && id) {
         startEditSplit(id);
+      } else if (action === 'done' && id) {
+        if (window.confirm('Tandai split bill ini sebagai selesai?')) {
+          markSplitLedgerDone(id);
+        }
+      } else if (action === 'delete' && id) {
+        if (window.confirm('Hapus split bill ini dari ledger?')) {
+          deleteSplitLedgerEntry(id);
+        }
       }
     });
   }

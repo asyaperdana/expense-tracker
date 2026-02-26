@@ -1189,6 +1189,11 @@ input[value="transfer"]:checked ~ .segmented-bg {
   color: var(--clr-text-secondary);
 }
 
+.split-ledger-status.done {
+  background: rgba(16, 185, 129, 0.18);
+  color: var(--clr-success);
+}
+
 .split-ledger-sync.synced {
   background: rgba(16, 185, 129, 0.15);
   color: var(--clr-success);
@@ -1228,7 +1233,9 @@ input[value="transfer"]:checked ~ .segmented-bg {
 .action-group {
   display: flex;
   gap: 0.4rem;
+  flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
 }
 
 .btn-edit {
@@ -2600,6 +2607,7 @@ body::before {
   .action-group {
     flex-direction: row;
     gap: 0.4rem;
+    flex-wrap: wrap;
     justify-content: flex-end;
   }
 
