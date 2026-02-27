@@ -1,824 +1,172 @@
 <!doctype html>
-<html lang="id" data-theme="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Expense Tracker — Aplikasi tracking pengeluaran uang harian dengan penyimpanan lokal."
+      content="Accessible expense tracker with responsive dashboard, validation feedback, and category chart"
     />
-    <title>Expense Tracker — Tracking Pengeluaran</title>
-    <meta name="theme-color" content="#05080d" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Rubik:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/style.css?v=20260227-1" />
-    <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
-    <link rel="apple-touch-icon" href="assets/icon.svg" />
-    <link rel="manifest" href="manifest.json" />
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <!-- Header -->
-    <header class="header">
-      <div class="header-inner">
-        <span class="header-icon"><i class="ph-fill ph-wallet"></i></span>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header class="app-header">
+      <div class="container app-header__inner">
         <div>
-          <h1>Expense Tracker</h1>
-          <p class="header-subtitle">
-            Kelola pengeluaran harianmu dengan mudah
-          </p>
+          <h1 class="app-title">Expense Tracker</h1>
+          <p class="app-subtitle">Record, review, and understand your spending.</p>
         </div>
-        <button
-          class="btn-theme-toggle"
-          id="btn-theme-toggle"
-          title="Toggle dark mode"
-          aria-label="Toggle dark mode"
-        >
-          <span class="theme-icon" id="theme-icon"><i class="ph-fill ph-moon"></i></span>
-        </button>
       </div>
     </header>
 
-    <main class="container">
-      <!-- Hero Section -->
-      <section class="card hero-card">
-        <span class="card-illus" aria-hidden="true">✶</span>
-        <div class="hero-content">
-          <div class="hero-kicker">Ringkasan Keuangan</div>
-          <h2 class="hero-title">Total Saldo Aktif</h2>
-          <div class="hero-value" id="total-balance">Rp 0</div>
-          <div class="wallet-balances" id="wallet-balances"></div>
-          <button class="btn btn-ghost btn-manage-wallet" id="btn-manage-wallet" type="button" title="Kelola Dompet">
-            <i class="ph-bold ph-gear"></i> Kelola Dompet
-          </button>
-          
-          <div class="budget-container">
-            <div class="budget-header">
-              <span class="budget-header-label"><i class="ph-bold ph-target"></i> Anggaran Bulanan</span>
-              <button class="btn btn-ghost btn-budget-edit" id="btn-edit-budget" type="button" title="Atur Batasan"><i class="ph-bold ph-pencil-simple"></i> Atur</button>
-            </div>
-            
-            <div class="budget-stats">
-              <div class="budget-text-used" id="budget-text-used">Rp 0</div>
-              <div class="budget-text-limit" id="budget-text-limit">/ Tidak ada batas</div>
-            </div>
+    <main id="main-content" class="container app-main u-stack-lg">
+      <section class="layout" aria-label="Expense tracker workspace">
+        <section class="panel panel-form u-stack-md" aria-labelledby="form-title">
+          <header class="section-header">
+            <h2 id="form-title" class="section-title">Add New Expense</h2>
+            <p class="section-description">Required fields are marked automatically if invalid.</p>
+          </header>
 
-            <div class="budget-bar">
-              <div class="budget-fill" id="budget-fill"></div>
-            </div>
-            
-            <div class="budget-footer">
-              <p class="hero-note budget-note" id="budget-note">Atur untuk kontrol pengeluaran.</p>
-              <div id="budget-pct" class="budget-pct">0%</div>
-            </div>
-          </div>
-        </div>
-        <div class="hero-graphic" aria-hidden="true">
-          <div class="hero-orb"></div>
-          <div class="hero-orb hero-orb-2"></div>
-          <div class="hero-lines"></div>
-        </div>
-      </section>
+          <form id="expense-form" class="expense-form u-stack-sm" novalidate>
+            <div class="form-grid">
+              <div class="field">
+                <label for="expense-date">Date</label>
+                <input type="date" id="expense-date" name="date" aria-describedby="error-expense-date" required />
+                <p class="field-error" id="error-expense-date" aria-live="polite"></p>
+              </div>
 
-      <!-- Form Section -->
-      <section class="card glass form-card">
-        <span class="card-illus" aria-hidden="true">◈</span>
-        <h3 class="card-title">Tambah Pengeluaran</h3>
-        <form id="expense-form" novalidate>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Jenis Transaksi</label>
-              <div class="segmented-control">
-                <input type="radio" id="type-exp" name="input-type" value="expense" checked />
-                <label for="type-exp"><i class="ph-bold ph-arrow-up-right"></i> Pengeluaran</label>
-                
-                <input type="radio" id="type-inc" name="input-type" value="income" />
-                <label for="type-inc"><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</label>
-                
-                <input type="radio" id="type-trf" name="input-type" value="transfer" />
-                <label for="type-trf"><i class="ph-bold ph-arrows-left-right"></i> Transfer</label>
-                
-                <div class="segmented-bg"></div>
+              <div class="field">
+                <label for="expense-amount">Amount</label>
+                <input
+                  type="number"
+                  id="expense-amount"
+                  name="amount"
+                  min="0.01"
+                  step="0.01"
+                  inputmode="decimal"
+                  placeholder="0.00"
+                  aria-describedby="error-expense-amount"
+                  required
+                />
+                <p class="field-error" id="error-expense-amount" aria-live="polite"></p>
               </div>
-            </div>
-            <div class="form-group">
-              <label for="input-wallet" id="label-wallet">Sumber Dana</label>
-              <select id="input-wallet" required>
-                <option value="Tunai">Tunai</option>
-                <option value="Rekening Bank">Rekening Bank</option>
-                <option value="E-Wallet">E-Wallet</option>
-              </select>
-            </div>
-            <div class="form-group" id="group-wallet-to">
-              <label for="input-wallet-to">Tujuan Dana</label>
-              <select id="input-wallet-to">
-                <option value="Tunai">Tunai</option>
-                <option value="Rekening Bank">Rekening Bank</option>
-                <option value="E-Wallet">E-Wallet</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="input-date">Tanggal</label>
-              <input type="date" id="input-date" required />
-              <small class="help-text" id="date-help" aria-live="polite"></small>
-            </div>
-            <div class="form-group">
-              <label for="input-title">Nama Pengeluaran</label>
-              <input
-                type="text"
-                id="input-title"
-                placeholder="cth: Makan siang"
-                list="title-suggestions"
-                required
-              />
-              <datalist id="title-suggestions"></datalist>
-            </div>
-            <div class="form-group" id="group-category">
-              <div class="field-header">
-                <label for="input-category">Kategori</label>
-                <button class="btn-ghost btn-add-category" id="btn-add-category" type="button">
-                  + Custom
-                </button>
+
+              <div class="field field--full">
+                <label for="expense-title">Description</label>
+                <input
+                  type="text"
+                  id="expense-title"
+                  name="title"
+                  maxlength="80"
+                  placeholder="Groceries, Fuel, Subscription..."
+                  aria-describedby="error-expense-title"
+                  required
+                />
+                <p class="field-error" id="error-expense-title" aria-live="polite"></p>
               </div>
-              <select id="input-category" required>
-                <option value="" disabled selected>Pilih kategori</option>
-                <optgroup label="Pengeluaran" id="optgroup-expense">
-                  <option value="Makanan">Makanan</option>
+
+              <div class="field">
+                <label for="expense-category">Category</label>
+                <select id="expense-category" name="category" aria-describedby="error-expense-category" required>
+                  <option value="">Select category</option>
+                  <option value="Food">Food</option>
                   <option value="Transport">Transport</option>
-                  <option value="Belanja">Belanja</option>
-                  <option value="Hiburan">Hiburan</option>
-                  <option value="Kesehatan">Kesehatan</option>
-                  <option value="Pendidikan">Pendidikan</option>
-                  <option value="Tagihan">Tagihan</option>
-                  <option value="Lainnya">Lainnya (Keluar)</option>
-                </optgroup>
-                <optgroup label="Pemasukan" id="optgroup-income">
-                  <option value="Gaji">Gaji</option>
-                  <option value="Pemasukan Lain">Pemasukan Lain</option>
-                </optgroup>
-              </select>
-              <small class="help-text" id="category-help" aria-live="polite"></small>
-            </div>
-            <div class="form-group">
-              <label for="input-amount">Nominal (Rp)</label>
-              <input
-                type="text"
-                id="input-amount"
-                placeholder="cth: 250,000"
-                inputmode="numeric"
-                required
-              />
-              <small class="help-text" id="amount-help" aria-live="polite"></small>
-            </div>
-          </div>
-          <div class="form-group checkbox-group">
-            <input type="checkbox" id="input-recurring" />
-            <label for="input-recurring">Tagihan berulang tiap bulan</label>
-          </div>
-          <div class="form-actions">
-            <button type="submit" id="btn-submit" class="btn btn-primary">
-              <i class="ph-bold ph-plus-circle btn-icon"></i> Simpan
-            </button>
-            <button
-              type="button"
-              id="btn-cancel"
-              class="btn btn-ghost"
-              style="display: none"
-            >
-              Batal
-            </button>
-          </div>
-        </form>
-      </section>
+                  <option value="Housing">Housing</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Education">Education</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Other">Other</option>
+                </select>
+                <p class="field-error" id="error-expense-category" aria-live="polite"></p>
+              </div>
 
-      <!-- Quick Add Templates -->
-      <section class="card glass quick-add-card" id="quick-add-section">
-        <span class="card-illus" aria-hidden="true">⚡</span>
-        <div class="quick-add-header">
-          <h3 class="card-title"><i class="ph-bold ph-lightning"></i> Quick Add</h3>
-          <p class="quick-add-subtitle">Tap untuk langsung input transaksi dari template</p>
-        </div>
-        <div class="quick-add-strip" id="quick-add-strip">
-          <!-- Template cards rendered via JS -->
-        </div>
-        <p class="quick-add-empty" id="quick-add-empty">
-          Belum ada template. Klik <i class="ph-bold ph-push-pin"></i> di tabel untuk menyimpan template.
-        </p>
-      </section>
-
-      <!-- Summary Section -->
-      <section class="card summary-card">
-        <span class="card-illus" aria-hidden="true">◉</span>
-        <div class="summary-grid">
-          <div class="summary-item">
-            <span class="summary-label">Total Pemasukan</span>
-            <span class="summary-value summary-value-income" id="total-income">Rp 0</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Total Pengeluaran</span>
-            <span class="summary-value summary-value-expense" id="total-expense">Rp 0</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Jumlah Transaksi</span>
-            <span class="summary-value" id="total-count">0</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Kategori Teratas</span>
-            <span class="summary-value summary-value-sm" id="top-category">—</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Monthly Report Section -->
-      <section class="card glass report-card" id="report-section">
-        <span class="card-illus" aria-hidden="true">◍</span>
-        <div class="report-header">
-          <h3 class="card-title"><i class="ph-bold ph-chart-line-up"></i> Laporan Bulanan Otomatis</h3>
-          <span class="report-month" id="report-month-label">Bulan Ini</span>
-        </div>
-        <div class="report-grid">
-          <div class="report-item">
-            <span class="report-label">Pemasukan</span>
-            <strong class="report-value report-value-income" id="report-income">Rp 0</strong>
-          </div>
-          <div class="report-item">
-            <span class="report-label">Pengeluaran</span>
-            <strong class="report-value report-value-expense" id="report-expense">Rp 0</strong>
-          </div>
-          <div class="report-item">
-            <span class="report-label">Net</span>
-            <strong class="report-value" id="report-net">Rp 0</strong>
-          </div>
-          <div class="report-item">
-            <span class="report-label">Transaksi</span>
-            <strong class="report-value" id="report-count">0</strong>
-          </div>
-        </div>
-        <div class="report-highlights">
-          <p class="report-line" id="report-top-category">Kategori teratas: —</p>
-          <p class="report-line" id="report-largest-expense">Pengeluaran terbesar: —</p>
-          <p class="report-line" id="report-trend">Tren vs bulan lalu: —</p>
-          <p class="report-advice" id="report-advice">Belum ada rekomendasi.</p>
-        </div>
-      </section>
-
-      <!-- Goal Tracking Section -->
-      <section class="card glass goal-card" id="goal-section">
-        <span class="card-illus goal-illus" aria-hidden="true">★</span>
-        <div class="goal-header">
-          <h3 class="card-title goal-title"><i class="ph-bold ph-target"></i> Tabungan Impian</h3>
-          <button class="btn btn-sm btn-ghost btn-add-goal" id="btn-add-goal" type="button">
-            <i class="ph-bold ph-plus"></i> <span class="goal-btn-label">Goal Baru</span>
-          </button>
-        </div>
-        <div class="goal-list" id="goal-list">
-          <!-- Goals rendered via JS -->
-        </div>
-      </section>
-
-      <!-- Chart Section -->
-      <section class="card glass chart-card">
-        <span class="card-illus" aria-hidden="true">◔</span>
-        <h3 class="card-title">Grafik Pengeluaran</h3>
-        <div class="chart-container">
-          <canvas id="category-chart" width="280" height="280"></canvas>
-          <div class="chart-legend" id="chart-legend"></div>
-          <div class="chart-tooltip" id="chart-tooltip"></div>
-        </div>
-        <p class="chart-empty" id="chart-empty">
-          Belum ada data untuk ditampilkan <i class="ph ph-chart-pie-slice"></i>
-        </p>
-      </section>
-
-      <!-- Trend Chart Section -->
-      <section class="card glass trend-card" id="trend-section">
-        <span class="card-illus" aria-hidden="true">◈</span>
-        <div class="trend-header">
-          <h3 class="card-title"><i class="ph-bold ph-chart-bar"></i> Tren 6 Bulan</h3>
-          <div class="trend-legend">
-            <span class="trend-legend-item trend-legend-income"><span class="trend-dot"></span> Pemasukan</span>
-            <span class="trend-legend-item trend-legend-expense"><span class="trend-dot"></span> Pengeluaran</span>
-          </div>
-        </div>
-        <div class="trend-chart-wrapper">
-          <canvas id="trend-chart" width="600" height="260"></canvas>
-          <div class="trend-tooltip" id="trend-tooltip"></div>
-        </div>
-        <p class="trend-empty" id="trend-empty">
-          Belum cukup data untuk menampilkan tren <i class="ph ph-chart-bar"></i>
-        </p>
-      </section>
-
-      <!-- Category Budget Section -->
-      <section class="card glass category-budget-card" id="category-budget-section">
-        <span class="card-illus" aria-hidden="true">◎</span>
-        <div class="category-budget-header">
-          <h3 class="card-title"><i class="ph-bold ph-target"></i> Budget per Kategori</h3>
-          <button class="btn btn-ghost btn-sm" id="btn-edit-category-budget" type="button">
-            <i class="ph-bold ph-sliders-horizontal"></i> Atur
-          </button>
-        </div>
-        <p class="category-budget-meta" id="category-budget-meta">Belum ada budget kategori aktif.</p>
-        <div class="category-budget-list" id="category-budget-list"></div>
-        <p class="category-budget-empty" id="category-budget-empty">
-          Tambahkan batas per kategori agar pengeluaran lebih terkontrol.
-        </p>
-      </section>
-
-      <!-- Calendar View -->
-      <section class="card glass calendar-card" id="calendar-section">
-        <span class="card-illus" aria-hidden="true">◫</span>
-        <div class="calendar-header">
-          <h3 class="card-title"><i class="ph-bold ph-calendar-dots"></i> Kalender Pengeluaran</h3>
-          <div class="calendar-nav">
-            <button class="btn btn-ghost btn-sm btn-cal-nav" id="btn-cal-prev" type="button" title="Bulan sebelumnya">
-              <i class="ph-bold ph-caret-left"></i>
-            </button>
-            <span class="calendar-month-label" id="calendar-month-label">Februari 2026</span>
-            <button class="btn btn-ghost btn-sm btn-cal-nav" id="btn-cal-next" type="button" title="Bulan berikutnya">
-              <i class="ph-bold ph-caret-right"></i>
-            </button>
-          </div>
-        </div>
-        <div class="calendar-grid" id="calendar-grid">
-          <!-- Day headers -->
-          <div class="cal-day-header">Sen</div>
-          <div class="cal-day-header">Sel</div>
-          <div class="cal-day-header">Rab</div>
-          <div class="cal-day-header">Kam</div>
-          <div class="cal-day-header">Jum</div>
-          <div class="cal-day-header">Sab</div>
-          <div class="cal-day-header">Min</div>
-          <!-- Day cells rendered via JS -->
-        </div>
-        <div class="calendar-day-detail" id="calendar-day-detail" style="display:none">
-          <div class="cal-detail-header">
-            <strong id="cal-detail-date"></strong>
-            <button class="btn btn-ghost btn-sm" id="btn-cal-detail-close" type="button"><i class="ph-bold ph-x"></i></button>
-          </div>
-          <div class="cal-detail-summary" id="cal-detail-summary"></div>
-          <div class="cal-detail-list" id="cal-detail-list"></div>
-        </div>
-      </section>
-
-      <!-- Filter -->
-      <section class="card glass filter-card">
-        <span class="card-illus" aria-hidden="true">◳</span>
-        <h3 class="card-title">Filter dan Aksi</h3>
-        <div class="filter-layout">
-          <div class="filter-fields">
-            <div class="filter-group">
-              <label for="filter-search">Cari Transaksi</label>
-              <input
-                type="search"
-                id="filter-search"
-                placeholder="judul, kategori, dompet, nominal..."
-                autocomplete="off"
-              />
-            </div>
-            <div class="filter-group">
-              <label for="filter-category">Kategori</label>
-              <select id="filter-category">
-                <option value="Semua">Semua</option>
-                <optgroup label="Pengeluaran">
-                  <option value="Makanan">Makanan</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Belanja">Belanja</option>
-                  <option value="Hiburan">Hiburan</option>
-                  <option value="Kesehatan">Kesehatan</option>
-                  <option value="Pendidikan">Pendidikan</option>
-                  <option value="Tagihan">Tagihan</option>
-                  <option value="Lainnya">Lainnya (Keluar)</option>
-                </optgroup>
-                <optgroup label="Pemasukan">
-                  <option value="Gaji">Gaji</option>
-                  <option value="Pemasukan Lain">Pemasukan Lain</option>
-                </optgroup>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="filter-month">Bulan</label>
-              <input type="month" id="filter-month" />
-            </div>
-            <div class="filter-group">
-              <label for="filter-sort">Urutkan</label>
-              <select id="filter-sort">
-                <option value="date-desc">Tanggal terbaru</option>
-                <option value="date-asc">Tanggal terlama</option>
-                <option value="amount-desc">Nominal tertinggi</option>
-                <option value="amount-asc">Nominal terendah</option>
-              </select>
-            </div>
-            <div class="filter-group filter-group-undo">
-              <label>Riwayat</label>
-              <div class="undo-inline">
-                <span class="undo-indicator" id="undo-indicator">Undo: 0</span>
-                <button class="btn btn-ghost btn-sm" id="btn-undo" type="button" disabled>
-                  Undo
-                </button>
+              <div class="field">
+                <label for="expense-notes">Notes (Optional)</label>
+                <input type="text" id="expense-notes" name="notes" maxlength="120" placeholder="Any additional context" />
+                <p class="field-error" aria-hidden="true"></p>
               </div>
             </div>
-          </div>
-          <div class="filter-actions">
-            <button class="btn btn-ghost btn-sm" id="btn-reset-filter" type="button">
-              Reset Filter
-            </button>
-            <button class="btn btn-accent btn-sm" id="btn-export-csv" type="button">
-              <i class="ph-bold ph-download-simple btn-icon"></i> Export CSV
-            </button>
-            <button class="btn btn-ghost btn-sm" id="btn-export-json" type="button">
-              <i class="ph-bold ph-export btn-icon"></i> Export JSON
-            </button>
-            <button class="btn btn-ghost btn-sm" id="btn-import-json" type="button">
-              <i class="ph-bold ph-upload-simple btn-icon"></i> Import JSON
-            </button>
-            <input type="file" id="input-import-json" accept="application/json" hidden />
-            <button class="btn btn-split btn-sm" id="btn-open-split" type="button">
-              <i class="ph-bold ph-receipt btn-icon"></i> Split Bill
-            </button>
-          </div>
-        </div>
-      </section>
 
-      <!-- Table Section -->
-      <section class="card glass table-card">
-        <span class="card-illus" aria-hidden="true">▦</span>
-        <h3 class="card-title">Daftar Pengeluaran</h3>
-        <p class="render-state" id="render-state" aria-live="polite"></p>
-        <div class="table-wrapper">
-          <table id="expense-table">
-            <thead>
-              <tr>
-                <th>Tanggal</th>
-                <th>Tipe & Nama</th>
-                <th>Kategori & Dompet</th>
-                <th class="text-right">Nominal</th>
-                <th class="text-center" style="min-width:140px">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="expense-tbody">
-              <!-- Rows rendered via JS -->
-            </tbody>
-          </table>
-        </div>
-        <p class="empty-state" id="empty-state">
-          Belum ada pengeluaran. Tambahkan transaksi pertama dari form di atas.
-        </p>
-      </section>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Add Expense</button>
+              <button type="reset" class="btn btn-secondary">Clear</button>
+            </div>
+          </form>
+        </section>
 
-      <section class="card glass split-ledger-card" id="split-ledger-section">
-        <span class="card-illus" aria-hidden="true">◫</span>
-        <div class="split-ledger-header">
-          <h3 class="card-title"><i class="ph-bold ph-handshake"></i> Ledger Split Bill</h3>
-          <p class="split-ledger-subtitle">Tracking split bill terpisah dari pengeluaran utama.</p>
-        </div>
-        <div class="table-wrapper split-ledger-wrapper">
-          <table id="split-ledger-table">
-            <thead>
-              <tr>
-                <th>Tanggal</th>
-                <th>Bill</th>
-                <th class="text-right">Total</th>
-                <th class="text-right">Porsi Saya</th>
-                <th>Status Saya</th>
-                <th>Sync</th>
-                <th class="text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="split-ledger-tbody">
-              <!-- Rows rendered via JS -->
-            </tbody>
-          </table>
-        </div>
-        <p class="empty-state split-ledger-empty" id="split-ledger-empty">
-          Belum ada data split bill. Gunakan tombol Split Bill untuk menambahkan.
-        </p>
+        <section class="panel panel-dashboard u-stack-md" aria-labelledby="dashboard-title">
+          <header class="section-header">
+            <h2 id="dashboard-title" class="section-title">Dashboard</h2>
+            <p class="section-description">Live summary of your spending activity.</p>
+          </header>
+
+          <div class="stats-grid" role="list" aria-label="Expense summary cards">
+            <article class="stat-card" role="listitem">
+              <h3 class="stat-title">Total Spent</h3>
+              <p class="stat-value" id="stat-total-spent">$0.00</p>
+            </article>
+
+            <article class="stat-card" role="listitem">
+              <h3 class="stat-title">Transactions</h3>
+              <p class="stat-value" id="stat-total-count">0</p>
+            </article>
+
+            <article class="stat-card" role="listitem">
+              <h3 class="stat-title">Average Expense</h3>
+              <p class="stat-value" id="stat-average-expense">$0.00</p>
+            </article>
+
+            <article class="stat-card" role="listitem">
+              <h3 class="stat-title">Top Category</h3>
+              <p class="stat-value" id="stat-top-category">-</p>
+            </article>
+          </div>
+
+          <article class="chart-card" aria-labelledby="chart-title">
+            <h3 id="chart-title" class="subsection-title">Expenses by Category</h3>
+            <div class="chart-shell">
+              <canvas id="expense-category-chart" aria-label="Doughnut chart of expenses by category"></canvas>
+              <p id="chart-empty" class="chart-empty">Add expenses to see category breakdown.</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel panel-table u-stack-sm" aria-labelledby="table-title">
+          <header class="section-header">
+            <h2 id="table-title" class="section-title">Recent Expenses</h2>
+            <p class="section-description">Your latest entries are shown first.</p>
+          </header>
+
+          <div class="table-wrap">
+            <table id="expense-table">
+              <caption class="sr-only">Expense records</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Description</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Amount</th>
+                  <th scope="col">Notes</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="expense-table-body"></tbody>
+            </table>
+          </div>
+
+          <p id="empty-state" class="empty-state" hidden>No expenses yet. Add your first expense to get started.</p>
+        </section>
       </section>
     </main>
 
-    <!-- Confirm Delete Modal -->
-    <div class="modal-overlay" id="modal-overlay">
-      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
-        <div class="modal-icon"><i class="ph-fill ph-warning-circle" style="color: var(--clr-warning);"></i></div>
-        <p class="modal-text" id="modal-delete-title">Yakin ingin menghapus pengeluaran ini?</p>
-        <div class="modal-actions">
-          <button class="btn btn-danger" id="btn-confirm-delete" type="button">Hapus</button>
-          <button class="btn btn-ghost" id="btn-cancel-delete" type="button">Batal</button>
-        </div>
-      </div>
-    </div>
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
-    <!-- Budget Setup Modal -->
-    <div class="modal-overlay" id="budget-overlay">
-      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-budget-title">
-        <div class="modal-icon"><i class="ph-fill ph-target" style="color: var(--clr-primary);"></i></div>
-        <h2 class="modal-text" id="modal-budget-title">Atur Batas Bulanan</h2>
-        <p class="modal-subtext">Peringatan akan muncul jika Pengeluaran bulan ini melebihi nominal ini. Ketik 0 untuk menonaktifkan.</p>
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <input type="text" id="input-budget-limit" placeholder="cth: 3,000,000" inputmode="numeric" />
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-save-budget" type="button">Simpan Batas</button>
-          <button class="btn btn-ghost" id="btn-cancel-budget" type="button">Batal</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Category Budget Modal -->
-    <div class="modal-overlay" id="category-budget-overlay">
-      <div class="modal glass category-budget-modal" role="dialog" aria-modal="true" aria-labelledby="modal-category-budget-title">
-        <div class="modal-icon"><i class="ph-fill ph-target" style="color: var(--clr-accent);"></i></div>
-        <h2 class="modal-text" id="modal-category-budget-title">Atur Budget per Kategori</h2>
-        <p class="modal-subtext">Isi nominal untuk kategori yang ingin dibatasi. Isi 0 untuk menonaktifkan.</p>
-        <div class="category-budget-editor" id="category-budget-editor">
-          <!-- Rendered via JS -->
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-save-category-budget" type="button">Simpan Budget</button>
-          <button class="btn btn-ghost" id="btn-cancel-category-budget" type="button">Batal</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Split Bill Modal -->
-    <div class="modal-overlay" id="split-overlay">
-      <div class="modal glass split-modal" role="dialog" aria-modal="true" aria-labelledby="split-title">
-        <div class="split-header">
-          <h2 id="split-title"><i class="ph-bold ph-receipt"></i> Split Bill</h2>
-          <button class="btn-close" id="btn-close-split" aria-label="Close" type="button">&times;</button>
-        </div>
-
-        <!-- Split Form -->
-        <div class="split-body" id="split-form-view">
-          <div class="split-form-grid">
-            <div class="form-group">
-              <label for="split-bill-name">Nama Bill</label>
-              <input type="text" id="split-bill-name" placeholder="cth: Makan bersama" />
-            </div>
-            <div class="form-group">
-              <label for="split-total">Total Tagihan (Rp)</label>
-              <input type="text" id="split-total" placeholder="cth: 250,000" inputmode="numeric" />
-            </div>
-          </div>
-
-          <div class="form-group split-owner-group">
-            <label for="split-owner-name">Nama Saya (untuk tracking)</label>
-            <input type="text" id="split-owner-name" placeholder="cth: Asya" />
-            <small class="help-text">Nama ini harus ada di daftar peserta agar status piutang/hutang bisa dihitung.</small>
-          </div>
-
-          <div class="split-mode-toggle">
-            <button class="split-mode-btn active" data-mode="equal" id="mode-equal" type="button"><i class="ph-bold ph-scales"></i> Bagi Rata</button>
-            <button class="split-mode-btn" data-mode="custom" id="mode-custom" type="button"><i class="ph-bold ph-pencil-simple"></i> Custom</button>
-          </div>
-
-          <div class="split-participants">
-            <div class="split-participants-header">
-              <label>Peserta</label>
-              <button class="btn btn-sm btn-primary" id="btn-add-person" type="button"><i class="ph-bold ph-plus-circle"></i> Tambah</button>
-            </div>
-            <div class="split-person-list" id="split-person-list">
-              <!-- Dynamic person rows -->
-            </div>
-          </div>
-
-          <div class="form-group split-payer-group">
-            <label for="split-payer">Dibayar oleh</label>
-            <select id="split-payer"></select>
-            <small class="help-text">Dipakai untuk hitung siapa harus bayar dan siapa harus terima.</small>
-          </div>
-
-          <div class="split-form-actions">
-            <button class="btn btn-primary" id="btn-calculate-split" type="button"><i class="ph-bold ph-calculator"></i> Hitung Split</button>
-          </div>
-        </div>
-
-        <!-- Split Results -->
-        <div class="split-body split-results" id="split-results-view" style="display:none">
-          <div class="split-result-summary" id="split-result-summary"></div>
-          <div class="split-result-list" id="split-result-list"></div>
-          <div class="split-form-actions">
-            <button class="btn btn-primary" id="btn-save-split" type="button"><i class="ph-bold ph-floppy-disk"></i> Simpan ke Ledger Split</button>
-            <button class="btn btn-ghost" id="btn-back-split" type="button"><i class="ph-bold ph-arrow-left"></i> Kembali</button>
-          </div>
-        </div>
-
-        <!-- Split History -->
-        <div class="split-history" id="split-history">
-          <h3 class="split-history-title"><i class="ph-bold ph-clipboard-text"></i> Riwayat Split</h3>
-          <div id="split-history-list" class="split-history-list"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Custom Category Modal -->
-    <div class="modal-overlay" id="category-overlay">
-      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-category-title">
-        <div class="modal-icon"><i class="ph-fill ph-circles-four" style="color: var(--clr-primary);"></i></div>
-        <h2 class="modal-text" id="modal-category-title">Tambah Kategori Custom</h2>
-        
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label for="input-custom-cat-name">Nama Kategori</label>
-          <input type="text" id="input-custom-cat-name" placeholder="cth: Kucing, Investasi..." />
-        </div>
-        
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label for="input-custom-cat-type">Jenis</label>
-          <select id="input-custom-cat-type">
-            <option value="expense">Pengeluaran</option>
-            <option value="income">Pemasukan</option>
-          </select>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label>Pilih Ikon</label>
-          <div class="icon-selector" id="icon-selector">
-            <!-- Rendered via JS -->
-          </div>
-          <input type="hidden" id="input-custom-cat-icon" />
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-save-category" type="button">Tambah Kategori</button>
-          <button class="btn btn-ghost" id="btn-cancel-category" type="button">Batal</button>
-        </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Add Goal Modal -->
-    <div class="modal-overlay" id="goal-add-overlay">
-      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-goal-add-title">
-        <div class="modal-icon"><i class="ph-fill ph-star" style="color: var(--clr-accent);"></i></div>
-        <h2 class="modal-text" id="modal-goal-add-title">Tambah Tabungan Impian</h2>
-        
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label for="input-goal-name">Nama Tabungan</label>
-          <input type="text" id="input-goal-name" placeholder="cth: Beli Laptop Baru" />
-        </div>
-        
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label for="input-goal-target">Target Dana (Rp)</label>
-          <input type="text" id="input-goal-target" placeholder="cth: 15,000,000" inputmode="numeric" />
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-save-goal" type="button" style="background:var(--clr-accent)">Simpan Goal</button>
-          <button class="btn btn-ghost" id="btn-cancel-goal" type="button">Batal</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Add Funds Goal Modal -->
-    <div class="modal-overlay" id="goal-fund-overlay">
-      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-goal-fund-title">
-        <div class="modal-icon"><i class="ph-fill ph-piggy-bank" style="color: var(--clr-success);"></i></div>
-        <h2 class="modal-text" id="modal-goal-fund-title" style="margin-bottom:0.2rem;">Alokasi Dana Tabungan</h2>
-        <p style="font-size:0.85rem; color:var(--clr-text-secondary); text-align:center; margin-bottom:1rem;" id="goal-fund-subtitle"></p>
-        
-        <input type="hidden" id="input-goal-fund-id" />
-        
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label for="input-goal-fund-source">Sumber Dana (Dompet)</label>
-          <select id="input-goal-fund-source">
-            <option value="Tunai">Tunai</option>
-            <option value="Rekening Bank">Rekening Bank</option>
-            <option value="E-Wallet">E-Wallet</option>
-          </select>
-        </div>
-        
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label for="input-goal-fund-amount">Nominal Masuk (Rp)</label>
-          <input type="text" id="input-goal-fund-amount" placeholder="cth: 500,000" inputmode="numeric" />
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-save-goal-fund" type="button" style="background:var(--clr-success)">Simpan Dana</button>
-          <button class="btn btn-ghost" id="btn-cancel-goal-fund" type="button">Batal</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Import JSON Modal -->
-    <div class="modal-overlay" id="import-overlay">
-      <div class="modal glass import-modal" role="dialog" aria-modal="true" aria-labelledby="import-title">
-        <div class="modal-icon"><i class="ph-fill ph-upload-simple" style="color: var(--clr-primary);"></i></div>
-        <h2 class="modal-text" id="import-title">Impor JSON</h2>
-        <p class="modal-subtext">Pilih mode impor untuk data JSON.</p>
-        <div class="import-options">
-          <label class="radio-option">
-            <input type="radio" name="import-mode" value="replace" checked />
-            <span class="radio-label">
-              Ganti semua data
-            </span>
-            <span class="radio-desc">Hapus data lama, gunakan data dari file.</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="import-mode" value="merge-id" />
-            <span class="radio-label">
-              Gabung (berdasarkan ID)
-            </span>
-            <span class="radio-desc">Tambahkan item baru yang ID‑nya belum ada.</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="import-mode" value="merge-content" />
-            <span class="radio-label">
-              Gabung (berdasarkan konten)
-            </span>
-            <span class="radio-desc">Cegah duplikat berdasarkan tanggal+judul+kategori+nominal.</span>
-          </label>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-confirm-import" type="button">Impor</button>
-          <button class="btn btn-ghost" id="btn-cancel-import" type="button">Batal</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Import Summary Modal -->
-    <div class="modal-overlay" id="import-summary-overlay">
-      <div class="modal glass import-summary-modal" role="dialog" aria-modal="true" aria-labelledby="import-summary-title">
-        <div class="modal-icon"><i class="ph-fill ph-check-circle" style="color: var(--clr-success);"></i></div>
-        <h2 class="modal-text" id="import-summary-title">Ringkasan Impor</h2>
-        <div class="import-summary">
-          <div class="import-summary-row">
-            <span>Mode</span>
-            <span id="import-summary-mode">—</span>
-          </div>
-          <div class="import-summary-row">
-            <span>Ditambahkan</span>
-            <span id="import-summary-added">0</span>
-          </div>
-          <div class="import-summary-row">
-            <span>Dilewati</span>
-            <span id="import-summary-skipped">0</span>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-close-import-summary" type="button">OK</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recurring Expense Modal -->
-    <div class="modal-overlay" id="recurring-overlay">
-      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="recurring-title">
-        <div class="modal-icon"><i class="ph-fill ph-calendar-check" style="color: var(--clr-primary);"></i></div>
-        <h2 class="modal-text" id="recurring-title">Tagihan Berulang</h2>
-        <p class="modal-subtext" id="recurring-desc">Ada tagihan rutin yang sudah jatuh tempo. Tambahkan ke pengeluaran bulan ini?</p>
-        <div id="recurring-list" style="max-height: 200px; overflow-y: auto; text-align: left; margin-bottom: 1rem; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); padding: 0.5rem; border-radius: 8px;">
-          <!-- Items go here -->
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-confirm-recurring" type="button">Catat Semua</button>
-          <button class="btn btn-ghost" id="btn-cancel-recurring" type="button">Lewati</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Wallet Management Modal -->
-    <div class="modal-overlay" id="wallet-overlay">
-      <div class="modal glass wallet-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
-        <div class="modal-icon"><i class="ph-fill ph-wallet" style="color: var(--clr-primary);"></i></div>
-        <h2 class="modal-text" id="wallet-modal-title">Kelola Dompet</h2>
-        <p class="modal-subtext">Tambahkan dompet custom atau hapus yang tidak digunakan.</p>
-        <div class="wallet-add-row">
-          <input type="text" id="input-wallet-name" placeholder="Nama dompet baru" maxlength="30" />
-          <select id="input-wallet-icon">
-            <option value="ph-wallet">💳 Wallet</option>
-            <option value="ph-bank">🏦 Bank</option>
-            <option value="ph-device-mobile">📱 Mobile</option>
-            <option value="ph-credit-card">💳 Kartu</option>
-            <option value="ph-money">💵 Uang</option>
-            <option value="ph-coin">🪙 Koin</option>
-            <option value="ph-piggy-bank">🐷 Celengan</option>
-            <option value="ph-storefront">🏪 Toko</option>
-          </select>
-          <button class="btn btn-primary btn-sm" id="btn-add-wallet" type="button"><i class="ph-bold ph-plus"></i> Tambah</button>
-        </div>
-        <div class="wallet-list" id="wallet-list">
-          <!-- Rendered via JS -->
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-ghost" id="btn-close-wallet" type="button">Tutup</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
-
-    <footer class="footer">
-      <p>
-        &copy; 2026 Expense Tracker &mdash; Data disimpan di browser
-        (localStorage)
-      </p>
-    </footer>
-
-    <script src="js/script.js?v=20260227-1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+    <script src="js/script.js" defer></script>
   </body>
 </html>
