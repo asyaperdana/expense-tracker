@@ -9444,6 +9444,207 @@ option {
   border-radius: 999px;
 }
 
+/* ===========================
+   Contrast Cleanup Layer
+   =========================== */
+.hero-value,
+.wallet-pill strong,
+.budget-text-used,
+.result-total,
+.result-bill-name,
+.person-name,
+.hist-name,
+.hist-amount,
+.template-name,
+.modal-text,
+.split-header h2,
+.report-month,
+.category-budget-edit-label,
+.radio-label,
+.wallet-item-name,
+.cal-item-info strong,
+#cal-detail-date,
+#top-category,
+.legend-value,
+.wallet-pill-value,
+.goal-item-name {
+  color: var(--text-primary) !important;
+}
+
+.template-amount,
+.wallet-item-usage,
+.hist-meta,
+.person-detail,
+.person-share,
+.budget-text-limit,
+.budget-header-label,
+.split-history-title,
+.quick-add-subtitle,
+.goal-progress-label,
+.report-line,
+.report-advice,
+.category-budget-meta,
+.category-budget-amount,
+.calendar-month-label,
+.cal-day-header,
+.cal-item-info span,
+.modal-subtext,
+.radio-desc,
+.import-summary-row {
+  color: var(--text-secondary) !important;
+}
+
+.budget-container,
+.wallet-pill,
+.template-card,
+.template-icon,
+.split-participants,
+.split-result-summary,
+.split-result-item,
+.split-history-item,
+.split-mode-btn,
+.icon-btn,
+.wallet-item,
+.radio-option,
+.import-summary,
+.goal-item,
+.cal-detail-summary,
+.cal-item,
+.chart-empty,
+.trend-empty,
+.quick-add-empty,
+.empty-state,
+.empty-block {
+  background: var(--card-bg-soft) !important;
+  border-color: var(--border) !important;
+}
+
+.template-card:hover,
+.wallet-item:hover,
+.split-mode-btn:hover:not(.active) {
+  background: var(--table-row-hover) !important;
+  border-color: var(--focus-border) !important;
+}
+
+.badge,
+.split-ledger-status,
+.split-ledger-sync,
+.person-settlement {
+  background: var(--card-bg-tertiary) !important;
+  border-color: var(--border-strong) !important;
+  color: var(--text-primary) !important;
+}
+
+.btn-del-template {
+  background: var(--danger-dim) !important;
+  color: var(--danger) !important;
+}
+
+.table-wrapper,
+.calendar-day-detail,
+.split-history,
+.split-participants,
+.split-result-summary,
+.split-result-item,
+.split-history-item,
+.modal,
+.split-modal {
+  background: var(--card-bg) !important;
+}
+
+.person-avatar {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .hero-value {
+  color: var(--text-primary) !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .hero-kicker {
+  color: var(--primary) !important;
+}
+
+[data-theme="light"] .hero-title,
+[data-theme="light"] .hero-note {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .hero-graphic,
+[data-theme="light"] .hero-lines {
+  background: var(--surface-secondary) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="light"] #budget-pct {
+  color: var(--text-primary) !important;
+  background: var(--surface-tertiary) !important;
+  border: 1px solid var(--border) !important;
+}
+
+[data-theme="light"] #budget-fill {
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+[data-theme="light"] .split-ledger-status.receive,
+[data-theme="light"] .person-settlement.receive {
+  color: var(--success) !important;
+  border-color: var(--success) !important;
+  background: var(--primary-dim) !important;
+}
+
+[data-theme="light"] .split-ledger-status.pay,
+[data-theme="light"] .person-settlement.pay {
+  color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  background: var(--danger-dim) !important;
+}
+
+[data-theme="light"] .split-ledger-status.even,
+[data-theme="light"] .split-ledger-status.done,
+[data-theme="light"] .person-settlement.even,
+[data-theme="light"] .split-ledger-sync.pending {
+  color: var(--text-secondary) !important;
+  border-color: var(--border-strong) !important;
+  background: var(--surface-secondary) !important;
+}
+
+[data-theme="light"] .split-ledger-sync.synced {
+  color: var(--success) !important;
+  border-color: var(--success) !important;
+  background: var(--primary-dim) !important;
+}
+
+[data-theme="light"] .cal-day.today {
+  background: var(--primary-dim) !important;
+  border-color: var(--primary) !important;
+}
+
+[data-theme="light"] .toast {
+  background: var(--surface) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-strong) !important;
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .filter-group input,
+[data-theme="dark"] .filter-group select,
+[data-theme="dark"] textarea,
+[data-theme="dark"] option {
+  background: var(--surface-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .glass,
+[data-theme="dark"] .table-wrapper,
+[data-theme="dark"] .calendar-grid,
+[data-theme="dark"] .calendar-day-detail {
+  background: var(--card-bg) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
