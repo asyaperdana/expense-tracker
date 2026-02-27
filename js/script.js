@@ -474,7 +474,7 @@
 
   // ─── Theme (Dark Mode) ───────────────────
   function getTheme() {
-    return localStorage.getItem(THEME_KEY) || 'light';
+    return localStorage.getItem(THEME_KEY) || 'dark';
   }
 
   function setTheme(theme) {
