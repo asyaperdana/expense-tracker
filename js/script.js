@@ -2,34 +2,25 @@
   "use strict";
 
   const STORAGE_KEY = "expense_tracker_entries_v2";
-  const LEGACY_STORAGE_KEY = "expense_tracker_data";
 
-  function byId(...ids) {
-    for (let i = 0; i < ids.length; i += 1) {
-      const el = document.getElementById(ids[i]);
-      if (el) return el;
-    }
-    return null;
-  }
+  const form = document.getElementById("expense-form");
+  const dateInput = document.getElementById("expense-date");
+  const titleInput = document.getElementById("expense-title");
+  const categoryInput = document.getElementById("expense-category");
+  const amountInput = document.getElementById("expense-amount");
+  const notesInput = document.getElementById("expense-notes");
 
-  const form = byId("expense-form");
-  const dateInput = byId("expense-date", "input-date");
-  const titleInput = byId("expense-title", "input-title");
-  const categoryInput = byId("expense-category", "input-category");
-  const amountInput = byId("expense-amount", "input-amount");
-  const notesInput = byId("expense-notes", "input-notes");
+  const tableBody = document.getElementById("expense-table-body");
+  const emptyState = document.getElementById("empty-state");
 
-  const tableBody = byId("expense-table-body", "expense-tbody");
-  const emptyState = byId("empty-state");
+  const totalSpentEl = document.getElementById("stat-total-spent");
+  const totalCountEl = document.getElementById("stat-total-count");
+  const averageEl = document.getElementById("stat-average-expense");
+  const topCategoryEl = document.getElementById("stat-top-category");
 
-  const totalSpentEl = byId("stat-total-spent", "total-expense");
-  const totalCountEl = byId("stat-total-count", "total-count");
-  const averageEl = byId("stat-average-expense");
-  const topCategoryEl = byId("stat-top-category", "top-category");
-
-  const chartCanvas = byId("expense-category-chart", "category-chart");
-  const chartEmpty = byId("chart-empty");
-  const toastRegion = byId("toast-region", "toast-container");
+  const chartCanvas = document.getElementById("expense-category-chart");
+  const chartEmpty = document.getElementById("chart-empty");
+  const toastRegion = document.getElementById("toast-region");
 
   const fieldRefs = {
     date: dateInput,
@@ -39,17 +30,11 @@
   };
 
   const errorRefs = {
-    date: byId("error-expense-date", "date-help"),
-    title: byId("error-expense-title"),
-    category: byId("error-expense-category", "category-help"),
-    amount: byId("error-expense-amount", "amount-help"),
+    date: document.getElementById("error-expense-date"),
+    title: document.getElementById("error-expense-title"),
+    category: document.getElementById("error-expense-category"),
+    amount: document.getElementById("error-expense-amount"),
   };
-
-  const criticalRefs = [form, dateInput, titleInput, categoryInput, amountInput, tableBody];
-  if (criticalRefs.some((ref) => !ref)) {
-    console.error("Expense tracker init aborted: required DOM elements not found.");
-    return;
-  }
 
   const currencyFormatter = new Intl.NumberFormat(undefined, {
     style: "currency",
@@ -87,10 +72,8 @@
     form.addEventListener("reset", onReset);
 
     Object.keys(fieldRefs).forEach((key) => {
-      const input = fieldRefs[key];
-      if (!input) return;
-      input.addEventListener("input", () => clearFieldError(key));
-      input.addEventListener("change", () => clearFieldError(key));
+      fieldRefs[key].addEventListener("input", () => clearFieldError(key));
+      fieldRefs[key].addEventListener("change", () => clearFieldError(key));
     });
 
     tableBody.addEventListener("click", onTableClick);
@@ -135,16 +118,12 @@
   }
 
   function onTableClick(event) {
-    const button = event.target.closest("button[data-action='delete'], .btn-action-delete");
+    const button = event.target.closest("button[data-action='delete']");
     if (!button) {
       return;
     }
 
     const id = button.dataset.id;
-    if (!id) {
-      return;
-    }
-
     const index = entries.findIndex((entry) => entry.id === id);
     if (index === -1) {
       return;
@@ -158,11 +137,11 @@
 
   function validateForm() {
     const values = {
-      date: safeValue(dateInput),
-      title: safeValue(titleInput),
-      category: safeValue(categoryInput),
-      amount: safeValue(amountInput),
-      notes: safeValue(notesInput),
+      date: dateInput.value.trim(),
+      title: titleInput.value.trim(),
+      category: categoryInput.value.trim(),
+      amount: amountInput.value.trim(),
+      notes: notesInput.value.trim(),
     };
 
     const errors = {};
@@ -207,11 +186,7 @@
       const errorEl = errorRefs[key];
       const message = errors[key] || "";
 
-      if (errorEl) {
-        errorEl.textContent = message;
-      }
-
-      if (!input) return;
+      errorEl.textContent = message;
 
       if (message) {
         input.classList.add("is-invalid");
@@ -228,22 +203,18 @@
   }
 
   function clearFieldError(key) {
-    const input = fieldRefs[key];
-    const errorEl = errorRefs[key];
-
-    if (input) {
-      input.classList.remove("is-invalid");
-      input.removeAttribute("aria-invalid");
+    if (!fieldRefs[key] || !errorRefs[key]) {
+      return;
     }
 
-    if (errorEl) {
-      errorEl.textContent = "";
-    }
+    fieldRefs[key].classList.remove("is-invalid");
+    fieldRefs[key].removeAttribute("aria-invalid");
+    errorRefs[key].textContent = "";
   }
 
   function focusFirstInvalidField(errors) {
     const firstKey = ["date", "title", "category", "amount"].find((key) => errors[key]);
-    if (firstKey && fieldRefs[firstKey]) {
+    if (firstKey) {
       fieldRefs[firstKey].focus();
     }
   }
@@ -258,11 +229,11 @@
     tableBody.innerHTML = "";
 
     if (!entries.length) {
-      if (emptyState) emptyState.hidden = false;
+      emptyState.hidden = false;
       return;
     }
 
-    if (emptyState) emptyState.hidden = true;
+    emptyState.hidden = true;
 
     entries
       .slice()
@@ -285,7 +256,7 @@
 
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
-        deleteButton.className = "btn-delete btn-action-delete";
+        deleteButton.className = "btn-delete";
         deleteButton.dataset.action = "delete";
         deleteButton.dataset.id = entry.id;
         deleteButton.setAttribute("aria-label", `Delete expense: ${entry.title}`);
@@ -306,22 +277,16 @@
     const categoryTotals = getCategoryTotals();
     const topCategoryEntry = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
 
-    if (totalSpentEl) totalSpentEl.textContent = currencyFormatter.format(total);
-    if (totalCountEl) totalCountEl.textContent = numberFormatter.format(count);
-    if (averageEl) averageEl.textContent = currencyFormatter.format(average);
-    if (topCategoryEl) topCategoryEl.textContent = topCategoryEntry ? topCategoryEntry[0] : "-";
+    totalSpentEl.textContent = currencyFormatter.format(total);
+    totalCountEl.textContent = numberFormatter.format(count);
+    averageEl.textContent = currencyFormatter.format(average);
+    topCategoryEl.textContent = topCategoryEntry ? topCategoryEntry[0] : "-";
   }
 
   function renderCategoryChart() {
-    if (!chartCanvas) {
-      return;
-    }
-
     if (typeof Chart === "undefined") {
-      if (chartEmpty) {
-        chartEmpty.hidden = false;
-        chartEmpty.textContent = "Chart unavailable (library failed to load).";
-      }
+      chartEmpty.hidden = false;
+      chartEmpty.textContent = "Chart library not loaded.";
       return;
     }
 
@@ -330,7 +295,7 @@
     const amounts = Object.values(categoryTotals);
 
     if (!labels.length) {
-      if (chartEmpty) chartEmpty.hidden = false;
+      chartEmpty.hidden = false;
       if (categoryChart) {
         categoryChart.destroy();
         categoryChart = null;
@@ -338,7 +303,7 @@
       return;
     }
 
-    if (chartEmpty) chartEmpty.hidden = true;
+    chartEmpty.hidden = true;
 
     const chartData = {
       labels,
@@ -358,12 +323,7 @@
       return;
     }
 
-    const ctx = chartCanvas.getContext("2d");
-    if (!ctx) {
-      return;
-    }
-
-    categoryChart = new Chart(ctx, {
+    categoryChart = new Chart(chartCanvas.getContext("2d"), {
       type: "doughnut",
       data: chartData,
       options: {
@@ -411,15 +371,13 @@
   }
 
   function setDefaultDate() {
-    if (!dateInput || dateInput.value) {
-      return;
+    if (!dateInput.value) {
+      const now = new Date();
+      const year = String(now.getFullYear());
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      dateInput.value = `${year}-${month}-${day}`;
     }
-
-    const now = new Date();
-    const year = String(now.getFullYear());
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    dateInput.value = `${year}-${month}-${day}`;
   }
 
   function formatDate(isoDate) {
@@ -436,10 +394,6 @@
   }
 
   function showToast(message, type = "success") {
-    if (!toastRegion) {
-      return;
-    }
-
     const toast = document.createElement("div");
     toast.className = `toast${type === "error" ? " toast--error" : ""}`;
     toast.textContent = message;
@@ -456,57 +410,35 @@
   }
 
   function loadEntries() {
-    const parsedNew = tryParseStorage(STORAGE_KEY);
-    if (Array.isArray(parsedNew) && parsedNew.length) {
-      return sanitizeEntries(parsedNew);
-    }
-
-    const parsedLegacy = tryParseStorage(LEGACY_STORAGE_KEY);
-    if (Array.isArray(parsedLegacy) && parsedLegacy.length) {
-      const migrated = sanitizeEntries(parsedLegacy);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-      return migrated;
-    }
-
-    return [];
-  }
-
-  function tryParseStorage(key) {
     try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : [];
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        return [];
+      }
+
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .map((entry) => ({
+          id: String(entry.id || generateId()),
+          date: String(entry.date || ""),
+          title: String(entry.title || ""),
+          category: String(entry.category || "Other"),
+          amount: Number(entry.amount) || 0,
+          notes: String(entry.notes || ""),
+          createdAt: Number(entry.createdAt) || Date.now(),
+        }))
+        .filter((entry) => entry.amount > 0 && entry.date && entry.title);
     } catch (_error) {
       return [];
     }
   }
 
-  function sanitizeEntries(list) {
-    return list
-      .map((entry) => {
-        const amountNumber = Number(entry.amount);
-
-        return {
-          id: String(entry.id || generateId()),
-          date: String(entry.date || ""),
-          title: String(entry.title || "").trim(),
-          category: String(entry.category || "Other").trim(),
-          amount: Number.isFinite(amountNumber) ? Math.abs(amountNumber) : 0,
-          notes: String(entry.notes || "").trim(),
-          createdAt: Number(entry.createdAt || entry.timestamp || Date.now()),
-        };
-      })
-      .filter((entry) => entry.amount > 0 && entry.date && entry.title);
-  }
-
   function persistEntries() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  }
-
-  function safeValue(input) {
-    if (!input || typeof input.value !== "string") {
-      return "";
-    }
-    return input.value.trim();
   }
 
   function generateId() {
