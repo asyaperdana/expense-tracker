@@ -80,6 +80,9 @@
   var budgetNote = document.getElementById('budget-note');
   var emptyState = document.getElementById('empty-state');
   var dateHelp = document.getElementById('date-help');
+  var titleHelp = document.getElementById('title-help');
+  var walletHelp = document.getElementById('wallet-help');
+  var walletToHelp = document.getElementById('wallet-to-help');
   var categoryHelp = document.getElementById('category-help');
   var amountHelp = document.getElementById('amount-help');
   var filterCategory = document.getElementById('filter-category');
@@ -210,6 +213,8 @@
   var isPerfLite = false;
   var chartHoverRaf = null;
   var chartHoverEvent = null;
+  var categoryChartInstance = null;
+  var hasChartJs = typeof window.Chart === 'function';
   var categoryBudgets = {};
   var wallets = [];
   var templates = [];
@@ -1385,33 +1390,23 @@
 
   // ─── Doughnut Chart ──────────────────────
   function renderChart(data) {
-    var ctx = chartCanvas.getContext('2d');
-    var dpr = window.devicePixelRatio || 1;
-    var size = chartCanvas.width / dpr;
-    var center = size / 2;
-    var outerRadius = center - 10;
-    var innerRadius = outerRadius * 0.58;
-
-    ctx.clearRect(0, 0, size, size);
     chartLegend.innerHTML = '';
     chartSlices = [];
-    chartGeom = { center: size / 2, innerRadius: innerRadius, outerRadius: outerRadius };
+    chartGeom = null;
+    chartTooltip.classList.remove('visible');
 
     var hasExpense = data && data.some(function(item) { return item.type === 'expense'; });
-
     if (!hasExpense) {
+      if (categoryChartInstance) {
+        categoryChartInstance.destroy();
+        categoryChartInstance = null;
+      }
       chartEmpty.classList.add('visible');
       chartCanvas.style.display = 'none';
       chartLegend.style.display = 'none';
-      chartTooltip.classList.remove('visible');
       return;
     }
 
-    chartEmpty.classList.remove('visible');
-    chartCanvas.style.display = 'block';
-    chartLegend.style.display = 'flex';
-
-    // Aggregate by category for expenses only
     var catTotals = {};
     var total = 0;
     data.forEach(function (item) {
@@ -1424,17 +1419,85 @@
     var categories = Object.keys(catTotals).sort(function (a, b) {
       return catTotals[b] - catTotals[a];
     });
+    var values = categories.map(function (cat) { return catTotals[cat]; });
+    var colors = categories.map(function (cat) { return CATEGORY_COLORS[cat] || '#94a3b8'; });
 
-    // Draw slices
+    if (hasChartJs) {
+      chartEmpty.classList.remove('visible');
+      chartCanvas.style.display = 'block';
+      chartLegend.style.display = 'flex';
+
+      categories.forEach(function (cat) {
+        var pct = ((catTotals[cat] / total) * 100).toFixed(1);
+        var legendItem = document.createElement('div');
+        legendItem.className = 'legend-item';
+        legendItem.innerHTML =
+          '<span class="legend-color" style="background:' + (CATEGORY_COLORS[cat] || '#94a3b8') + '"></span>' +
+          '<span class="legend-label">' + (CATEGORY_ICONS[cat] || '') + ' ' + cat + '</span>' +
+          '<span class="legend-value">' + pct + '%</span>';
+        chartLegend.appendChild(legendItem);
+      });
+
+      if (categoryChartInstance) {
+        categoryChartInstance.data.labels = categories;
+        categoryChartInstance.data.datasets[0].data = values;
+        categoryChartInstance.data.datasets[0].backgroundColor = colors;
+        categoryChartInstance.update();
+        return;
+      }
+
+      categoryChartInstance = new window.Chart(chartCanvas, {
+        type: 'doughnut',
+        data: {
+          labels: categories,
+          datasets: [{
+            data: values,
+            backgroundColor: colors,
+            borderColor: 'rgba(255,255,255,0.18)',
+            borderWidth: 1.5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          cutout: '58%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  var amount = Number(ctx.raw || 0);
+                  var pct = total > 0 ? ((amount / total) * 100).toFixed(1) : '0.0';
+                  return (ctx.label || '-') + ': ' + formatRupiah(amount) + ' (' + pct + '%)';
+                }
+              }
+            }
+          }
+        }
+      });
+      return;
+    }
+
+    var ctx = chartCanvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var size = chartCanvas.width / dpr;
+    var center = size / 2;
+    var outerRadius = center - 10;
+    var innerRadius = outerRadius * 0.58;
+
+    ctx.clearRect(0, 0, size, size);
+    chartGeom = { center: size / 2, innerRadius: innerRadius, outerRadius: outerRadius };
+    chartEmpty.classList.remove('visible');
+    chartCanvas.style.display = 'block';
+    chartLegend.style.display = 'flex';
+
     var startAngle = -Math.PI / 2;
     var normalizedStart = 0;
     var gapAngle = 0.03;
 
-    categories.forEach(function (cat, i) {
+    categories.forEach(function (cat) {
       var sliceAngle = (catTotals[cat] / total) * (2 * Math.PI);
       var color = CATEGORY_COLORS[cat] || '#94a3b8';
-
-      // Only add gap if more than 1 category
       var actualGap = categories.length > 1 ? gapAngle : 0;
       var drawStart = startAngle + actualGap / 2;
       var drawEnd = startAngle + sliceAngle - actualGap / 2;
@@ -1458,7 +1521,6 @@
       });
       normalizedStart += sliceAngle;
 
-      // Legend item
       var pct = ((catTotals[cat] / total) * 100).toFixed(1);
       var legendItem = document.createElement('div');
       legendItem.className = 'legend-item';
@@ -1469,7 +1531,6 @@
       chartLegend.appendChild(legendItem);
     });
 
-    // Center text
     var theme = getTheme();
     var textColor = theme === 'dark' ? '#e2e8f0' : '#0f172a';
     var textSecondaryColor = theme === 'dark' ? '#94a3b8' : '#64748b';
@@ -1553,10 +1614,10 @@
   // ─── Form Validation ─────────────────────
   function validateForm() {
     var valid = true;
-    var fields = [inputDate, inputTitle, inputCategory, inputAmount];
+    var fields = [inputDate, inputTitle, inputCategory, inputAmount, inputWallet, inputWalletTo];
 
     fields.forEach(function (field) {
-      field.classList.remove('invalid');
+      if (field) field.classList.remove('invalid');
     });
 
     if (!inputDate.value) {
@@ -1574,10 +1635,24 @@
     }
     if (!inputTitle.value.trim()) {
       inputTitle.classList.add('invalid');
+      if (titleHelp) titleHelp.textContent = 'Nama transaksi wajib diisi';
       valid = false;
+    } else if (inputTitle.value.trim().length < 3) {
+      inputTitle.classList.add('invalid');
+      if (titleHelp) titleHelp.textContent = 'Minimal 3 karakter';
+      valid = false;
+    } else if (titleHelp) {
+      titleHelp.textContent = '';
     }
     
     var isTransfer = document.querySelector('input[name="input-type"]:checked').value === 'transfer';
+    if (!inputWallet.value) {
+      inputWallet.classList.add('invalid');
+      if (walletHelp) walletHelp.textContent = 'Pilih sumber dana';
+      valid = false;
+    } else if (walletHelp) {
+      walletHelp.textContent = '';
+    }
 
     if (!isTransfer && !inputCategory.value) {
       inputCategory.classList.add('invalid');
@@ -1588,10 +1663,22 @@
     }
     
     if (isTransfer) {
+      if (!inputWalletTo.value) {
+        inputWalletTo.classList.add('invalid');
+        if (walletToHelp) walletToHelp.textContent = 'Pilih tujuan dana';
+        valid = false;
+      } else if (walletToHelp) {
+        walletToHelp.textContent = '';
+      }
       if (inputWallet.value === inputWalletTo.value) {
+        inputWallet.classList.add('invalid');
+        inputWalletTo.classList.add('invalid');
+        if (walletToHelp) walletToHelp.textContent = 'Dompet asal dan tujuan tidak boleh sama';
         showToast('Dompet asal dan tujuan tidak boleh sama', 'error');
         valid = false;
       }
+    } else if (walletToHelp) {
+      walletToHelp.textContent = '';
     }
     var rawAmount = inputAmount.value.replace(/,/g, '');
     if (!rawAmount || Number(rawAmount) <= 0) {
@@ -1611,6 +1698,9 @@
     inputDate.value = getTodayString();
     inputDate.max = getTodayString();
     dateHelp.textContent = '';
+    if (titleHelp) titleHelp.textContent = '';
+    if (walletHelp) walletHelp.textContent = '';
+    if (walletToHelp) walletToHelp.textContent = '';
     categoryHelp.textContent = '';
     amountHelp.textContent = '';
     editingId = null;
@@ -2191,6 +2281,60 @@
     inputAmount.classList.remove('invalid');
   });
 
+  inputTitle.addEventListener('input', function () {
+    if (!inputTitle.value.trim()) {
+      if (titleHelp) titleHelp.textContent = 'Nama transaksi wajib diisi';
+      inputTitle.classList.add('invalid');
+      return;
+    }
+    if (inputTitle.value.trim().length < 3) {
+      if (titleHelp) titleHelp.textContent = 'Minimal 3 karakter';
+      inputTitle.classList.add('invalid');
+      return;
+    }
+    if (titleHelp) titleHelp.textContent = '';
+    inputTitle.classList.remove('invalid');
+  });
+
+  inputWallet.addEventListener('change', function () {
+    var isTransfer = document.querySelector('input[name="input-type"]:checked').value === 'transfer';
+    if (!inputWallet.value) {
+      if (walletHelp) walletHelp.textContent = 'Pilih sumber dana';
+      inputWallet.classList.add('invalid');
+      return;
+    }
+    if (isTransfer && inputWallet.value === inputWalletTo.value) {
+      if (walletToHelp) walletToHelp.textContent = 'Dompet asal dan tujuan tidak boleh sama';
+      inputWalletTo.classList.add('invalid');
+    } else if (walletToHelp) {
+      walletToHelp.textContent = '';
+      inputWalletTo.classList.remove('invalid');
+    }
+    if (walletHelp) walletHelp.textContent = '';
+    inputWallet.classList.remove('invalid');
+  });
+
+  inputWalletTo.addEventListener('change', function () {
+    var isTransfer = document.querySelector('input[name="input-type"]:checked').value === 'transfer';
+    if (!isTransfer) {
+      if (walletToHelp) walletToHelp.textContent = '';
+      inputWalletTo.classList.remove('invalid');
+      return;
+    }
+    if (!inputWalletTo.value) {
+      if (walletToHelp) walletToHelp.textContent = 'Pilih tujuan dana';
+      inputWalletTo.classList.add('invalid');
+      return;
+    }
+    if (inputWallet.value === inputWalletTo.value) {
+      if (walletToHelp) walletToHelp.textContent = 'Dompet asal dan tujuan tidak boleh sama';
+      inputWalletTo.classList.add('invalid');
+      return;
+    }
+    if (walletToHelp) walletToHelp.textContent = '';
+    inputWalletTo.classList.remove('invalid');
+  });
+
   btnResetFilter.addEventListener('click', resetFilters);
   btnExportCsv.addEventListener('click', exportCSV);
   btnExportJson.addEventListener('click', exportJSON);
@@ -2209,8 +2353,10 @@
   btnCancelDelete.addEventListener('click', hideDeleteConfirm);
 
   btnThemeToggle.addEventListener('click', toggleTheme);
-  chartCanvas.addEventListener('mousemove', handleChartHoverQueued);
-  chartCanvas.addEventListener('mouseleave', hideChartTooltip);
+  if (!hasChartJs) {
+    chartCanvas.addEventListener('mousemove', handleChartHoverQueued);
+    chartCanvas.addEventListener('mouseleave', hideChartTooltip);
+  }
 
   // Close modal on overlay click
   modalOverlay.addEventListener('click', function (e) {
@@ -2247,11 +2393,18 @@
 
   // ─── Handle canvas DPI for retina ────────
   function setupCanvas() {
-    var dpr = window.devicePixelRatio || 1;
-    var rect = chartCanvas.getBoundingClientRect();
     var displaySize = isPerfLite ? 260 : 320;
     chartCanvas.style.width = displaySize + 'px';
     chartCanvas.style.height = displaySize + 'px';
+    if (hasChartJs) {
+      chartCanvas.width = displaySize;
+      chartCanvas.height = displaySize;
+      if (categoryChartInstance) {
+        categoryChartInstance.resize();
+      }
+      return;
+    }
+    var dpr = window.devicePixelRatio || 1;
     chartCanvas.width = displaySize * dpr;
     chartCanvas.height = displaySize * dpr;
     var ctx = chartCanvas.getContext('2d');
@@ -3325,12 +3478,16 @@
         labelWallet.textContent = 'Dari Dompet';
         inputCategory.removeAttribute('required');
         inputWalletTo.setAttribute('required', 'required');
+        if (categoryHelp) categoryHelp.textContent = '';
+        inputCategory.classList.remove('invalid');
       } else {
         groupWalletTo.style.display = 'none';
         groupCategory.style.display = 'flex';
         labelWallet.textContent = 'Sumber Dana';
         inputCategory.setAttribute('required', 'required');
         inputWalletTo.removeAttribute('required');
+        if (walletToHelp) walletToHelp.textContent = '';
+        inputWalletTo.classList.remove('invalid');
       }
     });
   }

@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Rubik:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/style.css?v=20260227-1" />
+    <link rel="stylesheet" href="css/style.css?v=20260228-2" />
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
     <link rel="apple-touch-icon" href="assets/icon.svg" />
     <link rel="manifest" href="manifest.json" />
@@ -107,19 +107,21 @@
             </div>
             <div class="form-group">
               <label for="input-wallet" id="label-wallet">Sumber Dana</label>
-              <select id="input-wallet" required>
+              <select id="input-wallet" aria-describedby="wallet-help" required>
                 <option value="Tunai">Tunai</option>
                 <option value="Rekening Bank">Rekening Bank</option>
                 <option value="E-Wallet">E-Wallet</option>
               </select>
+              <small class="help-text" id="wallet-help" aria-live="polite"></small>
             </div>
             <div class="form-group" id="group-wallet-to">
               <label for="input-wallet-to">Tujuan Dana</label>
-              <select id="input-wallet-to">
+              <select id="input-wallet-to" aria-describedby="wallet-to-help">
                 <option value="Tunai">Tunai</option>
                 <option value="Rekening Bank">Rekening Bank</option>
                 <option value="E-Wallet">E-Wallet</option>
               </select>
+              <small class="help-text" id="wallet-to-help" aria-live="polite"></small>
             </div>
             <div class="form-group">
               <label for="input-date">Tanggal</label>
@@ -133,8 +135,10 @@
                 id="input-title"
                 placeholder="cth: Makan siang"
                 list="title-suggestions"
+                aria-describedby="title-help"
                 required
               />
+              <small class="help-text" id="title-help" aria-live="polite"></small>
               <datalist id="title-suggestions"></datalist>
             </div>
             <div class="form-group" id="group-category">
@@ -285,7 +289,7 @@
         <span class="card-illus" aria-hidden="true">◔</span>
         <h3 class="card-title">Grafik Pengeluaran</h3>
         <div class="chart-container">
-          <canvas id="category-chart" width="280" height="280"></canvas>
+          <canvas id="category-chart" width="280" height="280" aria-label="Grafik pengeluaran per kategori"></canvas>
           <div class="chart-legend" id="chart-legend"></div>
           <div class="chart-tooltip" id="chart-tooltip"></div>
         </div>
@@ -305,7 +309,7 @@
           </div>
         </div>
         <div class="trend-chart-wrapper">
-          <canvas id="trend-chart" width="600" height="260"></canvas>
+          <canvas id="trend-chart" width="600" height="260" aria-label="Grafik tren pemasukan dan pengeluaran 6 bulan"></canvas>
           <div class="trend-tooltip" id="trend-tooltip"></div>
         </div>
         <p class="trend-empty" id="trend-empty">
@@ -819,6 +823,7 @@
       </p>
     </footer>
 
-    <script src="js/script.js?v=20260227-1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="js/script.js?v=20260228-2"></script>
   </body>
 </html>
