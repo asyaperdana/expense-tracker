@@ -4697,9 +4697,23 @@ body.perf-lite .reveal-ready.revealed {
 }
 
 .wallet-item-name {
-  flex: 1;
   font-weight: 600;
   font-size: 0.95rem;
+}
+
+.wallet-item-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.wallet-item-usage {
+  font-size: 0.74rem;
+  color: var(--clr-text-secondary);
+}
+
+.btn-del-wallet[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ===========================

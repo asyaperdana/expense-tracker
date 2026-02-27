@@ -217,10 +217,19 @@
   
   var AVAILABLE_ICONS = ['ph-star', 'ph-heart', 'ph-airplane-tilt', 'ph-bag', 'ph-game-controller', 'ph-cat', 'ph-dog', 'ph-car', 'ph-house', 'ph-monitor', 'ph-music-note', 'ph-camera', 'ph-coffee', 'ph-bicycle', 'ph-barbell', 'ph-books', 'ph-graduation-cap', 'ph-bandaids', 'ph-bed', 'ph-plug'];
   var AVAILABLE_COLORS = ['#f43f5e', '#ec4899', '#d946ef', '#a855f7', '#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e', '#84cc16', '#eab308', '#f59e0b', '#f97316', '#ef4444'];
+  var DEFAULT_WALLETS = [
+    { id: 'w1', name: 'Tunai', icon: 'ph-money' },
+    { id: 'w2', name: 'Rekening Bank', icon: 'ph-bank' },
+    { id: 'w3', name: 'E-Wallet', icon: 'ph-device-mobile' }
+  ];
 
   // ─── UUID Generator ───────────────────────
   function generateId() {
     return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  }
+
+  function normalizeWalletName(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
   }
 
   // ─── Storage Functions ────────────────────
@@ -291,13 +300,24 @@
   function loadWallets() {
     try {
       var raw = localStorage.getItem(WALLETS_KEY);
-      wallets = raw ? JSON.parse(raw) : [
-        { id: 'w1', name: 'Tunai', icon: 'ph-money' },
-        { id: 'w2', name: 'Rekening Bank', icon: 'ph-bank' },
-        { id: 'w3', name: 'E-Wallet', icon: 'ph-device-mobile' }
-      ];
+      var parsed = raw ? JSON.parse(raw) : DEFAULT_WALLETS;
+      wallets = Array.isArray(parsed) ? parsed.filter(function (wallet) {
+        return wallet && typeof wallet.name === 'string' && wallet.name.trim();
+      }).map(function (wallet) {
+        return {
+          id: wallet.id || generateId(),
+          name: normalizeWalletName(wallet.name),
+          icon: wallet.icon || 'ph-wallet'
+        };
+      }) : [];
     } catch (e) {
       wallets = [];
+    }
+
+    if (!wallets.length) {
+      wallets = DEFAULT_WALLETS.map(function (wallet) {
+        return { id: wallet.id, name: wallet.name, icon: wallet.icon };
+      });
     }
   }
 
@@ -313,13 +333,24 @@
     wallets.forEach(function(wallet) {
       var item = document.createElement('div');
       item.className = 'wallet-item';
+      var usageCount = expenses.filter(function (entry) {
+        return entry.wallet === wallet.name || entry.walletTo === wallet.name;
+      }).length;
+      var deleteDisabled = usageCount > 0 || wallets.length <= 1;
+      var deleteTitle = usageCount > 0
+        ? 'Tidak dapat dihapus karena masih digunakan dalam transaksi'
+        : (wallets.length <= 1 ? 'Setidaknya harus ada satu dompet aktif' : 'Hapus dompet');
       item.innerHTML = 
         '<div class="wallet-item-icon"><i class="ph-fill ' + wallet.icon + '"></i></div>' +
-        '<div class="wallet-item-name">' + escapeHtml(wallet.name) + '</div>' +
-        '<button class="btn btn-ghost btn-sm btn-del-wallet" data-id="' + wallet.id + '" title="Hapus"><i class="ph-bold ph-trash"></i></button>';
+        '<div class="wallet-item-meta">' +
+          '<div class="wallet-item-name">' + escapeHtml(wallet.name) + '</div>' +
+          '<div class="wallet-item-usage">Dipakai di ' + usageCount + ' transaksi</div>' +
+        '</div>' +
+        '<button class="btn btn-ghost btn-sm btn-del-wallet" data-id="' + wallet.id + '" title="' + deleteTitle + '" ' + (deleteDisabled ? 'disabled aria-disabled="true"' : '') + '><i class="ph-bold ph-trash"></i></button>';
       
       var btnDel = item.querySelector('.btn-del-wallet');
       btnDel.addEventListener('click', function() {
+        if (deleteDisabled) return;
         var id = this.dataset.id;
         var inUse = expenses.some(function(e) { return e.wallet === wallet.name || e.walletTo === wallet.name; });
         if (inUse) {
@@ -355,7 +386,11 @@
         opt.textContent = w.name;
         sel.appendChild(opt);
       });
-      if (currentVal) sel.value = currentVal;
+      if (currentVal && wallets.some(function (wallet) { return wallet.name === currentVal; })) {
+        sel.value = currentVal;
+      } else if (wallets.length > 0) {
+        sel.value = wallets[0].name;
+      }
     });
   }
 
@@ -413,6 +448,12 @@
           category: tpl.category,
           amount: tpl.amount
         };
+
+        var walletExists = wallets.some(function (wallet) { return wallet.name === newExpense.wallet; });
+        if (!walletExists && wallets.length > 0) {
+          newExpense.wallet = wallets[0].name;
+          showToast('Dompet template tidak ditemukan. Transaksi dialihkan ke dompet ' + wallets[0].name + '.', 'info');
+        }
         
         expenses.push(newExpense);
         saveToStorage();
@@ -2066,10 +2107,18 @@
 
   if (btnAddWallet) {
     btnAddWallet.addEventListener('click', function() {
-      var name = inputWalletName.value.trim();
+      var name = normalizeWalletName(inputWalletName.value);
       var icon = inputWalletIcon.value;
       if (!name) {
         showToast('Nama dompet harus diisi.', 'error');
+        return;
+      }
+      if (name.length < 2) {
+        showToast('Nama dompet minimal 2 karakter.', 'error');
+        return;
+      }
+      if (name.length > 32) {
+        showToast('Nama dompet maksimal 32 karakter.', 'error');
         return;
       }
       if (wallets.some(function(w) { return w.name.toLowerCase() === name.toLowerCase(); })) {
@@ -2078,6 +2127,7 @@
       }
       wallets.push({ id: generateId(), name: name, icon: icon });
       saveWallets();
+      if (inputWallet) inputWallet.value = name;
       inputWalletName.value = '';
       renderWalletList();
       showToast('Dompet "' + name + '" berhasil ditambah.', 'success');
