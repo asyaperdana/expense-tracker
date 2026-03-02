@@ -6,8 +6,8 @@
 */
 
 body.ui-enhanced {
-  --ui-font-body: "Manrope", "Segoe UI", sans-serif;
-  --ui-font-heading: "Space Grotesk", "Manrope", "Segoe UI", sans-serif;
+  --ui-font-body: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+  --ui-font-heading: "Archivo", "Plus Jakarta Sans", "Segoe UI", sans-serif;
 
   --ui-bg: #f3f6fb;
   --ui-surface: #ffffff;
@@ -85,7 +85,8 @@ body.ui-enhanced .summary-value,
 body.ui-enhanced .report-value,
 body.ui-enhanced .modal-text {
   font-family: var(--ui-font-heading);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.012em;
+  font-weight: 700;
 }
 
 body.ui-enhanced .header {
@@ -115,7 +116,7 @@ body.ui-enhanced .header-icon {
 
 body.ui-enhanced .header h1 {
   font-size: 1.08rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 body.ui-enhanced .header-subtitle {
@@ -208,7 +209,8 @@ body.ui-enhanced .card:hover {
 
 body.ui-enhanced .card-title {
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 body.ui-enhanced .card-illus {
@@ -246,7 +248,7 @@ body.ui-enhanced .hero-content {
 
 body.ui-enhanced .hero-kicker {
   color: var(--ui-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 700;
@@ -254,12 +256,14 @@ body.ui-enhanced .hero-kicker {
 }
 
 body.ui-enhanced .hero-title {
-  font-size: 1.14rem;
+  font-size: 1.18rem;
   text-align: left;
   margin-top: 0;
+  font-weight: 700;
 }
 
 body.ui-enhanced .hero-value {
+  font-family: var(--ui-font-heading);
   color: var(--ui-primary);
   font-size: clamp(1.85rem, 2.3vw, 2.25rem);
   line-height: 1.08;
@@ -310,6 +314,7 @@ body.ui-enhanced .wallet-pill-label {
 }
 
 body.ui-enhanced .wallet-pill-value {
+  font-family: var(--ui-font-heading);
   color: var(--ui-text);
   font-size: 0.92rem;
   font-weight: 700;
@@ -359,9 +364,10 @@ body.ui-enhanced .budget-stats {
 }
 
 body.ui-enhanced .budget-text-used {
+  font-family: var(--ui-font-heading);
   color: var(--ui-text);
   font-size: 1.04rem;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 body.ui-enhanced .budget-text-limit {
@@ -470,16 +476,17 @@ body.ui-enhanced .field-header label {
   color: var(--ui-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
 body.ui-enhanced .summary-value,
 body.ui-enhanced .report-value,
 body.ui-enhanced .dashboard-stat-value {
+  font-family: var(--ui-font-heading);
   margin-top: 6px;
-  font-size: 1.1rem;
-  font-weight: 740;
+  font-size: 1.12rem;
+  font-weight: 700;
 }
 
 body.ui-enhanced .summary-value-income,
@@ -724,6 +731,7 @@ body.ui-enhanced .trend-legend-item {
 
 body.ui-enhanced .badge {
   padding: 3px 9px;
+  font-weight: 600;
 }
 
 body.ui-enhanced .split-ledger-status,

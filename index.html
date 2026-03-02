@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
@@ -20,7 +20,7 @@
     <link rel="manifest" href="manifest.json" />
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/ui-enhanced.css?v=20260302-1">
+    <link rel="stylesheet" href="css/ui-enhanced.css?v=20260302-2">
   </head>
   <body class="ui-enhanced">
     <header class="header">
@@ -222,7 +222,16 @@
               </div>
               <div class="form-group">
                 <label for="input-date">Tanggal</label>
-                <input type="date" id="input-date" required />
+                <input
+                  type="text"
+                  id="input-date"
+                  placeholder="dd/mm/yyyy"
+                  inputmode="numeric"
+                  pattern="\\d{2}/\\d{2}/\\d{4}"
+                  title="Gunakan format dd/mm/yyyy"
+                  autocomplete="off"
+                  required
+                />
                 <small class="help-text" id="date-help" aria-live="polite"></small>
               </div>
               <div class="form-group">

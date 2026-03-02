@@ -1612,6 +1612,61 @@
   }
 
   // ─── Form Validation ─────────────────────
+  function isValidIsoDate(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    var parts = value.split('-');
+    var year = Number(parts[0]);
+    var month = Number(parts[1]);
+    var day = Number(parts[2]);
+    if (!year || month < 1 || month > 12 || day < 1 || day > 31) return false;
+    var d = new Date(value + 'T00:00:00');
+    return d.getFullYear() === year && (d.getMonth() + 1) === month && d.getDate() === day;
+  }
+
+  function toDisplayDate(isoDate) {
+    if (!isValidIsoDate(isoDate)) return '';
+    var parts = isoDate.split('-');
+    return parts[2] + '/' + parts[1] + '/' + parts[0];
+  }
+
+  function toIsoDate(value) {
+    var raw = String(value || '').trim();
+    if (!raw) return '';
+
+    if (isValidIsoDate(raw)) return raw;
+
+    var compact = raw.replace(/[^\d]/g, '');
+    if (compact.length === 8 && raw.indexOf('/') === -1 && raw.indexOf('-') === -1) {
+      raw = compact.slice(0, 2) + '/' + compact.slice(2, 4) + '/' + compact.slice(4, 8);
+    }
+
+    var match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!match) return '';
+
+    var dd = String(Number(match[1])).padStart(2, '0');
+    var mm = String(Number(match[2])).padStart(2, '0');
+    var yyyy = match[3];
+    var iso = yyyy + '-' + mm + '-' + dd;
+
+    return isValidIsoDate(iso) ? iso : '';
+  }
+
+  function normalizeDateInputText() {
+    if (!inputDate) return;
+    var compact = String(inputDate.value || '').replace(/[^\d]/g, '').slice(0, 8);
+    if (!compact) {
+      inputDate.value = '';
+      return;
+    }
+    var out = compact;
+    if (compact.length > 4) {
+      out = compact.slice(0, 2) + '/' + compact.slice(2, 4) + '/' + compact.slice(4);
+    } else if (compact.length > 2) {
+      out = compact.slice(0, 2) + '/' + compact.slice(2);
+    }
+    inputDate.value = out;
+  }
+
   function validateForm() {
     var valid = true;
     var fields = [inputDate, inputTitle, inputCategory, inputAmount, inputWallet, inputWalletTo];
@@ -1620,18 +1675,22 @@
       if (field) field.classList.remove('invalid');
     });
 
+    var isoDate = toIsoDate(inputDate.value);
     if (!inputDate.value) {
       inputDate.classList.add('invalid');
       dateHelp.textContent = 'Tanggal wajib diisi';
       valid = false;
-    }
-    if (inputDate.value && inputDate.value > getTodayString()) {
+    } else if (!isoDate) {
+      inputDate.classList.add('invalid');
+      dateHelp.textContent = 'Gunakan format dd/mm/yyyy yang valid';
+      valid = false;
+    } else if (isoDate > getTodayString()) {
       inputDate.classList.add('invalid');
       dateHelp.textContent = 'Tanggal tidak boleh di masa depan';
       valid = false;
-    }
-    if (inputDate.value && inputDate.value <= getTodayString()) {
+    } else {
       dateHelp.textContent = '';
+      inputDate.value = toDisplayDate(isoDate);
     }
     if (!inputTitle.value.trim()) {
       inputTitle.classList.add('invalid');
@@ -1695,8 +1754,7 @@
   // ─── Reset Form ───────────────────────────
   function resetForm() {
     form.reset();
-    inputDate.value = getTodayString();
-    inputDate.max = getTodayString();
+    inputDate.value = toDisplayDate(getTodayString());
     dateHelp.textContent = '';
     if (titleHelp) titleHelp.textContent = '';
     if (walletHelp) walletHelp.textContent = '';
@@ -1760,7 +1818,7 @@
       type: selectedType,
       wallet: inputWallet.value || 'Tunai',
       walletTo: selectedType === 'transfer' ? (inputWalletTo.value || 'Tunai') : undefined,
-      date: inputDate.value,
+      date: toIsoDate(inputDate.value),
       title: inputTitle.value.trim(),
       category: selectedType === 'transfer' ? 'Transfer' : inputCategory.value,
       amount: Number(inputAmount.value.replace(/,/g, '')),
@@ -1813,8 +1871,14 @@
     });
     if (!item) return;
 
+    // Ensure edit always opens the transaction form view first.
+    var addViewBtn = document.querySelector('[data-nav-view="add"]');
+    if (addViewBtn && !addViewBtn.classList.contains('is-active')) {
+      addViewBtn.click();
+    }
+
     editingId = item.id;
-    inputDate.value = item.date;
+    inputDate.value = toDisplayDate(item.date);
     inputTitle.value = item.title;
     inputCategory.value = item.category;
     inputAmount.value = item.amount.toLocaleString('en-US');
@@ -1848,8 +1912,11 @@
     btnSubmit.innerHTML = '<i class="ph-bold ph-check btn-icon"></i> Update';
     btnCancel.style.display = 'inline-flex';
 
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    inputTitle.focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(function () {
+      if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (inputTitle) inputTitle.focus();
+    }, 120);
   }
 
   // ─── Delete Expense ──────────────────────
@@ -2245,18 +2312,35 @@
   }
 
   inputDate.addEventListener('input', function () {
+    normalizeDateInputText();
+
     if (!inputDate.value) {
       dateHelp.textContent = 'Tanggal wajib diisi';
       inputDate.classList.add('invalid');
       return;
     }
-    if (inputDate.value > getTodayString()) {
+    var isoDate = toIsoDate(inputDate.value);
+    if (!isoDate) {
+      dateHelp.textContent = 'Gunakan format dd/mm/yyyy';
+      inputDate.classList.add('invalid');
+      return;
+    }
+    if (isoDate > getTodayString()) {
       dateHelp.textContent = 'Tanggal tidak boleh di masa depan';
       inputDate.classList.add('invalid');
       return;
     }
+    inputDate.value = toDisplayDate(isoDate);
     dateHelp.textContent = '';
     inputDate.classList.remove('invalid');
+  });
+
+  inputDate.addEventListener('blur', function () {
+    normalizeDateInputText();
+    var isoDate = toIsoDate(inputDate.value);
+    if (isoDate) {
+      inputDate.value = toDisplayDate(isoDate);
+    }
   });
 
   inputCategory.addEventListener('change', function () {
@@ -3879,8 +3963,7 @@
     setTheme(getTheme());
     loadCustomCategories();
     loadCategoryBudgets();
-    inputDate.value = getTodayString();
-    inputDate.max = getTodayString();
+    inputDate.value = toDisplayDate(getTodayString());
     loadFilters();
     updateUndoIndicator();
     loadSplitHistory();
