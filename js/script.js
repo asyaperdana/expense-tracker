@@ -3904,3 +3904,435 @@
 
   init();
 })();
+    </script>
+    <script>
+      (function () {
+        'use strict';
+
+        var VIEW_KEY = 'expense_tracker_active_view';
+        var VALID_VIEWS = ['dashboard', 'add', 'history', 'report', 'tools'];
+        var sections = Array.prototype.slice.call(document.querySelectorAll('.container > section[data-view]'));
+        var navButtons = Array.prototype.slice.call(document.querySelectorAll('[data-nav-view]'));
+        var fabAdd = document.getElementById('fab-add');
+        var inputTitle = document.getElementById('input-title');
+        var btnEditCategoryBudgetEmpty = document.getElementById('btn-edit-category-budget-empty');
+        var btnEditCategoryBudget = document.getElementById('btn-edit-category-budget');
+        var btnOpenSplitEmpty = document.getElementById('btn-open-split-empty');
+        var btnOpenSplit = document.getElementById('btn-open-split');
+
+        function isValidView(view) {
+          return VALID_VIEWS.indexOf(view) !== -1;
+        }
+
+        function setActiveView(view, shouldFocus) {
+          if (!isValidView(view)) view = 'dashboard';
+
+          sections.forEach(function (section) {
+            var active = section.getAttribute('data-view') === view;
+            section.classList.toggle('is-active', active);
+            section.setAttribute('aria-hidden', active ? 'false' : 'true');
+          });
+
+          navButtons.forEach(function (btn) {
+            var activeBtn = btn.getAttribute('data-nav-view') === view;
+            btn.classList.toggle('is-active', activeBtn);
+            btn.setAttribute('aria-selected', activeBtn ? 'true' : 'false');
+          });
+
+          try {
+            localStorage.setItem(VIEW_KEY, view);
+          } catch (e) {
+            // ignore
+          }
+
+          if (shouldFocus && view === 'add' && inputTitle) {
+            setTimeout(function () {
+              inputTitle.focus();
+            }, 120);
+          }
+        }
+
+        navButtons.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            setActiveView(btn.getAttribute('data-nav-view'), btn.getAttribute('data-nav-view') === 'add');
+          });
+        });
+
+        if (fabAdd) {
+          fabAdd.addEventListener('click', function () {
+            setActiveView('add', true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+
+        document.addEventListener('click', function (e) {
+          var navTargetBtn = e.target.closest('[data-nav-target]');
+          if (navTargetBtn) {
+            var targetView = navTargetBtn.getAttribute('data-nav-target');
+            setActiveView(targetView, targetView === 'add');
+            if (targetView === 'add') {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }
+        });
+
+        if (btnEditCategoryBudgetEmpty && btnEditCategoryBudget) {
+          btnEditCategoryBudgetEmpty.addEventListener('click', function () {
+            btnEditCategoryBudget.click();
+          });
+        }
+
+        if (btnOpenSplitEmpty && btnOpenSplit) {
+          btnOpenSplitEmpty.addEventListener('click', function () {
+            btnOpenSplit.click();
+          });
+        }
+
+        function parseCurrency(value) {
+          var numeric = String(value || '').replace(/[^0-9-]/g, '');
+          return Number(numeric || 0);
+        }
+
+        function formatRupiah(value) {
+          return 'Rp ' + Number(value || 0).toLocaleString('id-ID');
+        }
+
+        function animateCurrency(el, targetValue, options) {
+          if (!el) return;
+          options = options || {};
+          var duration = options.duration || 420;
+          var formatter = options.formatter || formatRupiah;
+
+          var currentRaw = Number(el.getAttribute('data-anim-value'));
+          if (!Number.isFinite(currentRaw)) {
+            currentRaw = parseCurrency(el.textContent);
+          }
+
+          if (currentRaw === targetValue) {
+            el.textContent = formatter(targetValue);
+            el.setAttribute('data-anim-value', String(targetValue));
+            return;
+          }
+
+          var start = currentRaw;
+          var startTime = null;
+
+          function tick(ts) {
+            if (!startTime) startTime = ts;
+            var progress = Math.min((ts - startTime) / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            var now = Math.round(start + (targetValue - start) * eased);
+            el.textContent = formatter(now);
+            el.setAttribute('data-anim-value', String(now));
+            if (progress < 1) {
+              requestAnimationFrame(tick);
+            } else {
+              el.textContent = formatter(targetValue);
+              el.setAttribute('data-anim-value', String(targetValue));
+            }
+          }
+
+          requestAnimationFrame(tick);
+        }
+
+        var reportIncomeEl = document.getElementById('report-income');
+        var reportExpenseEl = document.getElementById('report-expense');
+        var dashboardIncomeEl = document.getElementById('dashboard-income');
+        var dashboardExpenseEl = document.getElementById('dashboard-expense');
+        var dashboardNetEl = document.getElementById('dashboard-net');
+
+        function syncDashboardMonthlyStats() {
+          if (!reportIncomeEl || !reportExpenseEl || !dashboardIncomeEl || !dashboardExpenseEl || !dashboardNetEl) {
+            return;
+          }
+          var income = parseCurrency(reportIncomeEl.textContent);
+          var expense = parseCurrency(reportExpenseEl.textContent);
+          var net = income - expense;
+
+          animateCurrency(dashboardIncomeEl, income);
+          animateCurrency(dashboardExpenseEl, expense);
+          animateCurrency(dashboardNetEl, net);
+
+          dashboardNetEl.classList.remove('summary-value-income', 'summary-value-expense');
+          dashboardNetEl.classList.add(net >= 0 ? 'summary-value-income' : 'summary-value-expense');
+        }
+
+        if (reportIncomeEl && reportExpenseEl) {
+          var monthlyObserver = new MutationObserver(syncDashboardMonthlyStats);
+          monthlyObserver.observe(reportIncomeEl, { childList: true, characterData: true, subtree: true });
+          monthlyObserver.observe(reportExpenseEl, { childList: true, characterData: true, subtree: true });
+        }
+
+        var totalBalanceEl = document.getElementById('total-balance');
+        var isBalanceAnimating = false;
+        if (totalBalanceEl) {
+          var balanceObserver = new MutationObserver(function () {
+            if (isBalanceAnimating) return;
+            var target = parseCurrency(totalBalanceEl.textContent);
+            isBalanceAnimating = true;
+            animateCurrency(totalBalanceEl, target, {
+              duration: 480,
+              formatter: formatRupiah,
+            });
+            setTimeout(function () {
+              isBalanceAnimating = false;
+            }, 520);
+          });
+          balanceObserver.observe(totalBalanceEl, { childList: true, characterData: true, subtree: true });
+        }
+
+        var recentList = document.getElementById('recent-list');
+        var recentEmpty = document.getElementById('recent-empty');
+
+        function formatDate(dateStr) {
+          if (!dateStr) return '-';
+          var d = new Date(dateStr + 'T00:00:00');
+          if (isNaN(d.getTime())) return dateStr;
+          return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        }
+
+        function sortByRecent(a, b) {
+          var dateCmp = String(b.date || '').localeCompare(String(a.date || ''));
+          if (dateCmp !== 0) return dateCmp;
+          return String(b.id || '').localeCompare(String(a.id || ''));
+        }
+
+        function renderRecentTransactions() {
+          if (!recentList || !recentEmpty) return;
+
+          var data = [];
+          try {
+            data = JSON.parse(localStorage.getItem('expense_tracker_data') || '[]');
+            if (!Array.isArray(data)) data = [];
+          } catch (e) {
+            data = [];
+          }
+
+          data.sort(sortByRecent);
+          var recent = data.slice(0, 5);
+
+          recentList.innerHTML = '';
+          if (!recent.length) {
+            recentEmpty.style.display = 'block';
+            return;
+          }
+
+          recentEmpty.style.display = 'none';
+          recent.forEach(function (item) {
+            var row = document.createElement('div');
+            row.className = 'recent-row';
+            var isIncome = item.type === 'income';
+            var isTransfer = item.type === 'transfer';
+            var amountPrefix = isIncome ? '+' : (isTransfer ? '↔ ' : '-');
+            var amountClass = isIncome ? 'text-success' : (isTransfer ? 'text-accent' : 'text-danger');
+
+            row.innerHTML =
+              '<div class="recent-row-main">' +
+                '<div class="recent-row-title">' + String(item.title || '-') + '</div>' +
+                '<div class="recent-row-meta">' + formatDate(item.date) + ' • ' + String(item.category || '-') + '</div>' +
+              '</div>' +
+              '<div class="recent-row-amount ' + amountClass + '">' + amountPrefix + formatRupiah(item.amount || 0) + '</div>';
+            recentList.appendChild(row);
+          });
+        }
+
+        var expenseTbody = document.getElementById('expense-tbody');
+        if (expenseTbody) {
+          var recentObserver = new MutationObserver(function () {
+            renderRecentTransactions();
+          });
+          recentObserver.observe(expenseTbody, { childList: true, subtree: true });
+        }
+
+        var form = document.getElementById('expense-form');
+        var btnCancel = document.getElementById('btn-cancel');
+        var pendingRowHighlight = false;
+        if (form) {
+          form.addEventListener(
+            'submit',
+            function () {
+              var isEdit = btnCancel && btnCancel.style.display !== 'none';
+              pendingRowHighlight = !isEdit;
+            },
+            true
+          );
+        }
+
+        if (expenseTbody) {
+          var rowObserver = new MutationObserver(function () {
+            if (!pendingRowHighlight) return;
+            var firstRow = expenseTbody.querySelector('tr');
+            if (!firstRow) return;
+            firstRow.classList.add('row-new');
+            setTimeout(function () {
+              firstRow.classList.remove('row-new');
+            }, 2300);
+            pendingRowHighlight = false;
+          });
+          rowObserver.observe(expenseTbody, { childList: true });
+        }
+
+        function setButtonLoading(button, loadingText, ms) {
+          if (!button || button.dataset.loading === '1') return;
+          button.dataset.loading = '1';
+          button.dataset.originalHtml = button.innerHTML;
+          button.disabled = true;
+          button.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span> ' + loadingText;
+          setTimeout(function () {
+            button.disabled = false;
+            button.innerHTML = button.dataset.originalHtml || button.innerHTML;
+            button.dataset.loading = '0';
+          }, ms || 900);
+        }
+
+        var btnExportCsv = document.getElementById('btn-export-csv');
+        var btnExportJson = document.getElementById('btn-export-json');
+        var btnConfirmImport = document.getElementById('btn-confirm-import');
+
+        if (btnExportCsv) {
+          btnExportCsv.addEventListener('click', function () {
+            setButtonLoading(btnExportCsv, 'Export...', 850);
+          });
+        }
+
+        if (btnExportJson) {
+          btnExportJson.addEventListener('click', function () {
+            setButtonLoading(btnExportJson, 'Export...', 850);
+          });
+        }
+
+        if (btnConfirmImport) {
+          btnConfirmImport.addEventListener('click', function () {
+            setButtonLoading(btnConfirmImport, 'Import...', 1200);
+          });
+        }
+
+        var inputTypeRadios = Array.prototype.slice.call(document.querySelectorAll('input[name="input-type"]'));
+        var groupWalletTo = document.getElementById('group-wallet-to');
+        var groupCategory = document.getElementById('group-category');
+        var inputCategory = document.getElementById('input-category');
+        var optgroupExpense = document.getElementById('optgroup-expense');
+        var optgroupIncome = document.getElementById('optgroup-income');
+
+        function firstEnabledValue(group) {
+          if (!group) return '';
+          var options = Array.prototype.slice.call(group.querySelectorAll('option'));
+          var first = options.find(function (opt) {
+            return !opt.disabled;
+          });
+          return first ? first.value : '';
+        }
+
+        function syncConditionalFields() {
+          var selected = document.querySelector('input[name="input-type"]:checked');
+          var type = selected ? selected.value : 'expense';
+          var isTransfer = type === 'transfer';
+
+          if (groupWalletTo) {
+            groupWalletTo.setAttribute('data-collapsed', isTransfer ? 'false' : 'true');
+          }
+          if (groupCategory) {
+            groupCategory.setAttribute('data-collapsed', isTransfer ? 'true' : 'false');
+          }
+
+          if (!optgroupExpense || !optgroupIncome || !inputCategory) {
+            return;
+          }
+
+          var expenseOptions = Array.prototype.slice.call(optgroupExpense.querySelectorAll('option'));
+          var incomeOptions = Array.prototype.slice.call(optgroupIncome.querySelectorAll('option'));
+
+          if (type === 'expense') {
+            expenseOptions.forEach(function (opt) { opt.disabled = false; });
+            incomeOptions.forEach(function (opt) { opt.disabled = true; });
+          } else if (type === 'income') {
+            expenseOptions.forEach(function (opt) { opt.disabled = true; });
+            incomeOptions.forEach(function (opt) { opt.disabled = false; });
+          } else {
+            expenseOptions.forEach(function (opt) { opt.disabled = false; });
+            incomeOptions.forEach(function (opt) { opt.disabled = false; });
+          }
+
+          if (!isTransfer) {
+            var selectedOption = inputCategory.options[inputCategory.selectedIndex];
+            if (!selectedOption || selectedOption.disabled) {
+              inputCategory.value = type === 'income' ? firstEnabledValue(optgroupIncome) : firstEnabledValue(optgroupExpense);
+            }
+          }
+        }
+
+        inputTypeRadios.forEach(function (radio) {
+          radio.addEventListener('change', function () {
+            setTimeout(syncConditionalFields, 0);
+          });
+        });
+
+        var btnCancelEdit = document.getElementById('btn-cancel');
+        if (btnCancelEdit) {
+          btnCancelEdit.addEventListener('click', function () {
+            setTimeout(syncConditionalFields, 0);
+          });
+        }
+
+        if (form) {
+          form.addEventListener('submit', function () {
+            setTimeout(syncConditionalFields, 40);
+          });
+        }
+
+        if (expenseTbody) {
+          expenseTbody.addEventListener('click', function (e) {
+            var editBtn = e.target.closest('[data-action=\"edit\"]');
+            if (editBtn) {
+              setTimeout(syncConditionalFields, 10);
+            }
+          });
+        }
+
+        if (inputTitle) {
+          inputTitle.addEventListener('input', function () {
+            setTimeout(syncConditionalFields, 0);
+          });
+        }
+
+        var goalList = document.getElementById('goal-list');
+        if (goalList) {
+          var goalObserver = new MutationObserver(function () {
+            var emptyNode = goalList.querySelector('.goal-empty');
+            if (!emptyNode || emptyNode.getAttribute('data-enhanced') === '1') return;
+            emptyNode.setAttribute('data-enhanced', '1');
+            emptyNode.innerHTML =
+              '<svg class="empty-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">' +
+                '<circle cx="60" cy="60" r="36" stroke="currentColor" stroke-width="4"></circle>' +
+                '<path d="M60 32v20l14 14" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>' +
+              '</svg>' +
+              '<p class="empty-title">Belum ada tabungan impian</p>' +
+              '<p class="empty-text">Buat goal baru untuk mulai menabung secara konsisten.</p>' +
+              '<button class="btn btn-primary" type="button" id="btn-empty-create-goal">Buat Goal</button>';
+
+            var trigger = document.getElementById('btn-empty-create-goal');
+            var addGoalBtn = document.getElementById('btn-add-goal');
+            if (trigger && addGoalBtn) {
+              trigger.addEventListener('click', function () {
+                addGoalBtn.click();
+              });
+            }
+          });
+          goalObserver.observe(goalList, { childList: true, subtree: true });
+        }
+
+        var initialView = 'dashboard';
+        try {
+          var stored = localStorage.getItem(VIEW_KEY);
+          if (isValidView(stored)) {
+            initialView = stored;
+          }
+        } catch (e) {
+          initialView = 'dashboard';
+        }
+
+        setActiveView(initialView, false);
+        syncConditionalFields();
+        syncDashboardMonthlyStats();
+        renderRecentTransactions();
+      })();
