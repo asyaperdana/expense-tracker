@@ -3904,8 +3904,7 @@
 
   init();
 })();
-    </script>
-    <script>
+
       (function () {
         'use strict';
 
