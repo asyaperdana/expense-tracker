@@ -830,7 +830,7 @@
 
     // Draw Y Axis labels
     ctx.fillStyle = getTheme() === 'dark' ? '#94a3b8' : '#64748b';
-    ctx.font = '10px Manrope';
+    ctx.font = '10px Inter';
     ctx.textAlign = 'right';
     for (var j = 0; j <= 4; j++) {
       var y = padding.top + chartH - (j * (chartH / 4));
@@ -1113,9 +1113,9 @@
         budgetPct.style.color = '#000';
         budgetNote.textContent = 'Pengeluaran bulan ini sudah cukup tinggi.';
       } else {
-        budgetFill.style.background = '#ffffff';
-        budgetPct.style.background = 'rgba(255,255,255,0.2)';
-        budgetPct.style.color = '#fff';
+        budgetFill.style.background = '';
+        budgetPct.style.background = '';
+        budgetPct.style.color = '';
         budgetNote.textContent = 'Pengeluaran Anda masih aman terkontrol.';
       }
     } else {
@@ -1123,7 +1123,7 @@
       budgetTextLimit.textContent = '/ Tidak ada batas';
       budgetPct.style.display = 'none';
       budgetFill.style.width = '0%';
-      budgetFill.style.background = '#ffffff';
+      budgetFill.style.background = '';
       budgetNote.textContent = 'Atur batas bulanan agar lebih terkontrol.';
     }
   }
@@ -4037,6 +4037,7 @@
         navButtons.forEach(function (btn) {
           btn.addEventListener('click', function () {
             setActiveView(btn.getAttribute('data-nav-view'), btn.getAttribute('data-nav-view') === 'add');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           });
         });
 

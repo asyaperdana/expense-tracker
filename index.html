@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
@@ -20,9 +20,8 @@
     <link rel="manifest" href="manifest.json" />
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/ui-enhanced.css?v=20260302-2">
   </head>
-  <body class="ui-enhanced">
+  <body>
     <header class="header">
       <div class="header-inner">
         <span class="header-icon"><i class="ph-fill ph-wallet"></i></span>
@@ -109,7 +108,7 @@
               <p class="dashboard-stat-value" id="dashboard-net">Rp 0</p>
             </article>
           </div>
-          <div class="summary-grid" style="margin-top: 10px;">
+          <div class="summary-grid">
             <div class="summary-item">
               <span class="summary-label">Total Pemasukan</span>
               <span class="summary-value summary-value-income" id="total-income">Rp 0</span>
@@ -297,7 +296,7 @@
                 type="button"
                 id="btn-cancel"
                 class="btn btn-ghost"
-                style="display: none"
+                style="display:none"
               >
                 Batal
               </button>
@@ -825,7 +824,7 @@
         <div class="modal-icon"><i class="ph-fill ph-calendar-check" style="color: var(--clr-primary);"></i></div>
         <h2 class="modal-text" id="recurring-title">Tagihan Berulang</h2>
         <p class="modal-subtext" id="recurring-desc">Ada tagihan rutin yang sudah jatuh tempo. Tambahkan ke pengeluaran bulan ini?</p>
-        <div id="recurring-list" style="max-height: 200px; overflow-y: auto; text-align: left; margin-bottom: 1rem; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); padding: 0.5rem; border-radius: 8px;"></div>
+        <div id="recurring-list"></div>
         <div class="modal-actions">
           <button class="btn btn-primary" id="btn-confirm-recurring" type="button">Catat Semua</button>
           <button class="btn btn-ghost" id="btn-cancel-recurring" type="button">Lewati</button>
