@@ -128,12 +128,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* --- App Shell & Side Nav --- */
 .app-shell {
-  max-width: 1160px; margin: 0 auto; display: flex; gap: 1.25rem;
-  padding: 1.25rem 1rem 6.5rem;
+  max-width: 1200px; margin: 0 auto; display: flex; gap: 2rem;
+  padding: 2.5rem 2rem 8rem;
 }
 .side-nav {
   position: sticky; top: 5rem; align-self: flex-start;
-  width: 200px; flex-shrink: 0;
+  width: 230px; flex-shrink: 0;
   border-radius: var(--radius-lg); border: 1px solid var(--clr-border);
   background: var(--clr-surface); box-shadow: var(--shadow-sm);
   padding: 1rem;
@@ -163,7 +163,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 /* --- Container --- */
 .container {
   max-width: 100%; width: 100%; flex: 1;
-  display: flex; flex-direction: column; gap: 1.15rem;
+  display: flex; flex-direction: column; gap: 1.75rem;
 }
 .container > section {
   display: none;
@@ -172,7 +172,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .container > section.is-active {
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
+  gap: 1.75rem;
   animation: sectionIn 0.4s ease forwards;
 }
 .container > section:nth-child(2) { animation-delay: 0.04s; }
@@ -188,7 +188,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 /* --- Cards --- */
 .card {
   background: var(--clr-surface); border: 1px solid var(--clr-border);
-  border-radius: var(--radius-lg); padding: 1.35rem;
+  border-radius: var(--radius-lg); padding: 2rem;
   box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
   transition: border-color var(--ease), box-shadow var(--ease), transform var(--ease);
 }
@@ -203,8 +203,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 }
 .card-illus { display: none !important; }
 .card-title {
-  font-size: 0.95rem; font-weight: 700; margin-bottom: 0.9rem;
-  color: var(--clr-text); display: flex; align-items: center; gap: 0.45rem;
+  font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem;
+  color: var(--clr-text); display: flex; align-items: center; gap: 0.6rem;
   font-family: var(--font-heading);
 }
 .card-title::before {
@@ -301,11 +301,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 }
 .summary-card:hover { transform: translateY(-1px); }
 .dashboard-monthly-stats {
-  display: grid; grid-template-columns: repeat(3,1fr); gap: 0.65rem;
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem;
 }
 .dashboard-stat {
   border: 1px solid var(--clr-border); border-radius: var(--radius-sm);
-  background: var(--clr-surface-alt); padding: 10px;
+  background: var(--clr-surface-alt); padding: 1.25rem;
 }
 .dashboard-stat-label,.summary-label,.report-label,.form-group label,.filter-group label,.field-header label {
   color: var(--clr-text-2); text-transform: uppercase; letter-spacing: 0.06em;
@@ -316,12 +316,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   font-size: 1.08rem; font-weight: 700;
 }
 .summary-grid {
-  display: grid; grid-template-columns: repeat(4,1fr); gap: 0.65rem;
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem;
 }
 .summary-item {
-  display: flex; flex-direction: column; gap: 0.2rem;
+  display: flex; flex-direction: column; gap: 0.35rem;
   border: 1px solid var(--clr-border); border-radius: var(--radius-sm);
-  background: var(--clr-surface-alt); padding: 10px;
+  background: var(--clr-surface-alt); padding: 1.25rem;
 }
 .summary-value-sm { font-size: 0.9rem; font-weight: 700; }
 .summary-value-income,.report-value-income,.text-success { color: var(--clr-success); }
@@ -373,7 +373,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* --- Forms --- */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
 .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
 .segmented-control {
   position: relative; display: flex; background: var(--clr-surface-alt);
@@ -448,7 +448,7 @@ textarea:focus,.wallet-add-row input:focus,.wallet-add-row select:focus,
 .filter-card { padding: 1rem; background: var(--clr-surface-alt); }
 .filter-card .card-title { margin-bottom: 0.75rem; }
 .filter-layout { display: grid; gap: 0.7rem; }
-.filter-fields { display: grid; grid-template-columns: repeat(4, minmax(140px,1fr)); gap: 0.6rem; align-items: end; }
+.filter-fields { display: grid; grid-template-columns: repeat(4, minmax(140px,1fr)); gap: 1rem; align-items: end; }
 .filter-actions { display: flex; flex-wrap: wrap; gap: 0.55rem; }
 .filter-group { display: flex; flex-direction: column; gap: 0.3rem; }
 .filter-group-undo { min-width: 160px; }
@@ -966,7 +966,7 @@ body.perf-lite .reveal-ready,body.perf-lite .reveal-ready.revealed {
 
 /* --- Responsive --- */
 @media (max-width: 1024px) {
-  .app-shell { padding-inline: 0.85rem; gap: 1rem; }
+  .app-shell { padding: 1.5rem 1.25rem 6.5rem; gap: 1.25rem; }
   .side-nav { display: none; }
   .bottom-nav { display: flex; }
   .fab-add { display: flex; }
