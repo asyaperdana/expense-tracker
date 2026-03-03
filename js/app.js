@@ -43,6 +43,7 @@ function init() {
 
   // Set default date in form
   ui.dom.inputDate.value = validation.toDisplayDate(calc.getTodayString());
+  ui.syncAmountDisplay(ui.dom.inputAmount.value);
 
   setupEventListeners();
   ui.syncConditionalFields();
@@ -394,6 +395,7 @@ function startEdit(item) {
   ui.dom.inputDate.value = validation.toDisplayDate(item.date);
   ui.dom.inputTitle.value = item.title;
   ui.dom.inputAmount.value = item.amount.toLocaleString('en-US');
+  ui.syncAmountDisplay(ui.dom.inputAmount.value);
   
   const typeRadio = document.querySelector(`input[name="input-type"][value="${item.type}"]`);
   if (typeRadio) typeRadio.checked = true;
@@ -473,6 +475,7 @@ function pinToTemplates(item) {
 function handleUseTemplate(tpl) {
   ui.dom.inputTitle.value = tpl.title;
   ui.dom.inputAmount.value = tpl.amount.toLocaleString('en-US');
+  ui.syncAmountDisplay(ui.dom.inputAmount.value);
   ui.dom.inputCategory.value = tpl.category;
   ui.dom.inputWallet.value = tpl.wallet;
   
@@ -786,4 +789,3 @@ function processRecurringExpenses() {
 
 // ─── Init ──────────────────────────────────
 document.addEventListener('DOMContentLoaded', init);
-

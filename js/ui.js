@@ -67,6 +67,7 @@ export function cacheDom() {
   dom.reportTrendEl = document.getElementById('report-trend');
   dom.reportAdviceEl = document.getElementById('report-advice');
   dom.inputRecurring = document.getElementById('input-recurring');
+  dom.recurringRow = document.getElementById('recurring-row');
   dom.goalListEl = document.getElementById('goal-list');
   dom.inputGoalFundId = document.getElementById('input-goal-fund-id');
   dom.inputGoalFundSource = document.getElementById('input-goal-fund-source');
@@ -1040,18 +1041,19 @@ export function resetForm() {
   dom.amountHelp.textContent = '';
   state.editingId = null;
   document.querySelector('input[name="input-type"][value="expense"]').checked = true;
-  dom.inputWallet.value = 'Tunai';
-  dom.inputWalletTo.value = 'Tunai';
-  dom.groupWalletTo.style.display = 'none';
-  dom.groupCategory.style.display = 'flex';
-  dom.labelWallet.textContent = 'Sumber Dana';
+  if (dom.inputWallet && dom.inputWallet.options.length > 0) {
+    dom.inputWallet.value = dom.inputWallet.options[0].value;
+  }
+  if (dom.inputWalletTo && dom.inputWalletTo.options.length > 0) {
+    dom.inputWalletTo.value = dom.inputWalletTo.options[0].value;
+  }
   dom.inputRecurring.checked = false;
-  document.querySelector('.checkbox-group').style.display = 'flex';
   dom.btnSubmit.disabled = false;
   dom.btnSubmit.classList.remove('is-loading');
   dom.btnSubmit.innerHTML = '<i class="ph-bold ph-plus-circle btn-icon"></i> Simpan Transaksi';
   dom.btnCancel.style.display = 'none';
-  if (dom.amountValue) dom.amountValue.textContent = '0';
+  syncAmountDisplay('');
+  syncConditionalFields();
   [dom.inputDate, dom.inputTitle, dom.inputCategory, dom.inputAmount, dom.inputWallet, dom.inputWalletTo].forEach(function (f) {
     if (f) f.classList.remove('invalid');
   });
@@ -1123,6 +1125,15 @@ export function formatInputCurrency(e) {
   let value = e.target.value.replace(/\D/g, "");
   if (value !== "") { e.target.value = Number(value).toLocaleString('en-US'); }
   else { e.target.value = ""; }
+  if (dom.inputAmount && e.target === dom.inputAmount) {
+    syncAmountDisplay(e.target.value);
+  }
+}
+
+export function syncAmountDisplay(value) {
+  if (!dom.amountValue) return;
+  let raw = String(value == null ? (dom.inputAmount ? dom.inputAmount.value : '') : value).replace(/\D/g, '');
+  dom.amountValue.textContent = raw ? Number(raw).toLocaleString('en-US') : '0';
 }
 
 // ─── View Management (from secondary IIFE) ──
@@ -1249,8 +1260,11 @@ export function syncConditionalFields() {
   let selected = document.querySelector('input[name="input-type"]:checked');
   let type = selected ? selected.value : 'expense';
   let isTransfer = type === 'transfer';
+  if (dom.groupWalletTo) dom.groupWalletTo.style.display = '';
+  if (dom.groupCategory) dom.groupCategory.style.display = '';
   if (dom.groupWalletTo) dom.groupWalletTo.setAttribute('data-collapsed', isTransfer ? 'false' : 'true');
   if (dom.groupCategory) dom.groupCategory.setAttribute('data-collapsed', isTransfer ? 'true' : 'false');
+  if (dom.labelWallet) dom.labelWallet.textContent = isTransfer ? 'Dari Dompet' : 'Sumber Dana';
   let optgroupExpense = document.getElementById('optgroup-expense');
   let optgroupIncome = document.getElementById('optgroup-income');
   if (!optgroupExpense || !optgroupIncome || !dom.inputCategory) return;
@@ -1264,5 +1278,10 @@ export function syncConditionalFields() {
     if (!selectedOption || selectedOption.disabled) {
       dom.inputCategory.value = type === 'income' ? firstEnabledValue(optgroupIncome) : firstEnabledValue(optgroupExpense);
     }
+  } else if (dom.inputWallet && dom.inputWalletTo && dom.inputWallet.value === dom.inputWalletTo.value && dom.inputWalletTo.options.length > 1) {
+    let nextWallet = Array.prototype.slice.call(dom.inputWalletTo.options).find(function (opt) {
+      return opt.value !== dom.inputWallet.value;
+    });
+    if (nextWallet) dom.inputWalletTo.value = nextWallet.value;
   }
 }

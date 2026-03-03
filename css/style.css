@@ -717,7 +717,7 @@ a:focus-visible {
 .form-card {
   padding: 0 !important;
   overflow: hidden;
-  max-width: 800px;
+  max-width: 980px;
   min-width: 640px;
   width: 100%;
   align-self: center;
@@ -728,15 +728,110 @@ a:focus-visible {
 .form-card:hover {
   transform: none;
 }
+.form-card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 1rem;
+  align-items: stretch;
+  padding: 1.35rem 1.6rem;
+  border-bottom: 1px solid var(--clr-border);
+  background:
+    radial-gradient(
+      ellipse 460px 220px at 8% 20%,
+      color-mix(in srgb, var(--clr-primary) 12%, transparent),
+      transparent 70%
+    ),
+    var(--clr-surface-alt);
+}
+.form-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--clr-primary);
+  margin-bottom: 0.35rem;
+}
+.form-title {
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+.form-subtitle {
+  margin-top: 0.35rem;
+  font-size: 0.84rem;
+  color: var(--clr-text-2);
+}
+.form-head-tip {
+  border: 1px solid color-mix(in srgb, var(--clr-accent) 28%, var(--clr-border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--clr-accent) 8%, var(--clr-surface));
+  padding: 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: var(--clr-text);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+.form-head-tip i {
+  color: var(--clr-accent);
+  font-size: 1rem;
+  margin-top: 0.1rem;
+}
+.form-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 260px);
+  gap: 0;
+}
+.form-main {
+  min-width: 0;
+}
+.form-side {
+  border-left: 1px solid var(--clr-border);
+  background: var(--clr-surface-alt);
+  padding: 1.2rem 1rem;
+}
+.form-side-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--clr-text);
+  margin-bottom: 0.75rem;
+}
+.form-side-title i {
+  color: var(--clr-primary);
+}
+.form-side-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.form-side-list li {
+  font-size: 0.76rem;
+  color: var(--clr-text-2);
+  border: 1px solid var(--clr-border);
+  border-radius: 10px;
+  background: var(--clr-surface);
+  padding: 0.6rem 0.65rem;
+}
 
 /* Hero Amount */
 .form-amount-hero {
   text-align: center;
-  padding: 2.5rem 2.5rem 1.5rem;
+  padding: 2.1rem 1.8rem 1.2rem;
   position: relative;
   background:
     radial-gradient(
-      ellipse 600px 300px at 50% 20%,
+      ellipse 540px 260px at 50% 16%,
       color-mix(in srgb, var(--clr-primary) 10%, transparent),
       transparent 70%
     ),
@@ -771,7 +866,7 @@ a:focus-visible {
   font-family: var(--font-heading);
   font-weight: 800;
   line-height: 1;
-  font-size: clamp(2.2rem, 5vw, 3rem);
+  font-size: clamp(2rem, 4.5vw, 2.8rem);
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
   -webkit-background-clip: text;
@@ -814,7 +909,7 @@ a:focus-visible {
 .form-amount-help {
   text-align: center;
   display: block;
-  margin-top: 0.35rem;
+  margin-top: 0.45rem;
 }
 @keyframes amountPulse {
   50% {
@@ -824,7 +919,7 @@ a:focus-visible {
 
 /* Form Sections */
 .form-section {
-  padding: 1.5rem 2.5rem 0;
+  padding: 1rem 1.4rem 0;
 }
 
 /* Segmented Control (existing styles kept, minor refinements) */
@@ -891,13 +986,14 @@ input[value="transfer"]:checked ~ .segmented-bg {
 
 /* Stacked Input Groups */
 .form-stack {
-  padding: 0.75rem 2.5rem 0;
+  padding: 0.65rem 1.4rem 0.65rem;
   display: flex;
   flex-direction: column;
 }
 .form-input-group {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 0.85rem;
   padding: 0.8rem 0;
   border-bottom: 1px solid var(--clr-border);
@@ -920,6 +1016,7 @@ input[value="transfer"]:checked ~ .segmented-bg {
   flex-shrink: 0;
   width: 28px;
   text-align: center;
+  margin-top: 0.4rem;
   transition:
     color 0.2s ease,
     transform 0.2s ease;
@@ -970,9 +1067,10 @@ input[value="transfer"]:checked ~ .segmented-bg {
   align-items: center;
 }
 .form-input-group .help-text {
-  position: absolute;
-  bottom: 2px;
-  left: 2.2rem;
+  position: static;
+  flex-basis: 100%;
+  margin-top: 0.05rem;
+  padding-left: 2.35rem;
   font-size: 0.68rem;
 }
 .form-input-group.conditional-group[data-collapsed="true"] {
@@ -1002,8 +1100,9 @@ input[value="transfer"]:checked ~ .segmented-bg {
   display: flex !important;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
+  padding: 1rem 1.4rem;
   border-top: 1px solid var(--clr-border);
+  background: var(--clr-surface-alt);
 }
 .form-toggle-info {
   display: flex;
@@ -1062,10 +1161,12 @@ input[value="transfer"]:checked ~ .segmented-bg {
 
 /* Full-width Submit */
 .form-actions-full {
-  padding: 1.25rem 2rem 2rem;
+  padding: 1.05rem 1.4rem 1.4rem;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+  background: var(--clr-surface);
+  border-top: 1px solid var(--clr-border);
 }
 .btn-submit-full {
   width: 100%;
@@ -1098,7 +1199,7 @@ input[value="transfer"]:checked ~ .segmented-bg {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin-top: 0;
 }
 .checkbox-group input[type="checkbox"] {
   accent-color: var(--clr-primary);
@@ -2852,6 +2953,18 @@ body.perf-lite .reveal-ready.revealed {
     align-self: stretch;
     max-width: 100%;
   }
+  .form-card-head {
+    grid-template-columns: 1fr;
+    padding: 1.15rem 1.2rem;
+  }
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+  .form-side {
+    border-left: 0;
+    border-top: 1px solid var(--clr-border);
+    padding: 1rem 1.2rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -2867,6 +2980,27 @@ body.perf-lite .reveal-ready.revealed {
   .form-grid,
   .split-form-grid {
     grid-template-columns: 1fr;
+  }
+  .form-title {
+    font-size: 1.08rem;
+  }
+  .form-head-tip {
+    font-size: 0.74rem;
+  }
+  .form-amount-hero {
+    padding: 1.7rem 1.2rem 1.05rem;
+  }
+  .form-section,
+  .form-stack,
+  .form-toggle-row,
+  .form-actions-full {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .segmented-control label {
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    padding: 0 0.65rem;
   }
   .summary-grid,
   .report-grid {
@@ -2930,6 +3064,49 @@ body.perf-lite .reveal-ready.revealed {
   }
   .card {
     padding: 1.25rem;
+  }
+  .form-card-head {
+    padding: 1rem 0.9rem;
+  }
+  .form-kicker {
+    font-size: 0.66rem;
+  }
+  .form-title {
+    font-size: 0.98rem;
+  }
+  .form-subtitle {
+    font-size: 0.76rem;
+  }
+  .form-head-tip {
+    padding: 0.65rem;
+    font-size: 0.72rem;
+  }
+  .form-amount-prefix {
+    font-size: 1.2rem;
+  }
+  .form-amount-value {
+    font-size: clamp(1.5rem, 9vw, 2.1rem);
+  }
+  .form-section,
+  .form-stack,
+  .form-toggle-row,
+  .form-actions-full {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+  .segmented-control {
+    height: 2.6rem;
+  }
+  .segmented-control label {
+    font-size: 0.8rem;
+    gap: 0.3rem;
+  }
+  .form-side {
+    padding: 0.85rem;
+  }
+  .form-side-list li {
+    font-size: 0.72rem;
+    padding: 0.5rem 0.55rem;
   }
   .wallet-balances {
     grid-template-columns: 1fr;

@@ -182,138 +182,163 @@
         </section>
 
         <section class="card glass form-card" data-view="add">
+          <div class="form-card-head">
+            <div>
+              <p class="form-kicker"><i class="ph-bold ph-plus-circle"></i> Tambah Transaksi</p>
+              <h3 class="form-title">Input Cepat, Catatan Tetap Rapi</h3>
+              <p class="form-subtitle">Masukkan nominal dulu, lalu detailnya. Hasilnya langsung masuk ke dashboard dan riwayat.</p>
+            </div>
+            <div class="form-head-tip">
+              <i class="ph-bold ph-lightning"></i>
+              <span>Ketik judul transaksi yang pernah ada untuk auto-isi data serupa.</span>
+            </div>
+          </div>
+
           <form id="expense-form" novalidate>
-            <!-- Hero Amount -->
-            <div class="form-amount-hero">
-              <div class="form-amount-label">NOMINAL TRANSAKSI</div>
-              <div class="form-amount-display" id="amount-display">
-                <span class="form-amount-prefix">Rp</span>
-                <span class="form-amount-value" id="amount-value">0</span>
-              </div>
-              <input
-                type="text"
-                id="input-amount"
-                class="form-amount-input"
-                placeholder="0"
-                inputmode="numeric"
-                required
-                aria-label="Nominal transaksi"
-              />
-              <small class="help-text form-amount-help" id="amount-help" aria-live="polite"></small>
-            </div>
-
-            <!-- Type Selector -->
-            <div class="form-section">
-              <div class="segmented-control">
-                <input type="radio" id="type-exp" name="input-type" value="expense" checked />
-                <label for="type-exp"><i class="ph-bold ph-arrow-up-right"></i> Pengeluaran</label>
-
-                <input type="radio" id="type-inc" name="input-type" value="income" />
-                <label for="type-inc"><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</label>
-
-                <input type="radio" id="type-trf" name="input-type" value="transfer" />
-                <label for="type-trf"><i class="ph-bold ph-arrows-left-right"></i> Transfer</label>
-
-                <div class="segmented-bg"></div>
-              </div>
-            </div>
-
-            <!-- Input Fields Stack -->
-            <div class="form-stack">
-              <div class="form-input-group">
-                <i class="ph-bold ph-calendar-blank form-input-icon"></i>
-                <div class="form-input-body">
-                  <label for="input-date" class="form-input-label">Tanggal</label>
-                  <input
-                    type="text"
-                    id="input-date"
-                    placeholder="dd/mm/yyyy"
-                    inputmode="numeric"
-                    pattern="\\d{2}/\\d{2}/\\d{4}"
-                    title="Gunakan format dd/mm/yyyy"
-                    autocomplete="off"
-                    required
-                  />
-                </div>
-                <small class="help-text" id="date-help" aria-live="polite"></small>
-              </div>
-
-              <div class="form-input-group">
-                <i class="ph-bold ph-pencil-simple form-input-icon"></i>
-                <div class="form-input-body">
-                  <label for="input-title" class="form-input-label">Nama Transaksi</label>
-                  <input
-                    type="text"
-                    id="input-title"
-                    placeholder="cth: Makan siang"
-                    list="title-suggestions"
-                    aria-describedby="title-help"
-                    required
-                  />
-                  <datalist id="title-suggestions"></datalist>
-                </div>
-                <small class="help-text" id="title-help" aria-live="polite"></small>
-              </div>
-
-              <div class="form-input-group conditional-group" id="group-category" data-collapsed="false">
-                <i class="ph-bold ph-tag form-input-icon"></i>
-                <div class="form-input-body">
-                  <div class="field-header">
-                    <label for="input-category" class="form-input-label">Kategori</label>
-                    <button class="btn-add-category" id="btn-add-category" type="button">
-                      <i class="ph-bold ph-plus"></i> Custom
-                    </button>
+            <div class="form-layout">
+              <div class="form-main">
+                <!-- Hero Amount -->
+                <div class="form-amount-hero">
+                  <div class="form-amount-label">NOMINAL TRANSAKSI</div>
+                  <div class="form-amount-display" id="amount-display">
+                    <span class="form-amount-prefix">Rp</span>
+                    <span class="form-amount-value" id="amount-value">0</span>
                   </div>
-                  <select id="input-category" required>
-                    <option value="" disabled selected>Pilih kategori</option>
-                    <optgroup label="Pengeluaran" id="optgroup-expense">
-                      <option value="Makanan">Makanan</option>
-                      <option value="Transport">Transport</option>
-                      <option value="Belanja">Belanja</option>
-                      <option value="Hiburan">Hiburan</option>
-                      <option value="Kesehatan">Kesehatan</option>
-                      <option value="Pendidikan">Pendidikan</option>
-                      <option value="Tagihan">Tagihan</option>
-                      <option value="Lainnya">Lainnya (Keluar)</option>
-                    </optgroup>
-                    <optgroup label="Pemasukan" id="optgroup-income">
-                      <option value="Gaji">Gaji</option>
-                      <option value="Pemasukan Lain">Pemasukan Lain</option>
-                    </optgroup>
-                  </select>
+                  <input
+                    type="text"
+                    id="input-amount"
+                    class="form-amount-input"
+                    placeholder="0"
+                    inputmode="numeric"
+                    required
+                    aria-label="Nominal transaksi"
+                  />
+                  <small class="help-text form-amount-help" id="amount-help" aria-live="polite"></small>
                 </div>
-                <small class="help-text" id="category-help" aria-live="polite"></small>
+
+                <!-- Type Selector -->
+                <div class="form-section">
+                  <div class="segmented-control">
+                    <input type="radio" id="type-exp" name="input-type" value="expense" checked />
+                    <label for="type-exp"><i class="ph-bold ph-arrow-up-right"></i> Pengeluaran</label>
+
+                    <input type="radio" id="type-inc" name="input-type" value="income" />
+                    <label for="type-inc"><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</label>
+
+                    <input type="radio" id="type-trf" name="input-type" value="transfer" />
+                    <label for="type-trf"><i class="ph-bold ph-arrows-left-right"></i> Transfer</label>
+
+                    <div class="segmented-bg"></div>
+                  </div>
+                </div>
+
+                <!-- Input Fields Stack -->
+                <div class="form-stack">
+                  <div class="form-input-group">
+                    <i class="ph-bold ph-calendar-blank form-input-icon"></i>
+                    <div class="form-input-body">
+                      <label for="input-date" class="form-input-label">Tanggal</label>
+                      <input
+                        type="text"
+                        id="input-date"
+                        placeholder="dd/mm/yyyy"
+                        inputmode="numeric"
+                        pattern="\\d{2}/\\d{2}/\\d{4}"
+                        title="Gunakan format dd/mm/yyyy"
+                        autocomplete="off"
+                        required
+                      />
+                    </div>
+                    <small class="help-text" id="date-help" aria-live="polite"></small>
+                  </div>
+
+                  <div class="form-input-group">
+                    <i class="ph-bold ph-pencil-simple form-input-icon"></i>
+                    <div class="form-input-body">
+                      <label for="input-title" class="form-input-label">Nama Transaksi</label>
+                      <input
+                        type="text"
+                        id="input-title"
+                        placeholder="cth: Makan siang"
+                        list="title-suggestions"
+                        aria-describedby="title-help"
+                        required
+                      />
+                      <datalist id="title-suggestions"></datalist>
+                    </div>
+                    <small class="help-text" id="title-help" aria-live="polite"></small>
+                  </div>
+
+                  <div class="form-input-group conditional-group" id="group-category" data-collapsed="false">
+                    <i class="ph-bold ph-tag form-input-icon"></i>
+                    <div class="form-input-body">
+                      <div class="field-header">
+                        <label for="input-category" class="form-input-label">Kategori</label>
+                        <button class="btn-add-category" id="btn-add-category" type="button">
+                          <i class="ph-bold ph-plus"></i> Custom
+                        </button>
+                      </div>
+                      <select id="input-category" required>
+                        <option value="" disabled selected>Pilih kategori</option>
+                        <optgroup label="Pengeluaran" id="optgroup-expense">
+                          <option value="Makanan">Makanan</option>
+                          <option value="Transport">Transport</option>
+                          <option value="Belanja">Belanja</option>
+                          <option value="Hiburan">Hiburan</option>
+                          <option value="Kesehatan">Kesehatan</option>
+                          <option value="Pendidikan">Pendidikan</option>
+                          <option value="Tagihan">Tagihan</option>
+                          <option value="Lainnya">Lainnya (Keluar)</option>
+                        </optgroup>
+                        <optgroup label="Pemasukan" id="optgroup-income">
+                          <option value="Gaji">Gaji</option>
+                          <option value="Pemasukan Lain">Pemasukan Lain</option>
+                        </optgroup>
+                      </select>
+                    </div>
+                    <small class="help-text" id="category-help" aria-live="polite"></small>
+                  </div>
+
+                  <div class="form-input-group">
+                    <i class="ph-bold ph-wallet form-input-icon"></i>
+                    <div class="form-input-body">
+                      <label for="input-wallet" id="label-wallet" class="form-input-label">Sumber Dana</label>
+                      <select id="input-wallet" aria-describedby="wallet-help" required>
+                        <option value="Tunai">Tunai</option>
+                        <option value="Rekening Bank">Rekening Bank</option>
+                        <option value="E-Wallet">E-Wallet</option>
+                      </select>
+                    </div>
+                    <small class="help-text" id="wallet-help" aria-live="polite"></small>
+                  </div>
+
+                  <div class="form-input-group conditional-group" id="group-wallet-to" data-collapsed="true">
+                    <i class="ph-bold ph-arrow-elbow-right form-input-icon"></i>
+                    <div class="form-input-body">
+                      <label for="input-wallet-to" class="form-input-label">Tujuan Dana</label>
+                      <select id="input-wallet-to" aria-describedby="wallet-to-help">
+                        <option value="Tunai">Tunai</option>
+                        <option value="Rekening Bank">Rekening Bank</option>
+                        <option value="E-Wallet">E-Wallet</option>
+                      </select>
+                    </div>
+                    <small class="help-text" id="wallet-to-help" aria-live="polite"></small>
+                  </div>
+                </div>
               </div>
 
-              <div class="form-input-group">
-                <i class="ph-bold ph-wallet form-input-icon"></i>
-                <div class="form-input-body">
-                  <label for="input-wallet" id="label-wallet" class="form-input-label">Sumber Dana</label>
-                  <select id="input-wallet" aria-describedby="wallet-help" required>
-                    <option value="Tunai">Tunai</option>
-                    <option value="Rekening Bank">Rekening Bank</option>
-                    <option value="E-Wallet">E-Wallet</option>
-                  </select>
-                </div>
-                <small class="help-text" id="wallet-help" aria-live="polite"></small>
-              </div>
-
-              <div class="form-input-group conditional-group" id="group-wallet-to" data-collapsed="true">
-                <i class="ph-bold ph-arrow-elbow-right form-input-icon"></i>
-                <div class="form-input-body">
-                  <label for="input-wallet-to" class="form-input-label">Tujuan Dana</label>
-                  <select id="input-wallet-to" aria-describedby="wallet-to-help">
-                    <option value="Tunai">Tunai</option>
-                    <option value="Rekening Bank">Rekening Bank</option>
-                    <option value="E-Wallet">E-Wallet</option>
-                  </select>
-                </div>
-                <small class="help-text" id="wallet-to-help" aria-live="polite"></small>
-              </div>
+              <aside class="form-side" aria-label="Panduan input transaksi">
+                <h4 class="form-side-title"><i class="ph-bold ph-list-checks"></i> Checklist Cepat</h4>
+                <ul class="form-side-list">
+                  <li>Untuk transfer, pilih dompet asal dan tujuan yang berbeda.</li>
+                  <li>Nominal harus lebih dari 0 agar transaksi dapat disimpan.</li>
+                  <li>Aktifkan berulang jika ini tagihan rutin bulanan.</li>
+                </ul>
+              </aside>
             </div>
 
             <!-- Recurring Toggle -->
-            <div class="form-toggle-row checkbox-group">
+            <div class="form-toggle-row checkbox-group" id="recurring-row">
               <div class="form-toggle-info">
                 <i class="ph-bold ph-arrows-clockwise form-toggle-icon"></i>
                 <span>Tagihan berulang tiap bulan</span>
