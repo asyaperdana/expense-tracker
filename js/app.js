@@ -77,6 +77,9 @@ function setupEventListeners() {
       if (targetView === 'add') window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') ui.closeCalendarDetail();
+  });
 
   // Form Handling
   ui.dom.form.addEventListener('submit', handleSubmit);
@@ -96,6 +99,17 @@ function setupEventListeners() {
   // Filters
   ui.dom.filterCategory.addEventListener('change', () => ui.renderTable());
   ui.dom.filterMonth.addEventListener('change', () => {
+    if (ui.dom.filterMonth.value) {
+      const parts = ui.dom.filterMonth.value.split('-');
+      const year = Number(parts[0]);
+      const month = Number(parts[1]);
+      if (year && month) {
+        state.calendarViewDate = new Date(year, month - 1, 1);
+      }
+    } else {
+      state.calendarViewDate = new Date();
+    }
+    ui.closeCalendarDetail();
     ui.renderTable();
     ui.renderMonthlyReport();
   });
@@ -109,9 +123,39 @@ function setupEventListeners() {
       ui.dom.filterCategory.value = 'Semua';
       ui.dom.filterMonth.value = '';
       ui.dom.filterSort.value = 'date-desc';
+      state.calendarViewDate = new Date();
+      ui.closeCalendarDetail();
       ui.renderTable();
       ui.showToast('Filter direset', 'info');
     });
+  }
+
+  // Calendar Controls
+  const btnCalPrev = document.getElementById('btn-cal-prev');
+  if (btnCalPrev) {
+    btnCalPrev.addEventListener('click', () => {
+      const y = state.calendarViewDate.getFullYear();
+      const m = state.calendarViewDate.getMonth();
+      state.calendarViewDate = new Date(y, m - 1, 1);
+      ui.closeCalendarDetail();
+      ui.renderCalendar();
+    });
+  }
+
+  const btnCalNext = document.getElementById('btn-cal-next');
+  if (btnCalNext) {
+    btnCalNext.addEventListener('click', () => {
+      const y = state.calendarViewDate.getFullYear();
+      const m = state.calendarViewDate.getMonth();
+      state.calendarViewDate = new Date(y, m + 1, 1);
+      ui.closeCalendarDetail();
+      ui.renderCalendar();
+    });
+  }
+
+  const btnCalDetailClose = document.getElementById('btn-cal-detail-close');
+  if (btnCalDetailClose) {
+    btnCalDetailClose.addEventListener('click', ui.closeCalendarDetail);
   }
 
   // Exports / Imports
