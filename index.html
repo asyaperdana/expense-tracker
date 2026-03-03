@@ -635,10 +635,50 @@
           </div>
         </section>
 
-        <section class="card glass goal-card" id="goal-section" data-view="tools">
+        <section class="card glass tools-overview-card" id="tools-overview-section" data-view="tools">
+          <div class="tools-overview-head">
+            <div>
+              <span class="tools-kicker">Toolkit Finansial</span>
+              <h3 class="card-title tools-overview-title"><i class="ph-bold ph-toolbox"></i> Pusat Kendali Tools</h3>
+              <p class="tools-overview-subtitle">Satu panel untuk atur tabungan impian, budget kategori, dan kontrol split bill.</p>
+            </div>
+            <div class="tools-overview-actions">
+              <button class="btn btn-primary btn-sm" id="btn-tools-open-goal" type="button"><i class="ph-bold ph-plus"></i> Goal Baru</button>
+              <button class="btn btn-ghost btn-sm" id="btn-tools-open-budget" type="button"><i class="ph-bold ph-sliders-horizontal"></i> Atur Budget</button>
+              <button class="btn btn-split btn-sm" id="btn-tools-open-split" type="button"><i class="ph-bold ph-receipt"></i> Split Bill</button>
+            </div>
+          </div>
+          <div class="tools-metrics-grid">
+            <article class="tools-metric">
+              <span class="tools-metric-label"><i class="ph-bold ph-target"></i> Goal Aktif</span>
+              <strong class="tools-metric-value" id="tools-goal-count">0</strong>
+              <span class="tools-metric-meta" id="tools-goal-meta">Belum ada target tabungan.</span>
+            </article>
+            <article class="tools-metric">
+              <span class="tools-metric-label"><i class="ph-bold ph-sliders-horizontal"></i> Budget Kategori</span>
+              <strong class="tools-metric-value" id="tools-budget-count">0</strong>
+              <span class="tools-metric-meta" id="tools-budget-meta">Belum ada budget aktif.</span>
+            </article>
+            <article class="tools-metric">
+              <span class="tools-metric-label"><i class="ph-bold ph-handshake"></i> Split Berjalan</span>
+              <strong class="tools-metric-value" id="tools-split-open-count">0</strong>
+              <span class="tools-metric-meta" id="tools-split-open-meta">Tidak ada split terbuka.</span>
+            </article>
+            <article class="tools-metric">
+              <span class="tools-metric-label"><i class="ph-bold ph-arrows-clockwise"></i> Menunggu Sync</span>
+              <strong class="tools-metric-value" id="tools-split-sync-count">0</strong>
+              <span class="tools-metric-meta" id="tools-split-sync-meta">Semua split sudah sinkron.</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="card glass goal-card tools-card" id="goal-section" data-view="tools">
           <span class="card-illus goal-illus" aria-hidden="true">★</span>
-          <div class="goal-header">
-            <h3 class="card-title goal-title"><i class="ph-bold ph-target"></i> Tabungan Impian</h3>
+          <div class="goal-header tools-card-header">
+            <div class="tools-card-copy">
+              <h3 class="card-title goal-title"><i class="ph-bold ph-target"></i> Tabungan Impian</h3>
+              <p class="tools-card-subtitle">Pisahkan dana berdasarkan target supaya progres menabung lebih terukur.</p>
+            </div>
             <button class="btn btn-sm btn-ghost btn-add-goal" id="btn-add-goal" type="button">
               <i class="ph-bold ph-plus"></i> <span class="goal-btn-label">Goal Baru</span>
             </button>
@@ -646,10 +686,13 @@
           <div class="goal-list" id="goal-list"></div>
         </section>
 
-        <section class="card glass category-budget-card" id="category-budget-section" data-view="tools">
+        <section class="card glass category-budget-card tools-card" id="category-budget-section" data-view="tools">
           <span class="card-illus" aria-hidden="true">◎</span>
-          <div class="category-budget-header">
-            <h3 class="card-title"><i class="ph-bold ph-target"></i> Budget per Kategori</h3>
+          <div class="category-budget-header tools-card-header">
+            <div class="tools-card-copy">
+              <h3 class="card-title"><i class="ph-bold ph-sliders-horizontal"></i> Budget per Kategori</h3>
+              <p class="tools-card-subtitle">Pantau batas pengeluaran tiap kategori untuk bulan yang sedang dipilih.</p>
+            </div>
             <button class="btn btn-ghost btn-sm" id="btn-edit-category-budget" type="button">
               <i class="ph-bold ph-sliders-horizontal"></i> Atur
             </button>
@@ -667,11 +710,14 @@
           </div>
         </section>
 
-        <section class="card glass split-ledger-card" id="split-ledger-section" data-view="tools">
+        <section class="card glass split-ledger-card tools-card" id="split-ledger-section" data-view="tools">
           <span class="card-illus" aria-hidden="true">◫</span>
-          <div class="split-ledger-header">
-            <h3 class="card-title"><i class="ph-bold ph-handshake"></i> Ledger Split Bill</h3>
-            <p class="split-ledger-subtitle">Tracking split bill terpisah dari pengeluaran utama.</p>
+          <div class="split-ledger-header tools-card-header">
+            <div class="tools-card-copy">
+              <h3 class="card-title"><i class="ph-bold ph-handshake"></i> Ledger Split Bill</h3>
+              <p class="split-ledger-subtitle tools-card-subtitle">Tracking split bill terpisah dari pengeluaran utama agar piutang lebih rapi.</p>
+            </div>
+            <button class="btn btn-split btn-sm" id="btn-open-split-tools" type="button"><i class="ph-bold ph-plus"></i> Tambah Bill</button>
           </div>
           <div class="table-wrapper split-ledger-wrapper">
             <table id="split-ledger-table">

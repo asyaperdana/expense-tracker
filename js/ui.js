@@ -96,6 +96,14 @@ export function cacheDom() {
   dom.categoryBudgetMeta = document.getElementById('category-budget-meta');
   dom.categoryBudgetList = document.getElementById('category-budget-list');
   dom.categoryBudgetEmpty = document.getElementById('category-budget-empty');
+  dom.toolsGoalCount = document.getElementById('tools-goal-count');
+  dom.toolsGoalMeta = document.getElementById('tools-goal-meta');
+  dom.toolsBudgetCount = document.getElementById('tools-budget-count');
+  dom.toolsBudgetMeta = document.getElementById('tools-budget-meta');
+  dom.toolsSplitOpenCount = document.getElementById('tools-split-open-count');
+  dom.toolsSplitOpenMeta = document.getElementById('tools-split-open-meta');
+  dom.toolsSplitSyncCount = document.getElementById('tools-split-sync-count');
+  dom.toolsSplitSyncMeta = document.getElementById('tools-split-sync-meta');
   dom.categoryBudgetOverlay = document.getElementById('category-budget-overlay');
   dom.categoryBudgetEditor = document.getElementById('category-budget-editor');
   dom.iconSelector = document.getElementById('icon-selector');
@@ -688,7 +696,9 @@ export function renderCategoryBudgetSummary() {
   dom.categoryBudgetList.innerHTML = '';
   if (!categories.length) {
     dom.categoryBudgetMeta.textContent = 'Belum ada budget kategori aktif.';
-    dom.categoryBudgetEmpty.classList.add('visible'); return;
+    dom.categoryBudgetEmpty.classList.add('visible');
+    renderToolsOverview();
+    return;
   }
   dom.categoryBudgetEmpty.classList.remove('visible');
   dom.categoryBudgetMeta.textContent = calc.getMonthLabel(monthKey) + ' • ' + categories.length + ' kategori dipantau';
@@ -705,6 +715,38 @@ export function renderCategoryBudgetSummary() {
       '<div class="category-budget-track"><div class="category-budget-fill ' + statusClass + '" style="width:' + pct.toFixed(2) + '%;"></div></div>';
     dom.categoryBudgetList.appendChild(item);
   });
+  renderToolsOverview();
+}
+
+export function renderToolsOverview() {
+  if (!dom.toolsGoalCount || !dom.toolsBudgetCount || !dom.toolsSplitOpenCount || !dom.toolsSplitSyncCount) return;
+  let goalCount = state.goals.length;
+  let budgetCount = Object.keys(state.categoryBudgets).filter(function (cat) { return Number(state.categoryBudgets[cat]) > 0; }).length;
+  let splitOpen = 0;
+  let splitPendingSync = 0;
+  state.splitLedger.forEach(function (entry) {
+    if (!entry || typeof entry !== 'object') return;
+    if (!entry.isDone) splitOpen += 1;
+    if (!entry.syncedExpenseId) splitPendingSync += 1;
+  });
+
+  dom.toolsGoalCount.textContent = String(goalCount);
+  dom.toolsBudgetCount.textContent = String(budgetCount);
+  dom.toolsSplitOpenCount.textContent = String(splitOpen);
+  dom.toolsSplitSyncCount.textContent = String(splitPendingSync);
+
+  if (dom.toolsGoalMeta) {
+    dom.toolsGoalMeta.textContent = goalCount > 0 ? (goalCount + ' target sedang dipantau.') : 'Belum ada target tabungan.';
+  }
+  if (dom.toolsBudgetMeta) {
+    dom.toolsBudgetMeta.textContent = budgetCount > 0 ? (calc.getMonthLabel(getReportMonthKey()) + ' dipantau.') : 'Belum ada budget aktif.';
+  }
+  if (dom.toolsSplitOpenMeta) {
+    dom.toolsSplitOpenMeta.textContent = splitOpen > 0 ? (splitOpen + ' bill belum ditutup.') : 'Tidak ada split terbuka.';
+  }
+  if (dom.toolsSplitSyncMeta) {
+    dom.toolsSplitSyncMeta.textContent = splitPendingSync > 0 ? (splitPendingSync + ' bill belum disinkronkan.') : 'Semua split sudah sinkron.';
+  }
 }
 
 function getExpenseCategories() {
@@ -878,6 +920,7 @@ export function renderGoals(onFund, onDelete) {
   });
   if (state.goals.length === 0) {
     dom.goalListEl.innerHTML = '<div class="goal-empty">Belum ada tabungan impian.<span class="goal-empty-hint">Buat goal baru untuk mulai menabung.</span></div>';
+    renderToolsOverview();
     return;
   }
   state.goals.forEach(function (g) {
@@ -900,6 +943,7 @@ export function renderGoals(onFund, onDelete) {
   dom.goalListEl.querySelectorAll('.btn-del-goal').forEach(function (b) {
     b.addEventListener('click', function () { if (onDelete) onDelete(this.dataset.id); });
   });
+  renderToolsOverview();
 }
 
 // ─── Split History ────────────────────────
@@ -924,7 +968,11 @@ export function renderSplitHistory() {
 export function renderSplitLedgerTable() {
   if (!dom.splitLedgerTbody || !dom.splitLedgerEmpty) return;
   dom.splitLedgerTbody.innerHTML = '';
-  if (state.splitLedger.length === 0) { dom.splitLedgerEmpty.classList.add('visible'); return; }
+  if (state.splitLedger.length === 0) {
+    dom.splitLedgerEmpty.classList.add('visible');
+    renderToolsOverview();
+    return;
+  }
   dom.splitLedgerEmpty.classList.remove('visible');
   let fragment = document.createDocumentFragment();
   state.splitLedger.forEach(function (entry) {
@@ -957,6 +1005,7 @@ export function renderSplitLedgerTable() {
     fragment.appendChild(tr);
   });
   dom.splitLedgerTbody.appendChild(fragment);
+  renderToolsOverview();
 }
 
 // ─── Split Results ────────────────────────

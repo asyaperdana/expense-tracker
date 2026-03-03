@@ -214,6 +214,9 @@ function setupEventListeners() {
   const btnEditCatBudgetEmpty = document.getElementById('btn-edit-category-budget-empty');
   if (btnEditCatBudgetEmpty) btnEditCatBudgetEmpty.addEventListener('click', ui.openCategoryBudgetModal);
 
+  const btnToolsOpenBudget = document.getElementById('btn-tools-open-budget');
+  if (btnToolsOpenBudget) btnToolsOpenBudget.addEventListener('click', ui.openCategoryBudgetModal);
+
   const btnSaveCatBudget = document.getElementById('btn-save-category-budget');
   if (btnSaveCatBudget) {
     btnSaveCatBudget.addEventListener('click', () => {
@@ -238,14 +241,19 @@ function setupEventListeners() {
   }
 
   // Goal Actions
+  const openGoalModal = () => {
+    ui.dom.inputGoalName.value = '';
+    ui.dom.inputGoalTarget.value = '';
+    ui.dom.goalAddOverlay.classList.add('active');
+  };
+
   const btnAddGoal = document.getElementById('btn-add-goal');
   if (btnAddGoal) {
-    btnAddGoal.addEventListener('click', () => {
-      ui.dom.inputGoalName.value = '';
-      ui.dom.inputGoalTarget.value = '';
-      ui.dom.goalAddOverlay.classList.add('active');
-    });
+    btnAddGoal.addEventListener('click', openGoalModal);
   }
+
+  const btnToolsOpenGoal = document.getElementById('btn-tools-open-goal');
+  if (btnToolsOpenGoal) btnToolsOpenGoal.addEventListener('click', openGoalModal);
 
   const btnSaveGoal = document.getElementById('btn-save-goal');
   if (btnSaveGoal) btnSaveGoal.addEventListener('click', handleSaveGoal);
@@ -292,11 +300,19 @@ function setupEventListeners() {
   }
 
   // Split Bill Actions
+  const openSplitOverlay = () => ui.dom.splitOverlay.classList.add('active');
+
   const btnOpenSplit = document.getElementById('btn-open-split');
-  if (btnOpenSplit) btnOpenSplit.addEventListener('click', () => ui.dom.splitOverlay.classList.add('active'));
+  if (btnOpenSplit) btnOpenSplit.addEventListener('click', openSplitOverlay);
   
   const btnOpenSplitEmpty = document.getElementById('btn-open-split-empty');
-  if (btnOpenSplitEmpty) btnOpenSplitEmpty.addEventListener('click', () => ui.dom.splitOverlay.classList.add('active'));
+  if (btnOpenSplitEmpty) btnOpenSplitEmpty.addEventListener('click', openSplitOverlay);
+
+  const btnToolsOpenSplit = document.getElementById('btn-tools-open-split');
+  if (btnToolsOpenSplit) btnToolsOpenSplit.addEventListener('click', openSplitOverlay);
+
+  const btnOpenSplitTools = document.getElementById('btn-open-split-tools');
+  if (btnOpenSplitTools) btnOpenSplitTools.addEventListener('click', openSplitOverlay);
 
   const btnCloseSplit = document.getElementById('btn-close-split');
   if (btnCloseSplit) btnCloseSplit.addEventListener('click', () => ui.dom.splitOverlay.classList.remove('active'));
