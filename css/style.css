@@ -747,22 +747,27 @@ a:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-family: var(--font-heading);
+  font-size: 0.68rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.1em;
   color: var(--clr-primary);
   margin-bottom: 0.35rem;
 }
 .form-title {
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-family: var(--font-heading);
+  font-size: clamp(1.34rem, 2.2vw, 1.72rem);
   font-weight: 800;
-  letter-spacing: -0.015em;
+  line-height: 1.15;
+  letter-spacing: -0.018em;
   margin: 0;
 }
 .form-subtitle {
-  margin-top: 0.35rem;
-  font-size: 0.84rem;
+  margin-top: 0.42rem;
+  max-width: 58ch;
+  font-size: 0.89rem;
+  line-height: 1.5;
   color: var(--clr-text-2);
 }
 .form-progress {
@@ -781,7 +786,8 @@ a:focus-visible {
   border: 1px solid var(--clr-border);
   background: var(--clr-surface);
   color: var(--clr-text-2);
-  font-size: 0.7rem;
+  font-family: var(--font-heading);
+  font-size: 0.68rem;
   font-weight: 700;
 }
 .form-progress-item strong {
@@ -813,8 +819,8 @@ a:focus-visible {
   align-items: flex-start;
   gap: 0.6rem;
   color: var(--clr-text);
-  font-size: 0.76rem;
-  line-height: 1.45;
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 .form-head-tip i {
   color: var(--clr-accent);
@@ -852,10 +858,11 @@ a:focus-visible {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.78rem;
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--clr-text);
   margin-bottom: 0.75rem;
 }
@@ -869,17 +876,18 @@ a:focus-visible {
   gap: 0.5rem;
 }
 .form-side-list li {
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   color: var(--clr-text-2);
   border: 1px solid var(--clr-border);
   border-radius: 10px;
   background: var(--clr-surface-alt);
   padding: 0.6rem 0.65rem;
+  line-height: 1.45;
 }
 .form-side-note {
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   color: var(--clr-text-2);
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 /* Hero Amount */
@@ -897,9 +905,10 @@ a:focus-visible {
   border-bottom: 1px solid var(--clr-border);
 }
 .form-amount-label {
-  font-size: 0.66rem;
+  font-family: var(--font-heading);
+  font-size: 0.64rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--clr-text-2);
   margin-bottom: 0.5rem;
@@ -1051,10 +1060,11 @@ input[value="transfer"]:checked ~ .segmented-bg {
 }
 .form-stack-heading {
   margin: 0.4rem 0 0.1rem;
-  font-size: 0.66rem;
+  font-family: var(--font-heading);
+  font-size: 0.68rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   color: var(--clr-text-2);
 }
 .form-stack-heading:first-child {
@@ -1102,10 +1112,10 @@ input[value="transfer"]:checked ~ .segmented-bg {
   gap: 0.2rem;
 }
 .form-input-body label.form-input-label {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--clr-text-2);
   transition: color 0.2s ease;
   margin-bottom: 0px !important;
@@ -1117,7 +1127,7 @@ input[value="transfer"]:checked ~ .segmented-bg {
   background: transparent !important;
   padding: 0.15rem 0 0.35rem !important;
   min-height: 28px !important;
-  font-size: 1.05rem;
+  font-size: clamp(1rem, 1.15vw, 1.06rem);
   font-weight: 600;
   color: var(--clr-text);
   outline: none;
@@ -1178,8 +1188,8 @@ input[value="transfer"]:checked ~ .segmented-bg {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.82rem;
+  font-weight: 600;
   color: var(--clr-text-2);
 }
 .form-toggle-icon {
@@ -1241,7 +1251,8 @@ input[value="transfer"]:checked ~ .segmented-bg {
 .btn-submit-full {
   width: 100%;
   min-height: 52px;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
   border-radius: var(--radius-sm);
   box-shadow: 0 8px 24px color-mix(in srgb, var(--clr-primary) 28%, transparent);
   transition: all 0.25s ease;
@@ -3656,7 +3667,11 @@ body.perf-lite .reveal-ready.revealed {
     grid-template-columns: 1fr;
   }
   .form-title {
-    font-size: 1.08rem;
+    font-size: 1.16rem;
+  }
+  .form-subtitle {
+    font-size: 0.82rem;
+    line-height: 1.45;
   }
   .form-head-tip {
     font-size: 0.74rem;
@@ -3925,10 +3940,11 @@ body.perf-lite .reveal-ready.revealed {
     font-size: 0.66rem;
   }
   .form-title {
-    font-size: 0.98rem;
+    font-size: 1.02rem;
   }
   .form-subtitle {
-    font-size: 0.76rem;
+    font-size: 0.74rem;
+    line-height: 1.4;
   }
   .form-head-tip {
     padding: 0.65rem;
