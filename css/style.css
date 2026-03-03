@@ -765,6 +765,45 @@ a:focus-visible {
   font-size: 0.84rem;
   color: var(--clr-text-2);
 }
+.form-progress {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.form-progress-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 28px;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--clr-border);
+  background: var(--clr-surface);
+  color: var(--clr-text-2);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.form-progress-item strong {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--clr-surface-alt);
+  color: var(--clr-text-2);
+  font-size: 0.64rem;
+}
+.form-progress-item.is-active {
+  border-color: color-mix(in srgb, var(--clr-primary) 40%, var(--clr-border));
+  color: var(--clr-primary);
+  background: color-mix(in srgb, var(--clr-primary) 8%, var(--clr-surface));
+}
+.form-progress-item.is-active strong {
+  background: color-mix(in srgb, var(--clr-primary) 20%, transparent);
+  color: var(--clr-primary);
+}
 .form-head-tip {
   border: 1px solid color-mix(in srgb, var(--clr-accent) 28%, var(--clr-border));
   border-radius: var(--radius-sm);
@@ -794,6 +833,20 @@ a:focus-visible {
   border-left: 1px solid var(--clr-border);
   background: var(--clr-surface-alt);
   padding: 1.2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.form-side-card {
+  border: 1px solid var(--clr-border);
+  border-radius: 12px;
+  background: var(--clr-surface);
+  padding: 0.8rem;
+}
+.form-side-card-accent {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--clr-accent) 36%, var(--clr-border));
+  background: color-mix(in srgb, var(--clr-accent) 8%, var(--clr-surface));
 }
 .form-side-title {
   display: flex;
@@ -820,8 +873,13 @@ a:focus-visible {
   color: var(--clr-text-2);
   border: 1px solid var(--clr-border);
   border-radius: 10px;
-  background: var(--clr-surface);
+  background: var(--clr-surface-alt);
   padding: 0.6rem 0.65rem;
+}
+.form-side-note {
+  font-size: 0.76rem;
+  color: var(--clr-text-2);
+  line-height: 1.45;
 }
 
 /* Hero Amount */
@@ -989,6 +1047,18 @@ input[value="transfer"]:checked ~ .segmented-bg {
   padding: 0.65rem 1.4rem 0.65rem;
   display: flex;
   flex-direction: column;
+  gap: 0.15rem;
+}
+.form-stack-heading {
+  margin: 0.4rem 0 0.1rem;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--clr-text-2);
+}
+.form-stack-heading:first-child {
+  margin-top: 0.2rem;
 }
 .form-input-group {
   display: flex;
@@ -1274,8 +1344,24 @@ textarea:focus,
   box-shadow: 0 0 0 3px var(--clr-danger-soft);
   animation: shake 0.4s ease;
 }
-.form-group select option {
+.form-input-body select,
+.form-group select,
+.filter-group select,
+.wallet-add-row select {
+  color-scheme: light dark;
+}
+.form-input-body select option,
+.form-group select option,
+.filter-group select option,
+.wallet-add-row select option {
   color: var(--clr-text);
+  background-color: var(--clr-surface);
+}
+.form-input-body select optgroup,
+.form-group select optgroup,
+.filter-group select optgroup,
+.wallet-add-row select optgroup {
+  color: var(--clr-text-2);
   background-color: var(--clr-surface);
 }
 .help-text {
@@ -2957,6 +3043,9 @@ body.perf-lite .reveal-ready.revealed {
     grid-template-columns: 1fr;
     padding: 1.15rem 1.2rem;
   }
+  .form-head-tip {
+    max-width: 440px;
+  }
   .form-layout {
     grid-template-columns: 1fr;
   }
@@ -2964,6 +3053,7 @@ body.perf-lite .reveal-ready.revealed {
     border-left: 0;
     border-top: 1px solid var(--clr-border);
     padding: 1rem 1.2rem;
+    gap: 0.6rem;
   }
 }
 
@@ -2987,6 +3077,10 @@ body.perf-lite .reveal-ready.revealed {
   .form-head-tip {
     font-size: 0.74rem;
   }
+  .form-progress-item {
+    min-height: 26px;
+    font-size: 0.66rem;
+  }
   .form-amount-hero {
     padding: 1.7rem 1.2rem 1.05rem;
   }
@@ -3001,6 +3095,10 @@ body.perf-lite .reveal-ready.revealed {
     gap: 0.5rem;
     font-size: 0.88rem;
     padding: 0 0.65rem;
+  }
+  .form-stack-heading {
+    margin-top: 0.3rem;
+    font-size: 0.63rem;
   }
   .summary-grid,
   .report-grid {
@@ -3081,6 +3179,20 @@ body.perf-lite .reveal-ready.revealed {
     padding: 0.65rem;
     font-size: 0.72rem;
   }
+  .form-progress {
+    margin-top: 0.65rem;
+    gap: 0.35rem;
+  }
+  .form-progress-item {
+    min-height: 24px;
+    padding: 0.18rem 0.45rem;
+    font-size: 0.62rem;
+  }
+  .form-progress-item strong {
+    width: 16px;
+    height: 16px;
+    font-size: 0.58rem;
+  }
   .form-amount-prefix {
     font-size: 1.2rem;
   }
@@ -3103,6 +3215,9 @@ body.perf-lite .reveal-ready.revealed {
   }
   .form-side {
     padding: 0.85rem;
+  }
+  .form-side-card {
+    padding: 0.65rem;
   }
   .form-side-list li {
     font-size: 0.72rem;
