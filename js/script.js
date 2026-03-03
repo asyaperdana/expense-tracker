@@ -57,6 +57,8 @@
   var titleSuggestions = document.getElementById('title-suggestions');
   var inputCategory = document.getElementById('input-category');
   var inputAmount = document.getElementById('input-amount');
+  var amountDisplay = document.getElementById('amount-display');
+  var amountValue = document.getElementById('amount-value');
   var inputTypeRadios = document.getElementsByName('input-type');
   var inputWallet = document.getElementById('input-wallet');
   var inputWalletTo = document.getElementById('input-wallet-to');
@@ -1538,10 +1540,10 @@
     ctx.fillStyle = textColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '700 1rem "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
+    ctx.font = '700 1rem "Archivo", system-ui, -apple-system, sans-serif';
     ctx.fillText(formatRupiah(total), center, center - 8);
 
-    ctx.font = '500 0.7rem "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
+    ctx.font = '500 0.7rem "Archivo", system-ui, -apple-system, sans-serif';
     ctx.fillStyle = textSecondaryColor;
     ctx.fillText('Total', center, center + 14);
   }
@@ -1776,8 +1778,9 @@
 
     btnSubmit.disabled = false;
     btnSubmit.classList.remove('is-loading');
-    btnSubmit.innerHTML = '<i class="ph-bold ph-plus-circle btn-icon"></i> Simpan';
+    btnSubmit.innerHTML = '<i class="ph-bold ph-plus-circle btn-icon"></i> Simpan Transaksi';
     btnCancel.style.display = 'none';
+    if (amountValue) amountValue.textContent = '0';
 
     [inputDate, inputTitle, inputCategory, inputAmount, inputWallet, inputWalletTo].forEach(function (f) {
       if (f) f.classList.remove('invalid');
@@ -1881,7 +1884,10 @@
     inputDate.value = toDisplayDate(item.date);
     inputTitle.value = item.title;
     inputCategory.value = item.category;
-    inputAmount.value = item.amount.toLocaleString('en-US');
+    inputAmount.value = item.amount;
+    if (amountValue) {
+      amountValue.textContent = formatRupiah(item.amount).replace('Rp ', '');
+    }
 
     document.querySelector('.checkbox-group').style.display = 'none'; // hide when editing
     
@@ -1909,7 +1915,7 @@
         inputTypeRadios[i].checked = (inputTypeRadios[i].value === typeVal);
     }
 
-    btnSubmit.innerHTML = '<i class="ph-bold ph-check btn-icon"></i> Update';
+    btnSubmit.innerHTML = '<i class="ph-bold ph-check btn-icon"></i> Update Transaksi';
     btnCancel.style.display = 'inline-flex';
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2224,10 +2230,15 @@
 
   tbody.addEventListener('click', handleTableClick);
 
+  var searchTimer = null;
   if (filterSearch) {
     filterSearch.addEventListener('input', function () {
       saveFilters();
-      renderTable();
+      if (searchTimer) clearTimeout(searchTimer);
+      searchTimer = setTimeout(function () {
+        searchTimer = null;
+        renderTable();
+      }, 200);
     });
   }
 
@@ -2354,8 +2365,20 @@
   });
 
   inputAmount.addEventListener('input', function () {
-    var rawValue = inputAmount.value.replace(/,/g, '');
+    var rawValue = inputAmount.value.replace(/\D/g, '');
     var value = Number(rawValue);
+
+    if (amountValue) {
+      amountValue.textContent = value > 0 ? formatRupiah(value).replace('Rp ', '') : '0';
+    }
+
+    // Also update the input box itself with commas (like formatInputCurrency)
+    if (rawValue !== "") {
+      inputAmount.value = value.toLocaleString('en-US');
+    } else {
+      inputAmount.value = "";
+    }
+
     if (!rawValue || value <= 0) {
       amountHelp.textContent = 'Nominal harus lebih dari 0';
       inputAmount.classList.add('invalid');
@@ -2472,6 +2495,18 @@
     }
     if (categoryBudgetOverlay && e.key === 'Escape' && categoryBudgetOverlay.classList.contains('active')) {
       closeCategoryBudgetModal();
+    }
+    if (walletOverlay && e.key === 'Escape' && walletOverlay.classList.contains('active')) {
+      walletOverlay.classList.remove('active');
+    }
+    if (categoryOverlay && e.key === 'Escape' && categoryOverlay.classList.contains('active')) {
+      categoryOverlay.classList.remove('active');
+    }
+    if (goalAddOverlay && e.key === 'Escape' && goalAddOverlay.classList.contains('active')) {
+      goalAddOverlay.classList.remove('active');
+    }
+    if (goalFundOverlay && e.key === 'Escape' && goalFundOverlay.classList.contains('active')) {
+      goalFundOverlay.classList.remove('active');
     }
   });
 
@@ -3526,7 +3561,7 @@
     }
   }
 
-  inputAmount.addEventListener('input', formatInputCurrency);
+  // format input currency for other inputs
   inputBudgetLimit.addEventListener('input', formatInputCurrency);
   splitTotal.addEventListener('input', formatInputCurrency);
 
