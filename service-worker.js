@@ -1,10 +1,15 @@
-const CACHE_VERSION = 'v10';
+const CACHE_VERSION = 'v11';
 const CACHE_NAME = `expense-tracker-${CACHE_VERSION}`;
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './css/style.css',
-  './js/script.js',
+  './js/app.js',
+  './js/state.js',
+  './js/storage.js',
+  './js/validation.js',
+  './js/calculations.js',
+  './js/ui.js',
   './assets/icon.svg',
   './manifest.json'
 ];

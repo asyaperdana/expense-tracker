@@ -484,32 +484,64 @@
         <section class="card glass report-card" id="report-section" data-view="report">
           <span class="card-illus" aria-hidden="true">◍</span>
           <div class="report-header">
-            <h3 class="card-title"><i class="ph-bold ph-chart-line-up"></i> Laporan Bulanan Otomatis</h3>
+            <h3 class="card-title"><i class="ph-bold ph-chart-line-up"></i> Ringkasan Laporan Bulanan</h3>
             <span class="report-month" id="report-month-label">Bulan Ini</span>
           </div>
-          <div class="report-grid">
-            <div class="report-item">
-              <span class="report-label">Pemasukan</span>
-              <strong class="report-value report-value-income" id="report-income">Rp 0</strong>
+          
+          <div class="report-main-stats">
+            <div class="report-stat-group income">
+              <div class="report-stat-icon"><i class="ph-bold ph-trend-up"></i></div>
+              <div class="report-stat-info">
+                <span class="report-label">Pemasukan Pokok</span>
+                <strong class="report-value report-value-income" id="report-income">Rp 0</strong>
+              </div>
             </div>
-            <div class="report-item">
-              <span class="report-label">Pengeluaran</span>
-              <strong class="report-value report-value-expense" id="report-expense">Rp 0</strong>
-            </div>
-            <div class="report-item">
-              <span class="report-label">Net</span>
-              <strong class="report-value" id="report-net">Rp 0</strong>
-            </div>
-            <div class="report-item">
-              <span class="report-label">Transaksi</span>
-              <strong class="report-value" id="report-count">0</strong>
+            <div class="report-stat-group expense">
+              <div class="report-stat-icon"><i class="ph-bold ph-trend-down"></i></div>
+              <div class="report-stat-info">
+                <span class="report-label">Total Pengeluaran</span>
+                <strong class="report-value report-value-expense" id="report-expense">Rp 0</strong>
+              </div>
             </div>
           </div>
-          <div class="report-highlights">
-            <p class="report-line" id="report-top-category">Kategori teratas: —</p>
-            <p class="report-line" id="report-largest-expense">Pengeluaran terbesar: —</p>
-            <p class="report-line" id="report-trend">Tren vs bulan lalu: —</p>
-            <p class="report-advice" id="report-advice">Belum ada rekomendasi.</p>
+
+          <div class="report-secondary-grid">
+            <div class="report-item mini">
+              <i class="ph-bold ph-scales"></i>
+              <div class="report-item-text">
+                <span class="report-label">Net Balance</span>
+                <strong class="report-value" id="report-net">Rp 0</strong>
+              </div>
+            </div>
+            <div class="report-item mini">
+              <i class="ph-bold ph-stack"></i>
+              <div class="report-item-text">
+                <span class="report-label">Total Transaksi</span>
+                <strong class="report-value" id="report-count">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-insights">
+            <h4 class="insights-title"><i class="ph-bold ph-sparkle"></i> Analisis & Insight</h4>
+            <div class="insights-scroll">
+              <div class="insight-card">
+                <i class="ph-bold ph-crown"></i>
+                <span id="report-top-category">Kategori teratas: —</span>
+              </div>
+              <div class="insight-card">
+                <i class="ph-bold ph-fire"></i>
+                <span id="report-largest-expense">Pengeluaran terbesar: —</span>
+              </div>
+              <div class="insight-card">
+                <i class="ph-bold ph-chart-bar"></i>
+                <span id="report-trend">Tren vs bulan lalu: —</span>
+              </div>
+              <div class="insight-card advice-card">
+                <i class="ph-bold ph-lightbulb"></i>
+                <span id="report-advice">Belum ada rekomendasi.</span>
+              </div>
+            </div>
           </div>
         </section>
 
