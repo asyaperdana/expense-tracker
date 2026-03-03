@@ -70,3 +70,20 @@ Sebagai Solo Dev yang bergantung pada koding iteratif bersama agen AI, sangat ra
 1. **Jaga Boundaries Codebase:** App Anda sekarang tersimpan dalam tiga file (`.html`, `.css`, dan `.js` tunggal sebesar ~60kb). Di **fase kedua**, mulailah meminta AI untuk _"Tolong ajari saya memecah file .js menjadi ES6 modules"_.
 2. **Commit Git secara Granular:** Karena AI sering _overkill_ saat refactoring / _code edit_, commit hasil koding setiap selesai dengan 1 poin _checkbox_. Jangan langsung menembak 2 perbaikan di waktu bersamaan (misal menggabungkan dompet dan PWA).
 3. **Mulai dari Fase 1:** Eksekusi langsung poin **PWA** dan **Smart Autocomplete**. Target pengerjaan via instruksi vibe-coding maksimal 2-3 resapan.
+
+## ✅ Baseline Perilaku Saat Ini (Maret 2026)
+
+- **Impor JSON — mode `Ganti semua data`:** benar-benar me-replace seluruh section (`expenses`, `wallets`, `categories`, `goals`, `templates`, `recurring`, `budgets`, `split`). Jika suatu section tidak ada di file, section tersebut dikosongkan. Khusus `wallets`, bila hasil akhir kosong sistem fallback ke dompet default agar form tetap operasional.
+- **Impor JSON — mode merge:** `merge-id` tetap berbasis ID untuk transaksi; `merge-content` dedupe berdasarkan konten. Sanitasi impor juga menormalkan kategori legacy (`Lainnya` -> `Lainnya (Keluar)`) serta dedupe lebih ketat untuk `goals` dan `templates`.
+- **Recurring prompt:** tombol `Lewati` sekarang melakukan snooze berbasis `skipUntil` (ditunda sampai hari berikutnya), sehingga modal tidak terus muncul pada reload hari yang sama.
+- **Split bill custom:** total porsi peserta wajib sama dengan total tagihan. Jika mismatch, kalkulasi diblok dan warning selisih ditampilkan.
+
+## 🧪 QA & Regression
+
+- Checklist manual resmi ada di [SMOKE_TEST_CHECKLIST.md](./SMOKE_TEST_CHECKLIST.md).
+- Unit regresi helper tersedia di `tests/helpers.regression.test.js`.
+- Jalankan unit test dengan:
+
+```bash
+node --test tests/helpers.regression.test.js
+```

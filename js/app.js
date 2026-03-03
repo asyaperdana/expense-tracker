@@ -2,7 +2,15 @@
    app.js — Main Orchestrator
    =========================== */
 
-import { state, MAX_UNDO, normalizeWalletName } from './state.js';
+import {
+  state,
+  MAX_UNDO,
+  DEFAULT_WALLETS,
+  normalizeWalletName,
+  normalizeWalletIcon,
+  normalizeCategoryName,
+  OTHER_EXPENSE_CATEGORY
+} from './state.js';
 import * as storage from './storage.js';
 import * as calc from './calculations.js';
 import * as validation from './validation.js';
@@ -11,18 +19,18 @@ import * as ui from './ui.js';
 const VALID_TRANSACTION_TYPES = ['expense', 'income', 'transfer'];
 let shouldReloadAfterImportSummary = false;
 
-function normalizeText(value) {
+export function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-function sanitizeExpenseItem(raw) {
+export function sanitizeExpenseItem(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const type = VALID_TRANSACTION_TYPES.includes(raw.type) ? raw.type : 'expense';
   const date = normalizeText(raw.date);
   const title = normalizeText(raw.title);
   const amount = Number(raw.amount);
   const wallet = normalizeText(raw.wallet) || 'Tunai';
-  const category = normalizeText(raw.category);
+  const category = normalizeCategoryName(raw.category);
   const walletTo = normalizeText(raw.walletTo);
   const recurringSourceId = normalizeText(raw.recurringSourceId) || null;
 
@@ -62,29 +70,30 @@ function sanitizeExpenseItem(raw) {
   };
 }
 
-function sanitizeWallet(raw, index) {
+export function sanitizeWallet(raw, index) {
   if (!raw || typeof raw !== 'object') return null;
   const name = normalizeText(raw.name);
   if (!name) return null;
   return {
     id: normalizeText(raw.id) || ('w-import-' + (index + 1)),
     name,
-    icon: normalizeText(raw.icon) || 'ph-wallet',
+    icon: normalizeWalletIcon(raw.icon),
   };
 }
 
-function sanitizeCustomCategory(raw) {
+export function sanitizeCustomCategory(raw) {
   if (!raw || typeof raw !== 'object') return null;
-  const name = normalizeText(raw.name);
+  const type = raw.type === 'income' ? 'income' : 'expense';
+  const name = type === 'expense' ? normalizeCategoryName(raw.name) : normalizeText(raw.name);
   if (!name) return null;
   return {
     name,
-    type: raw.type === 'income' ? 'income' : 'expense',
+    type: type,
     icon: normalizeText(raw.icon) || 'ph-tag',
   };
 }
 
-function sanitizeGoal(raw, index) {
+export function sanitizeGoal(raw, index) {
   if (!raw || typeof raw !== 'object') return null;
   const name = normalizeText(raw.name);
   const target = Number(raw.target);
@@ -96,25 +105,27 @@ function sanitizeGoal(raw, index) {
   };
 }
 
-function sanitizeTemplate(raw, index) {
+export function sanitizeTemplate(raw, index) {
   if (!raw || typeof raw !== 'object') return null;
   const title = normalizeText(raw.title);
   const amount = Number(raw.amount);
   const type = VALID_TRANSACTION_TYPES.includes(raw.type) ? raw.type : 'expense';
   if (!title || !Number.isFinite(amount) || amount <= 0) return null;
+  const category = normalizeCategoryName(raw.category);
   return {
     id: normalizeText(raw.id) || ('tpl-import-' + (index + 1)),
     title,
-    category: normalizeText(raw.category) || (type === 'transfer' ? 'Transfer' : 'Lainnya (Keluar)'),
+    category: category || (type === 'transfer' ? 'Transfer' : OTHER_EXPENSE_CATEGORY),
     amount,
     type,
     wallet: normalizeText(raw.wallet) || 'Tunai',
   };
 }
 
-function sanitizeRecurring(raw, index) {
+export function sanitizeRecurring(raw, index) {
   if (!raw || typeof raw !== 'object') return null;
   const nextDate = normalizeText(raw.nextDate);
+  const skipUntil = normalizeText(raw.skipUntil);
   const template = sanitizeExpenseItem(raw.template);
   if (!template || !validation.isValidIsoDate(nextDate)) return null;
   const recurringId = normalizeText(raw.id) || ('rec-import-' + (index + 1));
@@ -126,14 +137,15 @@ function sanitizeRecurring(raw, index) {
       recurringSourceId: normalizeText(template.recurringSourceId) || recurringId,
     },
     nextDate,
+    skipUntil: validation.isValidIsoDate(skipUntil) ? skipUntil : null,
   };
 }
 
-function sanitizeCategoryBudgets(raw) {
+export function sanitizeCategoryBudgets(raw) {
   if (!raw || typeof raw !== 'object') return {};
   const result = {};
   Object.keys(raw).forEach((cat) => {
-    const key = normalizeText(cat);
+    const key = normalizeCategoryName(cat);
     const amount = Number(raw[cat]);
     if (key && Number.isFinite(amount) && amount > 0) {
       result[key] = amount;
@@ -142,7 +154,7 @@ function sanitizeCategoryBudgets(raw) {
   return result;
 }
 
-function sanitizeSplitPerson(raw, index) {
+export function sanitizeSplitPerson(raw, index) {
   if (!raw || typeof raw !== 'object') return null;
   const share = Number(raw.share);
   const paid = Number(raw.paid);
@@ -159,7 +171,7 @@ function sanitizeSplitPerson(raw, index) {
   };
 }
 
-function sanitizeSplitEntry(raw, index) {
+export function sanitizeSplitEntry(raw, index) {
   if (!raw || typeof raw !== 'object') return null;
   const date = normalizeText(raw.date);
   if (!validation.isValidIsoDate(date)) return null;
@@ -203,7 +215,21 @@ function sanitizeSplitEntry(raw, index) {
   };
 }
 
-function sanitizeImportPayload(raw) {
+function goalContentKey(item) {
+  return normalizeText(item && item.name).toLowerCase();
+}
+
+function templateContentKey(item) {
+  return [
+    normalizeText(item && item.title).toLowerCase(),
+    normalizeCategoryName(item && item.category).toLowerCase(),
+    normalizeText(item && item.type).toLowerCase(),
+    normalizeText(item && item.wallet).toLowerCase(),
+    Number(item && item.amount ? item.amount : 0).toFixed(2),
+  ].join('|');
+}
+
+export function sanitizeImportPayload(raw) {
   if (!raw || typeof raw !== 'object') return { hasValidSection: false };
 
   const payload = { hasValidSection: false };
@@ -242,12 +268,30 @@ function sanitizeImportPayload(raw) {
   }
 
   if (Array.isArray(raw.goals)) {
-    payload.goals = raw.goals.map(sanitizeGoal).filter(Boolean);
+    const seen = new Set();
+    payload.goals = raw.goals
+      .map(sanitizeGoal)
+      .filter(Boolean)
+      .filter((goal) => {
+        const key = goalContentKey(goal);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
     payload.hasValidSection = true;
   }
 
   if (Array.isArray(raw.templates)) {
-    payload.templates = raw.templates.map(sanitizeTemplate).filter(Boolean);
+    const seen = new Set();
+    payload.templates = raw.templates
+      .map(sanitizeTemplate)
+      .filter(Boolean)
+      .filter((template) => {
+        const key = templateContentKey(template);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
     payload.hasValidSection = true;
   }
 
@@ -269,7 +313,7 @@ function sanitizeImportPayload(raw) {
   return payload;
 }
 
-function escapeCsvCell(value) {
+export function escapeCsvCell(value) {
   let text = String(value == null ? '' : value).replace(/\r?\n/g, ' ');
   const withoutLeadingWhitespace = text.replace(/^\s+/, '');
   if (/^[=+\-@]/.test(withoutLeadingWhitespace)) {
@@ -283,7 +327,7 @@ function registerServiceWorker() {
   navigator.serviceWorker.register('./service-worker.js').catch(() => {});
 }
 
-function dedupeWallets(wallets) {
+export function dedupeWallets(wallets) {
   const seen = new Set();
   return wallets.filter((wallet) => {
     const key = String(wallet.name || '').toLowerCase();
@@ -293,7 +337,7 @@ function dedupeWallets(wallets) {
   });
 }
 
-function getRecurringNextDate(baseDate) {
+export function getRecurringNextDate(baseDate) {
   const d = new Date(baseDate);
   if (isNaN(d.getTime())) return calc.getTodayString();
   d.setMonth(d.getMonth() + 1);
@@ -323,6 +367,7 @@ function syncRecurringForExpense(expenseItem) {
       if (!validation.isValidIsoDate(existing.nextDate) || existing.nextDate <= expenseItem.date) {
         existing.nextDate = nextDate;
       }
+      existing.skipUntil = null;
       return true;
     }
     const recurringId = calc.generateId();
@@ -331,6 +376,7 @@ function syncRecurringForExpense(expenseItem) {
       id: recurringId,
       template: { ...expenseItem, isRecurring: true, recurringSourceId: recurringId },
       nextDate: nextDate,
+      skipUntil: null,
     });
     return true;
   }
@@ -374,7 +420,7 @@ function handleAddWallet() {
   const walletIconInput = document.getElementById('input-wallet-icon');
   const rawName = walletNameInput ? walletNameInput.value : '';
   const name = normalizeWalletName(rawName);
-  const icon = walletIconInput && walletIconInput.value ? walletIconInput.value : 'ph-wallet';
+  const icon = normalizeWalletIcon(walletIconInput && walletIconInput.value);
 
   if (!name) {
     ui.showToast('Nama dompet wajib diisi', 'error');
@@ -512,46 +558,41 @@ function applyImportData(mode, data) {
   let skipped = 0;
 
   if (mode === 'replace') {
-    if ('expenses' in data) {
-      state.expenses = data.expenses.map(sanitizeExpenseItem).filter(Boolean);
-      storage.saveExpenses(state.expenses);
-      added += state.expenses.length;
-    }
-    if ('wallets' in data) {
-      state.wallets = dedupeWallets(data.wallets.map(sanitizeWallet).filter(Boolean));
-      storage.saveWallets(state.wallets);
-      added += state.wallets.length;
-    }
-    if ('categories' in data) {
-      state.customCategories = data.categories.map(sanitizeCustomCategory).filter(Boolean);
-      storage.saveCustomCategories(state.customCategories);
-      added += state.customCategories.length;
-    }
-    if ('goals' in data) {
-      state.goals = data.goals.map(sanitizeGoal).filter(Boolean);
-      storage.saveGoals(state.goals);
-      added += state.goals.length;
-    }
-    if ('templates' in data) {
-      state.templates = data.templates.map(sanitizeTemplate).filter(Boolean);
-      storage.saveTemplates(state.templates);
-      added += state.templates.length;
-    }
-    if ('recurring' in data) {
-      state.recurringExpenses = data.recurring.map(sanitizeRecurring).filter(Boolean);
-      storage.saveRecurring(state.recurringExpenses);
-      added += state.recurringExpenses.length;
-    }
-    if ('budgets' in data) {
-      state.categoryBudgets = sanitizeCategoryBudgets(data.budgets);
-      storage.saveCategoryBudgets(state.categoryBudgets);
-      added += Object.keys(state.categoryBudgets).length;
-    }
-    if ('split' in data) {
-      state.splitLedger = data.split.map(sanitizeSplitEntry).filter(Boolean);
-      storage.saveSplitLedger(state.splitLedger);
-      added += state.splitLedger.length;
-    }
+    state.expenses = ('expenses' in data ? data.expenses : []).map(sanitizeExpenseItem).filter(Boolean);
+    storage.saveExpenses(state.expenses);
+
+    const importedWallets = dedupeWallets(('wallets' in data ? data.wallets : []).map(sanitizeWallet).filter(Boolean));
+    state.wallets = importedWallets.length > 0
+      ? importedWallets
+      : DEFAULT_WALLETS.map(sanitizeWallet).filter(Boolean);
+    storage.saveWallets(state.wallets);
+
+    state.customCategories = ('categories' in data ? data.categories : []).map(sanitizeCustomCategory).filter(Boolean);
+    storage.saveCustomCategories(state.customCategories);
+
+    state.goals = ('goals' in data ? data.goals : []).map(sanitizeGoal).filter(Boolean);
+    storage.saveGoals(state.goals);
+
+    state.templates = ('templates' in data ? data.templates : []).map(sanitizeTemplate).filter(Boolean);
+    storage.saveTemplates(state.templates);
+
+    state.recurringExpenses = ('recurring' in data ? data.recurring : []).map(sanitizeRecurring).filter(Boolean);
+    storage.saveRecurring(state.recurringExpenses);
+
+    state.categoryBudgets = sanitizeCategoryBudgets('budgets' in data ? data.budgets : {});
+    storage.saveCategoryBudgets(state.categoryBudgets);
+
+    state.splitLedger = ('split' in data ? data.split : []).map(sanitizeSplitEntry).filter(Boolean);
+    storage.saveSplitLedger(state.splitLedger);
+
+    added += state.expenses.length;
+    added += state.wallets.length;
+    added += state.customCategories.length;
+    added += state.goals.length;
+    added += state.templates.length;
+    added += state.recurringExpenses.length;
+    added += Object.keys(state.categoryBudgets).length;
+    added += state.splitLedger.length;
     return { added, skipped };
   }
 
@@ -590,7 +631,7 @@ function applyImportData(mode, data) {
 
   if ('goals' in data) {
     const incoming = data.goals.map(sanitizeGoal).filter(Boolean);
-    const merged = mergeUniqueBy(state.goals, incoming, (item) => normalizeText(item.id) || normalizeText(item.name).toLowerCase());
+    const merged = mergeUniqueBy(state.goals, incoming, goalContentKey);
     state.goals = merged.out;
     storage.saveGoals(state.goals);
     added += merged.added;
@@ -599,7 +640,7 @@ function applyImportData(mode, data) {
 
   if ('templates' in data) {
     const incoming = data.templates.map(sanitizeTemplate).filter(Boolean);
-    const merged = mergeUniqueBy(state.templates, incoming, (item) => normalizeText(item.id) || (normalizeText(item.title).toLowerCase() + '|' + Number(item.amount || 0)));
+    const merged = mergeUniqueBy(state.templates, incoming, templateContentKey);
     state.templates = merged.out;
     storage.saveTemplates(state.templates);
     added += merged.added;
@@ -686,14 +727,15 @@ function handleCancelImport() {
   if (ui.dom.inputImportJson) ui.dom.inputImportJson.value = '';
 }
 
-function getDueRecurringQueue(today) {
+export function getDueRecurringQueue(today, idGenerator) {
   const queue = [];
   let changed = false;
+  const makeId = typeof idGenerator === 'function' ? idGenerator : calc.generateId;
 
   state.recurringExpenses.forEach((rec) => {
     if (!rec) return;
     if (!rec.id) {
-      rec.id = calc.generateId();
+      rec.id = makeId();
       changed = true;
     }
     if (!rec.template) return;
@@ -701,6 +743,15 @@ function getDueRecurringQueue(today) {
       rec.template.recurringSourceId = rec.id;
       changed = true;
     }
+    const skipUntil = normalizeText(rec.skipUntil);
+    if (skipUntil && !validation.isValidIsoDate(skipUntil)) {
+      rec.skipUntil = null;
+      changed = true;
+    } else if (skipUntil && skipUntil < today) {
+      rec.skipUntil = null;
+      changed = true;
+    }
+    if (rec.skipUntil && rec.skipUntil >= today) return;
 
     let cursor = normalizeText(rec.nextDate);
     if (!validation.isValidIsoDate(cursor)) {
@@ -712,7 +763,7 @@ function getDueRecurringQueue(today) {
     const dueItems = [];
     while (cursor <= today) {
       dueItems.push({
-        id: calc.generateId(),
+        id: makeId(),
         date: cursor,
       });
       cursor = getRecurringNextDate(cursor);
@@ -788,6 +839,7 @@ function handleConfirmRecurring() {
       addedCount += 1;
     });
     rec.nextDate = entry.nextDate;
+    rec.skipUntil = null;
   });
 
   storage.saveExpenses(state.expenses);
@@ -800,9 +852,16 @@ function handleConfirmRecurring() {
 }
 
 function handleSkipRecurring() {
+  const today = calc.getTodayString();
+  state.pendingRecurring.forEach((entry) => {
+    const rec = state.recurringExpenses.find((item) => item.id === entry.recurringId);
+    if (!rec) return;
+    rec.skipUntil = today;
+  });
+  storage.saveRecurring(state.recurringExpenses);
   state.pendingRecurring = [];
   closeRecurringModal();
-  ui.showToast('Tagihan recurring dilewati untuk saat ini', 'info');
+  ui.showToast('Tagihan recurring ditunda sampai besok', 'info');
 }
 
 // ─── Initialization ───────────────────────
@@ -816,11 +875,7 @@ function init() {
   state.goals = storage.loadGoals().map(sanitizeGoal).filter(Boolean);
   state.wallets = dedupeWallets((storage.loadWalletsData() || []).map(sanitizeWallet).filter(Boolean));
   if (state.wallets.length === 0) {
-    state.wallets = [
-    { id: 'w1', name: 'Tunai', icon: 'ph-money' },
-    { id: 'w2', name: 'Rekening Bank', icon: 'ph-bank' },
-    { id: 'w3', name: 'E-Wallet', icon: 'ph-device-mobile' }
-    ];
+    state.wallets = DEFAULT_WALLETS.map(sanitizeWallet).filter(Boolean);
   }
   state.templates = storage.loadTemplatesData().map(sanitizeTemplate).filter(Boolean);
   state.categoryBudgets = sanitizeCategoryBudgets(storage.loadCategoryBudgets());
@@ -897,6 +952,12 @@ function openSplitEditor(entry) {
   if (entry.payerId) ui.dom.splitPayer.value = entry.payerId;
 }
 
+function applyFilterMonthAndRefresh(monthKey) {
+  if (!ui.dom.filterMonth) return;
+  ui.dom.filterMonth.value = monthKey || '';
+  ui.dom.filterMonth.dispatchEvent(new Event('change'));
+}
+
 // ─── Event Listeners ───────────────────────
 function setupEventListeners() {
   // Navigation
@@ -958,7 +1019,6 @@ function setupEventListeners() {
     }
     ui.closeCalendarDetail();
     ui.renderTable();
-    ui.renderMonthlyReport();
   });
   ui.dom.filterSort.addEventListener('change', () => ui.renderTable());
   ui.dom.filterSearch.addEventListener('input', () => ui.renderTable());
@@ -1172,8 +1232,7 @@ function setupEventListeners() {
   if (btnPrevMonth) {
     btnPrevMonth.addEventListener('click', () => {
       const current = ui.getReportMonthKey();
-      ui.dom.filterMonth.value = calc.getPreviousMonthKey(current);
-      ui.renderMonthlyReport();
+      applyFilterMonthAndRefresh(calc.getPreviousMonthKey(current));
     });
   }
   
@@ -1181,8 +1240,7 @@ function setupEventListeners() {
   if (btnNextMonth) {
     btnNextMonth.addEventListener('click', () => {
       const current = ui.getReportMonthKey();
-      ui.dom.filterMonth.value = calc.getNextMonthKey(current);
-      ui.renderMonthlyReport();
+      applyFilterMonthAndRefresh(calc.getNextMonthKey(current));
     });
   }
 
@@ -1310,7 +1368,7 @@ function handleSubmit(e) {
     id: state.editingId || calc.generateId(),
     date: validation.toIsoDate(formData.date),
     title: formData.title.trim(),
-    category: type === 'transfer' ? 'Transfer' : formData.category,
+    category: type === 'transfer' ? 'Transfer' : (normalizeCategoryName(formData.category) || OTHER_EXPENSE_CATEGORY),
     amount: Number(formData.amount.replace(/,/g, '')),
     type: type,
     wallet: formData.wallet,
@@ -1489,9 +1547,10 @@ function handleDeleteTemplate(id) {
 }
 
 function handleSaveCustomCategory() {
-  const name = ui.dom.inputCustomCatName.value.trim();
+  let name = ui.dom.inputCustomCatName.value.trim();
   const type = ui.dom.inputCustomCatType.value;
   const icon = ui.dom.inputCustomCatIcon.value || 'ph-tag';
+  if (type === 'expense') name = normalizeCategoryName(name);
   
   if (!name) {
     ui.showToast('Nama kategori wajib diisi', 'error');
@@ -1675,7 +1734,11 @@ function handleCalculateSplit() {
   });
 
   const results = calc.calculateSplitResults(billName, total, mode, people, payerId, ownerName, calc.getTodayString());
-  
+  if (results && results.errorCode === 'CUSTOM_TOTAL_MISMATCH') {
+    ui.showToast(results.errorMessage, 'error');
+    return;
+  }
+
   if (!results) {
     ui.showToast('Nama Saya harus ada di daftar peserta', 'error');
     return;
@@ -1798,4 +1861,6 @@ function processRecurringExpenses() {
 }
 
 // ─── Init ──────────────────────────────────
-document.addEventListener('DOMContentLoaded', init);
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', init);
+}

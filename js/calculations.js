@@ -1,6 +1,7 @@
 /* ===========================
    calculations.js — Pure calculation functions
    =========================== */
+import { OTHER_EXPENSE_CATEGORY } from './state.js';
 
 // ─── Format Helpers ───────────────────────
 export function formatRupiah(num) {
@@ -205,7 +206,7 @@ export function getMonthlyExpenseByCategory(expenses, monthKey) {
   expenses.forEach(function (item) {
     if (item.type === 'income' || item.type === 'transfer') return;
     if (!item.date || item.date.substring(0, 7) !== monthKey) return;
-    const cat = item.category || 'Lainnya (Keluar)';
+    const cat = item.category || OTHER_EXPENSE_CATEGORY;
     totals[cat] = (totals[cat] || 0) + item.amount;
   });
   return totals;
@@ -278,6 +279,7 @@ export function getOwnerSettlement(ownerName, results) {
 export function calculateSplitResults(billName, total, splitMode, people, payerId, ownerName, date) {
   let results = [];
   const payer = people.find(p => p.id === payerId) || people[0];
+  let customTotal = 0;
 
   if (splitMode === 'equal') {
     const share = Math.round(total / people.length);
@@ -292,8 +294,23 @@ export function calculateSplitResults(billName, total, splitMode, people, payerI
   } else {
     // Custom mode
     people.forEach(p => {
-      results.push({ id: p.id, name: p.name, share: p.customAmount });
+      const share = Number(p.customAmount);
+      const safeShare = Number.isFinite(share) && share >= 0 ? share : 0;
+      customTotal += safeShare;
+      results.push({ id: p.id, name: p.name, share: safeShare });
     });
+    if (customTotal !== total) {
+      const difference = total - customTotal;
+      const amount = formatRupiah(Math.abs(difference));
+      const direction = difference > 0 ? 'kurang' : 'lebih';
+      return {
+        errorCode: 'CUSTOM_TOTAL_MISMATCH',
+        errorMessage: 'Total porsi custom harus sama dengan total tagihan. Selisih ' + amount + ' (' + direction + ').',
+        expectedTotal: total,
+        actualTotal: customTotal,
+        difference: difference,
+      };
+    }
   }
 
   results = results.map(p => {

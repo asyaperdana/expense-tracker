@@ -1,7 +1,15 @@
 /* ===========================
    ui.js — DOM rendering and UI updates
    =========================== */
-import { state, CATEGORY_COLORS, CATEGORY_ICONS, AVAILABLE_ICONS, AVATAR_COLORS, VALID_VIEWS } from './state.js';
+import {
+  state,
+  CATEGORY_COLORS,
+  CATEGORY_ICONS,
+  AVAILABLE_ICONS,
+  AVATAR_COLORS,
+  VALID_VIEWS,
+  normalizeWalletIcon
+} from './state.js';
 import * as calc from './calculations.js';
 import * as storage from './storage.js';
 
@@ -232,7 +240,9 @@ export function updateHero() {
     Object.keys(wals).forEach(function (w) {
       let bal = wals[w];
       let walletObj = state.wallets.find(function (obj) { return obj.name === w; });
-      let icon = walletObj ? ('<i class="ph-bold ' + walletObj.icon + '"></i>') : '<i class="ph-bold ph-wallet"></i>';
+      let icon = walletObj
+        ? ('<i class="ph-bold ' + normalizeWalletIcon(walletObj.icon) + '"></i>')
+        : '<i class="ph-bold ph-wallet"></i>';
       let wDiv = document.createElement('div');
       wDiv.className = 'wallet-pill';
       wDiv.innerHTML = '<span class="wallet-pill-label">' + icon + ' ' + calc.escapeHtml(w) + '</span>' + '<strong class="wallet-pill-value">' + calc.formatRupiah(bal) + '</strong>';
@@ -337,7 +347,7 @@ export function renderWalletList(onDelete) {
     let deleteDisabled = usageCount > 0 || state.wallets.length <= 1;
     let deleteTitle = usageCount > 0 ? 'Tidak dapat dihapus karena masih digunakan dalam transaksi' : (state.wallets.length <= 1 ? 'Setidaknya harus ada satu dompet aktif' : 'Hapus dompet');
     item.innerHTML =
-      '<div class="wallet-item-icon"><i class="ph-fill ' + wallet.icon + '"></i></div>' +
+      '<div class="wallet-item-icon"><i class="ph-fill ' + normalizeWalletIcon(wallet.icon) + '"></i></div>' +
       '<div class="wallet-item-meta"><div class="wallet-item-name">' + calc.escapeHtml(wallet.name) + '</div><div class="wallet-item-usage">Dipakai di ' + usageCount + ' transaksi</div></div>' +
       '<button class="btn btn-ghost btn-sm btn-del-wallet" data-id="' + wallet.id + '" title="' + deleteTitle + '" ' + (deleteDisabled ? 'disabled aria-disabled="true"' : '') + '><i class="ph-bold ph-trash"></i></button>';
     let btnDel = item.querySelector('.btn-del-wallet');

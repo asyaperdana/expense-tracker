@@ -3,6 +3,21 @@
    =========================== */
 
 // ─── Constants ────────────────────────────
+export const OTHER_EXPENSE_CATEGORY = 'Lainnya (Keluar)';
+const LEGACY_OTHER_EXPENSE_CATEGORY_KEYS = ['lainnya', 'lainnya (keluar)'];
+
+export const FALLBACK_WALLET_ICON = 'ph-wallet';
+export const VALID_WALLET_ICONS = [
+  'ph-wallet',
+  'ph-bank',
+  'ph-device-mobile',
+  'ph-credit-card',
+  'ph-money',
+  'ph-coin',
+  'ph-piggy-bank',
+  'ph-storefront',
+];
+
 export const CATEGORY_COLORS = {
   Makanan: '#f97316',
   Transport: '#0ea5e9',
@@ -11,7 +26,7 @@ export const CATEGORY_COLORS = {
   Kesehatan: '#14b8a6',
   Pendidikan: '#eab308',
   Tagihan: '#2563eb',
-  'Lainnya (Keluar)': '#64748b',
+  [OTHER_EXPENSE_CATEGORY]: '#64748b',
   Gaji: '#0ea5e9',
   'Pemasukan Lain': '#10b981',
 };
@@ -24,7 +39,7 @@ export const CATEGORY_ICONS = {
   Kesehatan: '<i class="ph-fill ph-pill"></i>',
   Pendidikan: '<i class="ph-fill ph-book-open"></i>',
   Tagihan: '<i class="ph-fill ph-receipt"></i>',
-  'Lainnya (Keluar)': '<i class="ph-fill ph-package"></i>',
+  [OTHER_EXPENSE_CATEGORY]: '<i class="ph-fill ph-package"></i>',
   Gaji: '<i class="ph-fill ph-money"></i>',
   'Pemasukan Lain': '<i class="ph-fill ph-piggy-bank"></i>',
 };
@@ -107,4 +122,20 @@ export function generateId() {
 
 export function normalizeWalletName(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+export function normalizeWalletIcon(value) {
+  const icon = String(value || '').trim();
+  if (!icon) return FALLBACK_WALLET_ICON;
+  return VALID_WALLET_ICONS.includes(icon) ? icon : FALLBACK_WALLET_ICON;
+}
+
+export function normalizeCategoryName(value) {
+  const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+  const key = normalized.toLowerCase();
+  if (LEGACY_OTHER_EXPENSE_CATEGORY_KEYS.includes(key)) {
+    return OTHER_EXPENSE_CATEGORY;
+  }
+  return normalized;
 }
