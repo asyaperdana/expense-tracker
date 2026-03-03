@@ -379,9 +379,15 @@
           </form>
         </section>
 
-        <section class="card glass filter-card" data-view="history">
+        <section class="card glass filter-card history-filter-card" data-view="history">
           <span class="card-illus" aria-hidden="true">◳</span>
-          <h3 class="card-title">Filter Transaksi</h3>
+          <div class="history-card-head">
+            <div>
+              <span class="history-kicker"><i class="ph-bold ph-funnel-simple"></i> Panel Riwayat</span>
+              <h3 class="card-title">Filter Transaksi</h3>
+              <p class="history-subtitle">Cari transaksi lebih cepat berdasarkan kata kunci, kategori, bulan, dan urutan nominal.</p>
+            </div>
+          </div>
           <div class="filter-layout">
             <div class="filter-fields">
               <div class="filter-group">
@@ -457,10 +463,16 @@
           </div>
         </section>
 
-        <section class="card glass table-card" data-view="history">
+        <section class="card glass table-card history-table-card" data-view="history">
           <span class="card-illus" aria-hidden="true">▦</span>
-          <h3 class="card-title">Riwayat Transaksi</h3>
-          <p class="render-state" id="render-state" aria-live="polite"></p>
+          <div class="history-table-header">
+            <div>
+              <span class="history-kicker"><i class="ph-bold ph-list-checks"></i> Catatan Transaksi</span>
+              <h3 class="card-title">Riwayat Transaksi</h3>
+              <p class="history-subtitle">Semua perubahan langsung tercermin di tabel setelah filter diterapkan.</p>
+            </div>
+            <p class="render-state" id="render-state" aria-live="polite"></p>
+          </div>
           <div class="table-wrapper">
             <table id="expense-table">
               <thead>
@@ -486,10 +498,17 @@
           </div>
         </section>
 
-        <section class="card glass calendar-card" id="calendar-section" data-view="history">
+        <section class="card glass calendar-card history-calendar-card" id="calendar-section" data-view="history">
           <span class="card-illus" aria-hidden="true">◫</span>
+          <div class="history-card-head history-card-head-tight">
+            <div>
+              <span class="history-kicker"><i class="ph-bold ph-calendar-dots"></i> Timeline Harian</span>
+              <h3 class="card-title">Kalender Pengeluaran</h3>
+              <p class="history-subtitle">Klik tanggal untuk membuka detail pemasukan dan pengeluaran pada hari tersebut.</p>
+            </div>
+          </div>
           <div class="calendar-header">
-            <h3 class="card-title"><i class="ph-bold ph-calendar-dots"></i> Kalender Pengeluaran</h3>
+            <p class="calendar-helper"><i class="ph-bold ph-wave-sine"></i> Ringkasan aktivitas per hari</p>
             <div class="calendar-nav">
               <button class="btn btn-ghost btn-sm btn-cal-nav" id="btn-cal-prev" type="button" title="Bulan sebelumnya">
                 <i class="ph-bold ph-caret-left"></i>

@@ -1087,18 +1087,20 @@ export function renderTableNow(renderTableCallback) {
     tr.dataset.id = item.id;
     let isIncome = item.type === 'income';
     let isTransfer = item.type === 'transfer';
-    let indicatorHtml = isIncome ? '<span style="color:var(--clr-success)"><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</span>' :
-      (isTransfer ? '<span style="color:var(--clr-accent)"><i class="ph-bold ph-arrows-left-right"></i> Transfer</span>' :
-      '<span style="color:var(--clr-danger)"><i class="ph-bold ph-arrow-up-right"></i> Pengeluaran</span>');
+    let typeLabel = isIncome ? 'Pemasukan' : (isTransfer ? 'Transfer' : 'Pengeluaran');
+    let typeIcon = isIncome ? 'ph-arrow-down-left' : (isTransfer ? 'ph-arrows-left-right' : 'ph-arrow-up-right');
+    let typeClass = isIncome ? 'tx-type-income' : (isTransfer ? 'tx-type-transfer' : 'tx-type-expense');
     let walletText = isTransfer ? (calc.escapeHtml(item.wallet || 'Tunai') + ' <i class="ph-bold ph-arrow-right"></i> ' + calc.escapeHtml(item.walletTo || 'Tunai')) : calc.escapeHtml(item.wallet || 'Tunai');
-    let categoryContent = isTransfer ? '<i class="ph-fill ph-arrows-left-right"></i> Transfer Dompet' : ((CATEGORY_ICONS[item.category] || '') + ' ' + calc.escapeHtml(item.category));
+    let categoryContent = isTransfer ? '<i class="ph-fill ph-arrows-left-right"></i> Transfer Dompet' : ((CATEGORY_ICONS[item.category] || '<i class="ph-fill ph-tag"></i>') + ' ' + calc.escapeHtml(item.category));
+    let amountPrefix = isIncome ? '+' : (isTransfer ? '' : '-');
+    let amountClass = isIncome ? 'tx-amount-income' : (isTransfer ? 'tx-amount-transfer' : 'tx-amount-expense');
     tr.innerHTML =
-      '<td data-label="Tanggal">' + calc.formatDate(item.date) + '</td>' +
-      '<td data-label="Tipe & Nama"><div style="font-weight:600">' + calc.escapeHtml(item.title) + '</div><div style="font-size:0.75rem">' + indicatorHtml + '</div></td>' +
-      '<td data-label="Kategori & Dompet"><span class="badge">' + categoryContent + '</span><div style="font-size:0.75rem; margin-top:4px; opacity:0.7;"><i class="ph-fill ph-wallet"></i> ' + walletText + '</div></td>' +
-      '<td class="text-right" data-label="Nominal"><span class="amount ' + (isIncome ? 'text-success' : (isTransfer ? 'text-accent' : '')) + '" style="font-weight:600">' + (isIncome ? '+' : (isTransfer ? '' : '-')) + calc.formatRupiah(item.amount) + '</span></td>' +
-      '<td class="text-center" data-label="Aksi"><div class="action-group">' +
-        '<button class="btn btn-sm btn-pin" data-action="pin" data-id="' + item.id + '" title="Pin ke Quick Add"><i class="ph-bold ph-push-pin"></i></button>' +
+      '<td data-label="Tanggal"><div class="tx-date">' + calc.formatDate(item.date) + '</div></td>' +
+      '<td data-label="Tipe & Nama"><div class="tx-title">' + calc.escapeHtml(item.title) + '</div><div class="tx-type ' + typeClass + '"><i class="ph-bold ' + typeIcon + '"></i> ' + typeLabel + '</div></td>' +
+      '<td data-label="Kategori & Dompet"><span class="tx-category-chip">' + categoryContent + '</span><div class="tx-wallet"><i class="ph-fill ph-wallet"></i> ' + walletText + '</div></td>' +
+      '<td class="text-right" data-label="Nominal"><span class="tx-amount ' + amountClass + '">' + amountPrefix + calc.formatRupiah(item.amount) + '</span></td>' +
+      '<td class="text-center" data-label="Aksi"><div class="action-group history-action-group">' +
+        '<button class="btn btn-sm btn-pin" data-action="pin" data-id="' + item.id + '" title="Pin ke Quick Add" aria-label="Pin ke Quick Add"><i class="ph-bold ph-push-pin"></i><span class="btn-pin-label">Pin</span></button>' +
         '<button class="btn btn-sm btn-edit" data-action="edit" data-id="' + item.id + '" title="Edit"><i class="ph-bold ph-pencil-simple"></i> Edit</button>' +
         '<button class="btn btn-sm btn-delete" data-action="delete" data-id="' + item.id + '" title="Hapus"><i class="ph-bold ph-trash"></i> Hapus</button>' +
       '</div></td>';
