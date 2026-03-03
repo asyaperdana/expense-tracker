@@ -147,14 +147,31 @@ export { dom };
 
 const getChartJs = () => window.Chart;
 const hasChartJs = () => typeof getChartJs() === 'function';
+const getCssColor = (tokenName, fallback) => {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
+  return value || fallback;
+};
+let renderStateTimer = null;
+const RENDER_STATE_ICONS = {
+  loading: 'ph-bold ph-spinner-gap',
+  success: 'ph-fill ph-check-circle',
+  warning: 'ph-fill ph-warning-circle',
+  error: 'ph-fill ph-x-circle',
+  info: 'ph-fill ph-info',
+};
 
 // ─── Toast Notifications ─────────────────
 export function showToast(message, type) {
   type = type || 'success';
-  let icons = { success: '<i class="ph-fill ph-check-circle" style="color: var(--clr-success);"></i>', error: '<i class="ph-fill ph-warning-circle" style="color: var(--clr-danger);"></i>', info: '<i class="ph-fill ph-info" style="color: var(--clr-accent);"></i>' };
+  let iconMap = {
+    success: '<i class="ph-fill ph-check-circle" style="color: var(--clr-success);"></i>',
+    warning: '<i class="ph-fill ph-warning-circle" style="color: var(--clr-warning);"></i>',
+    error: '<i class="ph-fill ph-warning-circle" style="color: var(--clr-danger);"></i>',
+    info: '<i class="ph-fill ph-info" style="color: var(--clr-accent);"></i>'
+  };
   let toast = document.createElement('div');
   toast.className = 'toast toast-' + type;
-  toast.innerHTML = '<span class="toast-icon">' + (icons[type] || '<i class="ph-fill ph-check-circle"></i>') + '</span>' + '<span>' + calc.escapeHtml(message) + '</span>';
+  toast.innerHTML = '<span class="toast-icon">' + (iconMap[type] || '<i class="ph-fill ph-check-circle"></i>') + '</span>' + '<span>' + calc.escapeHtml(message) + '</span>';
   dom.toastContainer.appendChild(toast);
   setTimeout(function () {
     toast.classList.add('toast-out');
@@ -193,10 +210,29 @@ export function setTheme(theme) {
 }
 
 // ─── Render State ─────────────────────────
-export function setRenderState(message) {
+export function setRenderState(message, type) {
   if (!dom.renderStateEl) return;
-  dom.renderStateEl.textContent = message || '';
-  dom.renderStateEl.classList.toggle('visible', Boolean(message));
+  let tone = type || 'info';
+  dom.renderStateEl.classList.remove('state-loading', 'state-success', 'state-warning', 'state-error', 'state-info');
+  if (!message) {
+    dom.renderStateEl.textContent = '';
+    dom.renderStateEl.classList.remove('visible');
+    return;
+  }
+  dom.renderStateEl.classList.add('visible', 'state-' + tone);
+  let iconClass = RENDER_STATE_ICONS[tone] || RENDER_STATE_ICONS.info;
+  dom.renderStateEl.innerHTML =
+    '<span class="render-state-icon" aria-hidden="true"><i class="' + iconClass + '"></i></span>' +
+    '<span class="render-state-label">' + calc.escapeHtml(message) + '</span>';
+}
+
+export function flashRenderState(message, type, ms) {
+  if (renderStateTimer) clearTimeout(renderStateTimer);
+  setRenderState(message, type || 'info');
+  renderStateTimer = setTimeout(function () {
+    setRenderState('');
+    renderStateTimer = null;
+  }, ms || 2200);
 }
 
 // ─── Summary ──────────────────────────────
@@ -263,10 +299,10 @@ export function updateHero() {
     dom.budgetPct.style.display = 'block';
     dom.budgetFill.style.width = pct + '%';
     if (pct >= 90) {
-      dom.budgetFill.style.background = 'var(--clr-danger)'; dom.budgetPct.style.background = 'var(--clr-danger)'; dom.budgetPct.style.color = '#fff';
+      dom.budgetFill.style.background = 'var(--clr-danger)'; dom.budgetPct.style.background = 'var(--clr-danger)'; dom.budgetPct.style.color = 'var(--clr-on-danger)';
       dom.budgetNote.textContent = 'Hati-hati! Pengeluaran Anda hampir melewati batas.';
     } else if (pct >= 70) {
-      dom.budgetFill.style.background = 'var(--clr-warning)'; dom.budgetPct.style.background = 'var(--clr-warning)'; dom.budgetPct.style.color = '#000';
+      dom.budgetFill.style.background = 'var(--clr-warning)'; dom.budgetPct.style.background = 'var(--clr-warning)'; dom.budgetPct.style.color = 'var(--clr-on-warning)';
       dom.budgetNote.textContent = 'Pengeluaran bulan ini sudah cukup tinggi.';
     } else {
       dom.budgetFill.style.background = ''; dom.budgetPct.style.background = ''; dom.budgetPct.style.color = '';
@@ -453,22 +489,26 @@ export function renderTrendChart() {
   let chartW = canvasWidth - padding.left - padding.right;
   let chartH = canvasHeight - padding.top - padding.bottom;
   let barGap = 20; let barWidth = (chartW / 6) - barGap;
-  ctx.fillStyle = storage.getTheme() === 'dark' ? '#94a3b8' : '#64748b';
+  let axisColor = getCssColor('--clr-chart-axis', storage.getTheme() === 'dark' ? '#94a3b8' : '#64748b');
+  let gridColor = getCssColor('--clr-chart-grid', storage.getTheme() === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)');
+  let incomeColor = getCssColor('--clr-chart-income', '#10b981');
+  let expenseColor = getCssColor('--clr-chart-expense', '#f43f5e');
+  ctx.fillStyle = axisColor;
   ctx.font = '600 10px "Manrope", "Plus Jakarta Sans", sans-serif'; ctx.textAlign = 'right';
   for (let j = 0; j <= 4; j++) {
     let y = padding.top + chartH - (j * (chartH / 4));
     let labelVal = (maxVal / 4) * j;
     ctx.fillText(labelVal >= 1000000 ? (labelVal / 1000000).toFixed(1) + 'M' : (labelVal / 1000).toFixed(0) + 'K', padding.left - 10, y + 4);
-    ctx.beginPath(); ctx.strokeStyle = storage.getTheme() === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+    ctx.beginPath(); ctx.strokeStyle = gridColor;
     ctx.moveTo(padding.left, y); ctx.lineTo(padding.left + chartW, y); ctx.stroke();
   }
   data.forEach(function (d, idx) {
     let xBase = padding.left + (idx * (chartW / 6)) + (barGap / 2);
     let incH = (d.income / maxVal) * chartH; let expH = (d.expense / maxVal) * chartH;
-    ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.roundRect(xBase, padding.top + chartH - incH, barWidth / 2 - 2, incH, [4, 4, 0, 0]); ctx.fill();
-    ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.roundRect(xBase + barWidth / 2 + 2, padding.top + chartH - expH, barWidth / 2 - 2, expH, [4, 4, 0, 0]); ctx.fill();
+    ctx.fillStyle = incomeColor; ctx.beginPath(); ctx.roundRect(xBase, padding.top + chartH - incH, barWidth / 2 - 2, incH, [4, 4, 0, 0]); ctx.fill();
+    ctx.fillStyle = expenseColor; ctx.beginPath(); ctx.roundRect(xBase + barWidth / 2 + 2, padding.top + chartH - expH, barWidth / 2 - 2, expH, [4, 4, 0, 0]); ctx.fill();
     let label = d.month.split('-')[1] + '/' + d.month.split('-')[0].substring(2);
-    ctx.fillStyle = storage.getTheme() === 'dark' ? '#94a3b8' : '#64748b';
+    ctx.fillStyle = axisColor;
     ctx.textAlign = 'center'; ctx.fillText(label, xBase + barWidth / 2, padding.top + chartH + 20);
   });
 }
@@ -825,25 +865,28 @@ export function renderChart(data) {
   data.forEach(function (item) { if (item.type === 'expense') { catTotals[item.category] = (catTotals[item.category] || 0) + item.amount; total += item.amount; } });
   let categories = Object.keys(catTotals).sort(function (a, b) { return catTotals[b] - catTotals[a]; });
   let values = categories.map(function (cat) { return catTotals[cat]; });
-  let colors = categories.map(function (cat) { return CATEGORY_COLORS[cat] || '#94a3b8'; });
+  let fallbackSliceColor = getCssColor('--clr-chart-slice-fallback', '#94a3b8');
+  let chartRingBorder = getCssColor('--clr-chart-ring-border', 'rgba(255,255,255,0.18)');
+  let colors = categories.map(function (cat) { return CATEGORY_COLORS[cat] || fallbackSliceColor; });
 
   if (hasChartJs()) {
     dom.chartEmpty.classList.remove('visible'); dom.chartCanvas.style.display = 'block'; dom.chartLegend.style.display = 'flex';
     categories.forEach((cat) => {
       let pct = ((catTotals[cat] / total) * 100).toFixed(1);
       let legendItem = document.createElement('div'); legendItem.className = 'legend-item';
-      legendItem.innerHTML = '<span class="legend-color" style="background:' + (CATEGORY_COLORS[cat] || '#94a3b8') + '"></span><span class="legend-label">' + (CATEGORY_ICONS[cat] || '') + ' ' + calc.escapeHtml(cat) + '</span><span class="legend-value">' + pct + '%</span>';
+      legendItem.innerHTML = '<span class="legend-color" style="background:' + (CATEGORY_COLORS[cat] || fallbackSliceColor) + '"></span><span class="legend-label">' + (CATEGORY_ICONS[cat] || '') + ' ' + calc.escapeHtml(cat) + '</span><span class="legend-value">' + pct + '%</span>';
       dom.chartLegend.appendChild(legendItem);
     });
     if (state.categoryChartInstance) {
       state.categoryChartInstance.data.labels = categories;
       state.categoryChartInstance.data.datasets[0].data = values;
       state.categoryChartInstance.data.datasets[0].backgroundColor = colors;
+      state.categoryChartInstance.data.datasets[0].borderColor = chartRingBorder;
       state.categoryChartInstance.update(); return;
     }
     state.categoryChartInstance = new window.Chart(dom.chartCanvas, {
       type: 'doughnut',
-      data: { labels: categories, datasets: [{ data: values, backgroundColor: colors, borderColor: 'rgba(255,255,255,0.18)', borderWidth: 1.5 }] },
+      data: { labels: categories, datasets: [{ data: values, backgroundColor: colors, borderColor: chartRingBorder, borderWidth: 1.5 }] },
       options: { responsive: true, maintainAspectRatio: true, cutout: '58%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (ctx) { let amount = Number(ctx.raw || 0); let pct = total > 0 ? ((amount / total) * 100).toFixed(1) : '0.0'; return (ctx.label || '-') + ': ' + calc.formatRupiah(amount) + ' (' + pct + '%)'; } } } } }
     });
     return;
@@ -861,7 +904,7 @@ export function renderChart(data) {
   let startAngle = -Math.PI / 2; let normalizedStart = 0; let gapAngle = 0.03;
   categories.forEach(function (cat) {
     let sliceAngle = (catTotals[cat] / total) * (2 * Math.PI);
-    let color = CATEGORY_COLORS[cat] || '#94a3b8';
+    let color = CATEGORY_COLORS[cat] || fallbackSliceColor;
     let actualGap = categories.length > 1 ? gapAngle : 0;
     let drawStart = startAngle + actualGap / 2; let drawEnd = startAngle + sliceAngle - actualGap / 2;
     if (drawEnd > drawStart) { ctx.beginPath(); ctx.arc(center, center, outerRadius, drawStart, drawEnd); ctx.arc(center, center, innerRadius, drawEnd, drawStart, true); ctx.closePath(); ctx.fillStyle = color; ctx.fill(); }
@@ -873,13 +916,12 @@ export function renderChart(data) {
     legendItem.innerHTML = '<span class="legend-color" style="background:' + color + '"></span><span class="legend-label">' + (CATEGORY_ICONS[cat] || '') + ' ' + calc.escapeHtml(cat) + '</span><span class="legend-value">' + pct + '%</span>';
     dom.chartLegend.appendChild(legendItem);
   });
-  let theme = storage.getTheme();
-  ctx.fillStyle = theme === 'dark' ? '#e2e8f0' : '#0f172a';
+  ctx.fillStyle = getCssColor('--clr-text', '#0f172a');
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.font = '700 1rem "Sora", "Space Grotesk", sans-serif';
   ctx.fillText(calc.formatRupiah(total), center, center - 8);
   ctx.font = '600 0.7rem "Manrope", "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = theme === 'dark' ? '#94a3b8' : '#64748b';
+  ctx.fillStyle = getCssColor('--clr-chart-axis', '#64748b');
   ctx.fillText('Total', center, center + 14);
 }
 
@@ -1332,7 +1374,7 @@ export function renderTableNow(renderTableCallback) {
 
 export function renderTable(renderTableCallback) {
   if (state.renderTimer) clearTimeout(state.renderTimer);
-  setRenderState('Memuat transaksi...');
+  setRenderState('Memuat transaksi...', 'loading');
   state.renderTimer = setTimeout(function () {
     state.renderTimer = null;
     renderTableNow(renderTableCallback);

@@ -719,6 +719,11 @@ function handleConfirmImport() {
   if (ui.dom.inputImportJson) ui.dom.inputImportJson.value = '';
   closeImportModeModal();
   showImportSummary(mode, summary);
+  if ((summary.skipped || 0) > 0) {
+    ui.flashRenderState('Impor selesai dengan beberapa data dilewati.', 'warning', 3200);
+  } else {
+    ui.flashRenderState('Impor selesai tanpa konflik.', 'success', 2600);
+  }
 }
 
 function handleCancelImport() {
@@ -1173,6 +1178,7 @@ function setupEventListeners() {
       ui.renderCategoryBudgetSummary();
       ui.dom.categoryBudgetOverlay.classList.remove('active');
       ui.showToast('Budget per kategori disimpan', 'success');
+      ui.flashRenderState('Budget per kategori diperbarui.', 'success', 2200);
     });
   }
 
@@ -1361,6 +1367,7 @@ function handleSubmit(e) {
   const validationResult = validation.validateExpense(formData);
   if (!validationResult.valid) {
     ui.showToast(validationResult.errors[0], 'error');
+    ui.flashRenderState(validationResult.errors[0], 'error', 2600);
     return;
   }
 
@@ -1386,12 +1393,14 @@ function handleSubmit(e) {
       storage.saveRecurring(state.recurringExpenses);
     }
     ui.showToast('Transaksi diperbarui', 'success');
+    ui.flashRenderState('Transaksi diperbarui.', 'success', 2200);
   } else {
     state.expenses.unshift(expenseItem);
     if (syncRecurringForExpense(expenseItem)) {
       storage.saveRecurring(state.recurringExpenses);
     }
     ui.showToast('Transaksi disimpan', 'success');
+    ui.flashRenderState('Transaksi disimpan.', 'success', 2200);
   }
 
   storage.saveExpenses(state.expenses);
@@ -1684,11 +1693,14 @@ function handleImportJson(e) {
       const data = sanitizeImportPayload(rawData);
       if (!data.hasValidSection) {
         ui.showToast('Struktur JSON tidak dikenali', 'error');
+        ui.flashRenderState('Struktur JSON tidak dikenali.', 'error', 2800);
         return;
       }
       openImportModeModal(data);
+      ui.flashRenderState('File valid. Pilih mode impor.', 'warning', 2600);
     } catch (err) {
       ui.showToast('Format JSON tidak valid', 'error');
+      ui.flashRenderState('Format JSON tidak valid.', 'error', 2800);
     }
   };
   reader.readAsText(file);
