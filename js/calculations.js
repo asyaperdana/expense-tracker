@@ -61,6 +61,19 @@ export function getPreviousMonthKey(monthKey) {
   return year + '-' + String(month).padStart(2, '0');
 }
 
+export function getNextMonthKey(monthKey) {
+  const parts = (monthKey || getCurrentMonthKey()).split('-');
+  let year = Number(parts[0]);
+  let month = Number(parts[1]);
+  if (!year || !month) return getCurrentMonthKey();
+  month += 1;
+  if (month === 13) {
+    month = 1;
+    year += 1;
+  }
+  return year + '-' + String(month).padStart(2, '0');
+}
+
 export function getTodayString() {
   const d = new Date();
   const mm = String(d.getMonth() + 1).padStart(2, '0');

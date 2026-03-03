@@ -215,7 +215,7 @@ export function updateSummary(filteredData) {
     Object.keys(catTotals).forEach(function (cat) {
       if (catTotals[cat] > topVal) { topVal = catTotals[cat]; topCat = cat; }
     });
-    dom.topCategoryEl.innerHTML = (CATEGORY_ICONS[topCat] || '') + ' ' + topCat;
+    dom.topCategoryEl.innerHTML = (CATEGORY_ICONS[topCat] || '') + ' ' + calc.escapeHtml(topCat);
   } else {
     dom.topCategoryEl.textContent = '—';
   }
@@ -822,7 +822,7 @@ export function renderChart(data) {
     categories.forEach((cat) => {
       let pct = ((catTotals[cat] / total) * 100).toFixed(1);
       let legendItem = document.createElement('div'); legendItem.className = 'legend-item';
-      legendItem.innerHTML = '<span class="legend-color" style="background:' + (CATEGORY_COLORS[cat] || '#94a3b8') + '"></span><span class="legend-label">' + (CATEGORY_ICONS[cat] || '') + ' ' + cat + '</span><span class="legend-value">' + pct + '%</span>';
+      legendItem.innerHTML = '<span class="legend-color" style="background:' + (CATEGORY_COLORS[cat] || '#94a3b8') + '"></span><span class="legend-label">' + (CATEGORY_ICONS[cat] || '') + ' ' + calc.escapeHtml(cat) + '</span><span class="legend-value">' + pct + '%</span>';
       dom.chartLegend.appendChild(legendItem);
     });
     if (state.categoryChartInstance) {
@@ -860,7 +860,7 @@ export function renderChart(data) {
     normalizedStart += sliceAngle;
     let pct = ((catTotals[cat] / total) * 100).toFixed(1);
     let legendItem = document.createElement('div'); legendItem.className = 'legend-item';
-    legendItem.innerHTML = '<span class="legend-color" style="background:' + color + '"></span><span class="legend-label">' + (CATEGORY_ICONS[cat] || '') + ' ' + cat + '</span><span class="legend-value">' + pct + '%</span>';
+    legendItem.innerHTML = '<span class="legend-color" style="background:' + color + '"></span><span class="legend-label">' + (CATEGORY_ICONS[cat] || '') + ' ' + calc.escapeHtml(cat) + '</span><span class="legend-value">' + pct + '%</span>';
     dom.chartLegend.appendChild(legendItem);
   });
   let theme = storage.getTheme();
@@ -900,7 +900,7 @@ function handleChartHover(e) {
   state.chartSlices.forEach(function (slice) { if (normalized >= slice.start && normalized < slice.end) match = slice; });
   if (!match) { hideChartTooltip(); return; }
   let icon = CATEGORY_ICONS[match.category] || '';
-  dom.chartTooltip.innerHTML = icon + ' ' + match.category + ' — ' + calc.formatRupiah(match.amount) + ' (' + match.percent.toFixed(1) + '%)';
+  dom.chartTooltip.innerHTML = icon + ' ' + calc.escapeHtml(match.category) + ' — ' + calc.formatRupiah(match.amount) + ' (' + match.percent.toFixed(1) + '%)';
   let containerRect = dom.chartCanvas.parentElement.getBoundingClientRect();
   dom.chartTooltip.style.left = (e.clientX - containerRect.left + 12) + 'px';
   dom.chartTooltip.style.top = (e.clientY - containerRect.top + 12) + 'px';
@@ -1440,7 +1440,7 @@ export function renderRecentTransactions() {
       return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
     };
     row.innerHTML =
-      '<div class="recent-row-main"><div class="recent-row-title">' + String(item.title || '-') + '</div><div class="recent-row-meta">' + formatDateShort(item.date) + ' • ' + String(item.category || '-') + '</div></div>' +
+      '<div class="recent-row-main"><div class="recent-row-title">' + calc.escapeHtml(String(item.title || '-')) + '</div><div class="recent-row-meta">' + formatDateShort(item.date) + ' • ' + calc.escapeHtml(String(item.category || '-')) + '</div></div>' +
       '<div class="recent-row-amount ' + amountClass + '">' + amountPrefix + calc.formatRupiah(item.amount || 0) + '</div>';
     recentList.appendChild(row);
   });

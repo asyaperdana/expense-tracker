@@ -90,6 +90,7 @@ export const state = {
   // Split state
   splitMode: 'equal',
   splitResults: null,
+  currentSplitResults: null,
   splitPersonIdCounter: 0,
   splitEditingId: null,
   splitEditingDate: null,

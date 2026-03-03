@@ -2,30 +2,830 @@
    app.js — Main Orchestrator
    =========================== */
 
-import { state, MAX_UNDO } from './state.js';
+import { state, MAX_UNDO, normalizeWalletName } from './state.js';
 import * as storage from './storage.js';
 import * as calc from './calculations.js';
 import * as validation from './validation.js';
 import * as ui from './ui.js';
+
+const VALID_TRANSACTION_TYPES = ['expense', 'income', 'transfer'];
+let shouldReloadAfterImportSummary = false;
+
+function normalizeText(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function sanitizeExpenseItem(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const type = VALID_TRANSACTION_TYPES.includes(raw.type) ? raw.type : 'expense';
+  const date = normalizeText(raw.date);
+  const title = normalizeText(raw.title);
+  const amount = Number(raw.amount);
+  const wallet = normalizeText(raw.wallet) || 'Tunai';
+  const category = normalizeText(raw.category);
+  const walletTo = normalizeText(raw.walletTo);
+  const recurringSourceId = normalizeText(raw.recurringSourceId) || null;
+
+  if (!validation.isValidIsoDate(date)) return null;
+  if (!title) return null;
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+
+  if (type === 'transfer') {
+    const targetWallet = walletTo || 'Tunai';
+    if (wallet === targetWallet) return null;
+    return {
+      id: normalizeText(raw.id) || calc.generateId(),
+      date,
+      title,
+      category: 'Transfer',
+      amount,
+      type,
+      wallet,
+      walletTo: targetWallet,
+      isRecurring: Boolean(raw.isRecurring),
+      recurringSourceId,
+    };
+  }
+
+  if (!category) return null;
+  return {
+    id: normalizeText(raw.id) || calc.generateId(),
+    date,
+    title,
+    category,
+    amount,
+    type,
+    wallet,
+    walletTo: null,
+    isRecurring: Boolean(raw.isRecurring),
+    recurringSourceId,
+  };
+}
+
+function sanitizeWallet(raw, index) {
+  if (!raw || typeof raw !== 'object') return null;
+  const name = normalizeText(raw.name);
+  if (!name) return null;
+  return {
+    id: normalizeText(raw.id) || ('w-import-' + (index + 1)),
+    name,
+    icon: normalizeText(raw.icon) || 'ph-wallet',
+  };
+}
+
+function sanitizeCustomCategory(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const name = normalizeText(raw.name);
+  if (!name) return null;
+  return {
+    name,
+    type: raw.type === 'income' ? 'income' : 'expense',
+    icon: normalizeText(raw.icon) || 'ph-tag',
+  };
+}
+
+function sanitizeGoal(raw, index) {
+  if (!raw || typeof raw !== 'object') return null;
+  const name = normalizeText(raw.name);
+  const target = Number(raw.target);
+  if (!name || !Number.isFinite(target) || target <= 0) return null;
+  return {
+    id: normalizeText(raw.id) || ('goal-import-' + (index + 1)),
+    name,
+    target,
+  };
+}
+
+function sanitizeTemplate(raw, index) {
+  if (!raw || typeof raw !== 'object') return null;
+  const title = normalizeText(raw.title);
+  const amount = Number(raw.amount);
+  const type = VALID_TRANSACTION_TYPES.includes(raw.type) ? raw.type : 'expense';
+  if (!title || !Number.isFinite(amount) || amount <= 0) return null;
+  return {
+    id: normalizeText(raw.id) || ('tpl-import-' + (index + 1)),
+    title,
+    category: normalizeText(raw.category) || (type === 'transfer' ? 'Transfer' : 'Lainnya (Keluar)'),
+    amount,
+    type,
+    wallet: normalizeText(raw.wallet) || 'Tunai',
+  };
+}
+
+function sanitizeRecurring(raw, index) {
+  if (!raw || typeof raw !== 'object') return null;
+  const nextDate = normalizeText(raw.nextDate);
+  const template = sanitizeExpenseItem(raw.template);
+  if (!template || !validation.isValidIsoDate(nextDate)) return null;
+  const recurringId = normalizeText(raw.id) || ('rec-import-' + (index + 1));
+  return {
+    id: recurringId,
+    template: {
+      ...template,
+      isRecurring: true,
+      recurringSourceId: normalizeText(template.recurringSourceId) || recurringId,
+    },
+    nextDate,
+  };
+}
+
+function sanitizeCategoryBudgets(raw) {
+  if (!raw || typeof raw !== 'object') return {};
+  const result = {};
+  Object.keys(raw).forEach((cat) => {
+    const key = normalizeText(cat);
+    const amount = Number(raw[cat]);
+    if (key && Number.isFinite(amount) && amount > 0) {
+      result[key] = amount;
+    }
+  });
+  return result;
+}
+
+function sanitizeSplitPerson(raw, index) {
+  if (!raw || typeof raw !== 'object') return null;
+  const share = Number(raw.share);
+  const paid = Number(raw.paid);
+  const net = Number(raw.net);
+  const safeShare = Number.isFinite(share) && share >= 0 ? share : 0;
+  const safePaid = Number.isFinite(paid) && paid >= 0 ? paid : 0;
+  const safeNet = Number.isFinite(net) ? net : (safePaid - safeShare);
+  return {
+    id: normalizeText(raw.id) || ('p-' + (index + 1)),
+    name: normalizeText(raw.name) || ('Peserta ' + (index + 1)),
+    share: safeShare,
+    paid: safePaid,
+    net: safeNet,
+  };
+}
+
+function sanitizeSplitEntry(raw, index) {
+  if (!raw || typeof raw !== 'object') return null;
+  const date = normalizeText(raw.date);
+  if (!validation.isValidIsoDate(date)) return null;
+
+  const people = Array.isArray(raw.people)
+    ? raw.people.map(sanitizeSplitPerson).filter(Boolean)
+    : [];
+  if (people.length === 0) return null;
+
+  const payerId = normalizeText(raw.payerId) || people[0].id;
+  const ownerId = normalizeText(raw.ownerId) || people[0].id;
+  const payer = people.find((p) => p.id === payerId);
+  const owner = people.find((p) => p.id === ownerId);
+  const ownerShare = Number.isFinite(Number(raw.ownerShare)) ? Number(raw.ownerShare) : (owner ? owner.share : 0);
+  const ownerPaid = Number.isFinite(Number(raw.ownerPaid)) ? Number(raw.ownerPaid) : (owner ? owner.paid : 0);
+  const ownerNet = Number.isFinite(Number(raw.ownerNet)) ? Number(raw.ownerNet) : (ownerPaid - ownerShare);
+  const status = calc.getOwnerSettlementDescriptor(ownerNet);
+  const doneAt = normalizeText(raw.doneAt);
+  const syncedAt = normalizeText(raw.syncedAt);
+
+  return {
+    id: normalizeText(raw.id) || ('split-import-' + (index + 1)),
+    billName: normalizeText(raw.billName) || 'Split Bill',
+    total: Number.isFinite(Number(raw.total)) ? Number(raw.total) : 0,
+    mode: raw.mode === 'custom' ? 'custom' : 'equal',
+    payerId: payer ? payer.id : people[0].id,
+    payerName: normalizeText(raw.payerName) || (payer ? payer.name : people[0].name),
+    ownerId: owner ? owner.id : people[0].id,
+    ownerName: normalizeText(raw.ownerName) || (owner ? owner.name : people[0].name),
+    ownerShare,
+    ownerPaid,
+    ownerNet,
+    ownerStatusKey: raw.ownerStatusKey || status.key,
+    ownerStatusText: normalizeText(raw.ownerStatusText) || status.text,
+    people,
+    date,
+    isDone: Boolean(raw.isDone),
+    doneAt: validation.isValidIsoDate(doneAt) ? doneAt : null,
+    syncedExpenseId: normalizeText(raw.syncedExpenseId) || null,
+    syncedAt: validation.isValidIsoDate(syncedAt) ? syncedAt : null,
+  };
+}
+
+function sanitizeImportPayload(raw) {
+  if (!raw || typeof raw !== 'object') return { hasValidSection: false };
+
+  const payload = { hasValidSection: false };
+
+  if (Array.isArray(raw.expenses)) {
+    payload.expenses = raw.expenses.map(sanitizeExpenseItem).filter(Boolean);
+    payload.hasValidSection = true;
+  }
+
+  if (Array.isArray(raw.wallets)) {
+    const seen = new Set();
+    payload.wallets = raw.wallets
+      .map(sanitizeWallet)
+      .filter(Boolean)
+      .filter((wallet) => {
+        const key = wallet.name.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    payload.hasValidSection = true;
+  }
+
+  if (Array.isArray(raw.categories)) {
+    const seen = new Set();
+    payload.categories = raw.categories
+      .map(sanitizeCustomCategory)
+      .filter(Boolean)
+      .filter((cat) => {
+        const key = (cat.type + '|' + cat.name.toLowerCase());
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    payload.hasValidSection = true;
+  }
+
+  if (Array.isArray(raw.goals)) {
+    payload.goals = raw.goals.map(sanitizeGoal).filter(Boolean);
+    payload.hasValidSection = true;
+  }
+
+  if (Array.isArray(raw.templates)) {
+    payload.templates = raw.templates.map(sanitizeTemplate).filter(Boolean);
+    payload.hasValidSection = true;
+  }
+
+  if (Array.isArray(raw.recurring)) {
+    payload.recurring = raw.recurring.map(sanitizeRecurring).filter(Boolean);
+    payload.hasValidSection = true;
+  }
+
+  if (raw.budgets && typeof raw.budgets === 'object') {
+    payload.budgets = sanitizeCategoryBudgets(raw.budgets);
+    payload.hasValidSection = true;
+  }
+
+  if (Array.isArray(raw.split)) {
+    payload.split = raw.split.map(sanitizeSplitEntry).filter(Boolean);
+    payload.hasValidSection = true;
+  }
+
+  return payload;
+}
+
+function escapeCsvCell(value) {
+  let text = String(value == null ? '' : value).replace(/\r?\n/g, ' ');
+  const withoutLeadingWhitespace = text.replace(/^\s+/, '');
+  if (/^[=+\-@]/.test(withoutLeadingWhitespace)) {
+    text = "'" + text;
+  }
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+}
+
+function dedupeWallets(wallets) {
+  const seen = new Set();
+  return wallets.filter((wallet) => {
+    const key = String(wallet.name || '').toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function getRecurringNextDate(baseDate) {
+  const d = new Date(baseDate);
+  if (isNaN(d.getTime())) return calc.getTodayString();
+  d.setMonth(d.getMonth() + 1);
+  return d.toISOString().split('T')[0];
+}
+
+function syncRecurringForExpense(expenseItem) {
+  const recurringSourceId = normalizeText(expenseItem.recurringSourceId);
+  const recurringIndex = state.recurringExpenses.findIndex((rec) => {
+    if (!rec || !rec.template) return false;
+    if (recurringSourceId && rec.id === recurringSourceId) return true;
+    return rec.template.id === expenseItem.id;
+  });
+
+  if (expenseItem.isRecurring) {
+    const nextDate = getRecurringNextDate(expenseItem.date);
+    if (recurringIndex !== -1) {
+      const existing = state.recurringExpenses[recurringIndex];
+      const templateId = existing.template && existing.template.id ? existing.template.id : expenseItem.id;
+      expenseItem.recurringSourceId = existing.id;
+      existing.template = {
+        ...expenseItem,
+        id: templateId,
+        isRecurring: true,
+        recurringSourceId: existing.id
+      };
+      if (!validation.isValidIsoDate(existing.nextDate) || existing.nextDate <= expenseItem.date) {
+        existing.nextDate = nextDate;
+      }
+      return true;
+    }
+    const recurringId = calc.generateId();
+    expenseItem.recurringSourceId = recurringId;
+    state.recurringExpenses.push({
+      id: recurringId,
+      template: { ...expenseItem, isRecurring: true, recurringSourceId: recurringId },
+      nextDate: nextDate,
+    });
+    return true;
+  }
+
+  if (recurringIndex !== -1) {
+    expenseItem.recurringSourceId = null;
+    state.recurringExpenses.splice(recurringIndex, 1);
+    return true;
+  }
+
+  expenseItem.recurringSourceId = null;
+  return false;
+}
+
+function removeRecurringForExpenseId(expenseId) {
+  const before = state.recurringExpenses.length;
+  state.recurringExpenses = state.recurringExpenses.filter((rec) => {
+    return !(rec && rec.template && rec.template.id === expenseId);
+  });
+  return state.recurringExpenses.length !== before;
+}
+
+function handleOpenWalletModal() {
+  const walletOverlay = document.getElementById('wallet-overlay');
+  const walletNameInput = document.getElementById('input-wallet-name');
+  ui.renderWalletList(handleDeleteWallet);
+  if (walletNameInput) {
+    walletNameInput.value = '';
+    walletNameInput.focus();
+  }
+  if (walletOverlay) walletOverlay.classList.add('active');
+}
+
+function handleCloseWalletModal() {
+  const walletOverlay = document.getElementById('wallet-overlay');
+  if (walletOverlay) walletOverlay.classList.remove('active');
+}
+
+function handleAddWallet() {
+  const walletNameInput = document.getElementById('input-wallet-name');
+  const walletIconInput = document.getElementById('input-wallet-icon');
+  const rawName = walletNameInput ? walletNameInput.value : '';
+  const name = normalizeWalletName(rawName);
+  const icon = walletIconInput && walletIconInput.value ? walletIconInput.value : 'ph-wallet';
+
+  if (!name) {
+    ui.showToast('Nama dompet wajib diisi', 'error');
+    return;
+  }
+
+  const exists = state.wallets.some((wallet) => {
+    return String(wallet.name || '').toLowerCase() === name.toLowerCase();
+  });
+  if (exists) {
+    ui.showToast('Nama dompet sudah digunakan', 'error');
+    return;
+  }
+
+  state.wallets.push({
+    id: calc.generateId(),
+    name,
+    icon,
+  });
+  state.wallets = dedupeWallets(state.wallets);
+  storage.saveWallets(state.wallets);
+  ui.renderWalletDropdowns();
+  ui.updateHero();
+  ui.renderWalletList(handleDeleteWallet);
+  if (walletNameInput) walletNameInput.value = '';
+  ui.showToast('Dompet ditambahkan', 'success');
+}
+
+function handleDeleteWallet(wallet) {
+  if (!wallet || !wallet.name) return;
+  const usageCount = state.expenses.filter((entry) => {
+    return entry.wallet === wallet.name || entry.walletTo === wallet.name;
+  }).length;
+  if (usageCount > 0) {
+    ui.showToast('Dompet tidak bisa dihapus karena masih dipakai transaksi', 'error');
+    return;
+  }
+  if (state.wallets.length <= 1) {
+    ui.showToast('Minimal harus ada satu dompet aktif', 'error');
+    return;
+  }
+  if (!confirm('Hapus dompet "' + wallet.name + '"?')) return;
+
+  state.wallets = state.wallets.filter((w) => w.id !== wallet.id);
+  storage.saveWallets(state.wallets);
+  ui.renderWalletDropdowns();
+  ui.updateHero();
+  ui.renderWalletList(handleDeleteWallet);
+  ui.showToast('Dompet dihapus', 'info');
+}
+
+function closeDeleteModal() {
+  state.deleteTargetId = null;
+  if (ui.dom.modalOverlay) ui.dom.modalOverlay.classList.remove('active');
+}
+
+function openDeleteModal(id) {
+  state.deleteTargetId = id;
+  if (!ui.dom.modalOverlay) {
+    if (id) deleteExpense(id);
+    return;
+  }
+  ui.dom.modalOverlay.classList.add('active');
+}
+
+function confirmDeleteModal() {
+  const id = state.deleteTargetId;
+  closeDeleteModal();
+  if (!id) return;
+  deleteExpense(id);
+}
+
+function closeImportModeModal() {
+  const overlay = document.getElementById('import-overlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+function closeImportSummaryModal() {
+  const overlay = document.getElementById('import-summary-overlay');
+  if (overlay) overlay.classList.remove('active');
+  if (shouldReloadAfterImportSummary) {
+    shouldReloadAfterImportSummary = false;
+    window.location.reload();
+  }
+}
+
+function getImportMode() {
+  const selected = document.querySelector('input[name="import-mode"]:checked');
+  const value = selected ? selected.value : 'replace';
+  if (value === 'merge-id' || value === 'merge-content') return value;
+  return 'replace';
+}
+
+function getImportModeLabel(mode) {
+  if (mode === 'merge-id') return 'Gabung (berdasarkan ID)';
+  if (mode === 'merge-content') return 'Gabung (berdasarkan konten)';
+  return 'Ganti semua data';
+}
+
+function mergeUniqueBy(existing, incoming, keyFn) {
+  const out = Array.isArray(existing) ? existing.slice() : [];
+  const keys = new Set();
+  out.forEach((item) => {
+    keys.add(keyFn(item));
+  });
+  let added = 0;
+  let skipped = 0;
+  incoming.forEach((item) => {
+    const key = keyFn(item);
+    if (keys.has(key)) {
+      skipped += 1;
+      return;
+    }
+    keys.add(key);
+    out.push(item);
+    added += 1;
+  });
+  return { out, added, skipped };
+}
+
+function expenseContentKey(item) {
+  return [
+    normalizeText(item.date),
+    normalizeText(item.title).toLowerCase(),
+    normalizeText(item.category).toLowerCase(),
+    normalizeText(item.type).toLowerCase(),
+    normalizeText(item.wallet).toLowerCase(),
+    normalizeText(item.walletTo).toLowerCase(),
+    Number(item.amount || 0).toFixed(2),
+  ].join('|');
+}
+
+function applyImportData(mode, data) {
+  let added = 0;
+  let skipped = 0;
+
+  if (mode === 'replace') {
+    if ('expenses' in data) {
+      state.expenses = data.expenses.map(sanitizeExpenseItem).filter(Boolean);
+      storage.saveExpenses(state.expenses);
+      added += state.expenses.length;
+    }
+    if ('wallets' in data) {
+      state.wallets = dedupeWallets(data.wallets.map(sanitizeWallet).filter(Boolean));
+      storage.saveWallets(state.wallets);
+      added += state.wallets.length;
+    }
+    if ('categories' in data) {
+      state.customCategories = data.categories.map(sanitizeCustomCategory).filter(Boolean);
+      storage.saveCustomCategories(state.customCategories);
+      added += state.customCategories.length;
+    }
+    if ('goals' in data) {
+      state.goals = data.goals.map(sanitizeGoal).filter(Boolean);
+      storage.saveGoals(state.goals);
+      added += state.goals.length;
+    }
+    if ('templates' in data) {
+      state.templates = data.templates.map(sanitizeTemplate).filter(Boolean);
+      storage.saveTemplates(state.templates);
+      added += state.templates.length;
+    }
+    if ('recurring' in data) {
+      state.recurringExpenses = data.recurring.map(sanitizeRecurring).filter(Boolean);
+      storage.saveRecurring(state.recurringExpenses);
+      added += state.recurringExpenses.length;
+    }
+    if ('budgets' in data) {
+      state.categoryBudgets = sanitizeCategoryBudgets(data.budgets);
+      storage.saveCategoryBudgets(state.categoryBudgets);
+      added += Object.keys(state.categoryBudgets).length;
+    }
+    if ('split' in data) {
+      state.splitLedger = data.split.map(sanitizeSplitEntry).filter(Boolean);
+      storage.saveSplitLedger(state.splitLedger);
+      added += state.splitLedger.length;
+    }
+    return { added, skipped };
+  }
+
+  if ('expenses' in data) {
+    const incoming = data.expenses.map(sanitizeExpenseItem).filter(Boolean);
+    const merged = mode === 'merge-content'
+      ? mergeUniqueBy(state.expenses, incoming, expenseContentKey)
+      : mergeUniqueBy(state.expenses, incoming, (item) => normalizeText(item.id) || expenseContentKey(item));
+    state.expenses = merged.out;
+    storage.saveExpenses(state.expenses);
+    added += merged.added;
+    skipped += merged.skipped;
+  }
+
+  if ('wallets' in data) {
+    const incoming = data.wallets.map(sanitizeWallet).filter(Boolean);
+    const merged = mergeUniqueBy(state.wallets, incoming, (item) => normalizeWalletName(item.name).toLowerCase());
+    state.wallets = dedupeWallets(merged.out);
+    storage.saveWallets(state.wallets);
+    added += merged.added;
+    skipped += merged.skipped;
+  }
+
+  if ('categories' in data) {
+    const incoming = data.categories.map(sanitizeCustomCategory).filter(Boolean);
+    const merged = mergeUniqueBy(
+      state.customCategories,
+      incoming,
+      (item) => (item.type + '|' + normalizeText(item.name).toLowerCase())
+    );
+    state.customCategories = merged.out;
+    storage.saveCustomCategories(state.customCategories);
+    added += merged.added;
+    skipped += merged.skipped;
+  }
+
+  if ('goals' in data) {
+    const incoming = data.goals.map(sanitizeGoal).filter(Boolean);
+    const merged = mergeUniqueBy(state.goals, incoming, (item) => normalizeText(item.id) || normalizeText(item.name).toLowerCase());
+    state.goals = merged.out;
+    storage.saveGoals(state.goals);
+    added += merged.added;
+    skipped += merged.skipped;
+  }
+
+  if ('templates' in data) {
+    const incoming = data.templates.map(sanitizeTemplate).filter(Boolean);
+    const merged = mergeUniqueBy(state.templates, incoming, (item) => normalizeText(item.id) || (normalizeText(item.title).toLowerCase() + '|' + Number(item.amount || 0)));
+    state.templates = merged.out;
+    storage.saveTemplates(state.templates);
+    added += merged.added;
+    skipped += merged.skipped;
+  }
+
+  if ('recurring' in data) {
+    const incoming = data.recurring.map(sanitizeRecurring).filter(Boolean);
+    const merged = mergeUniqueBy(state.recurringExpenses, incoming, (item) => normalizeText(item.id) || normalizeText(item.template && item.template.id));
+    state.recurringExpenses = merged.out;
+    storage.saveRecurring(state.recurringExpenses);
+    added += merged.added;
+    skipped += merged.skipped;
+  }
+
+  if ('budgets' in data) {
+    const currentKeys = Object.keys(state.categoryBudgets).length;
+    state.categoryBudgets = sanitizeCategoryBudgets({
+      ...state.categoryBudgets,
+      ...data.budgets,
+    });
+    storage.saveCategoryBudgets(state.categoryBudgets);
+    const mergedKeys = Object.keys(state.categoryBudgets).length;
+    if (mergedKeys >= currentKeys) added += (mergedKeys - currentKeys);
+  }
+
+  if ('split' in data) {
+    const incoming = data.split.map(sanitizeSplitEntry).filter(Boolean);
+    const merged = mergeUniqueBy(state.splitLedger, incoming, (item) => normalizeText(item.id));
+    state.splitLedger = merged.out;
+    storage.saveSplitLedger(state.splitLedger);
+    added += merged.added;
+    skipped += merged.skipped;
+  }
+
+  return { added, skipped };
+}
+
+function showImportSummary(mode, summary) {
+  const overlay = document.getElementById('import-summary-overlay');
+  const modeEl = document.getElementById('import-summary-mode');
+  const addedEl = document.getElementById('import-summary-added');
+  const skippedEl = document.getElementById('import-summary-skipped');
+  if (!overlay || !modeEl || !addedEl || !skippedEl) {
+    window.location.reload();
+    return;
+  }
+  modeEl.textContent = getImportModeLabel(mode);
+  addedEl.textContent = String(summary.added || 0);
+  skippedEl.textContent = String(summary.skipped || 0);
+  shouldReloadAfterImportSummary = true;
+  overlay.classList.add('active');
+}
+
+function openImportModeModal(data) {
+  state.pendingImportData = data;
+  const overlay = document.getElementById('import-overlay');
+  if (!overlay) {
+    const summary = applyImportData('replace', data);
+    showImportSummary('replace', summary);
+    return;
+  }
+  const defaultRadio = overlay.querySelector('input[name="import-mode"][value="replace"]');
+  if (defaultRadio) defaultRadio.checked = true;
+  overlay.classList.add('active');
+}
+
+function handleConfirmImport() {
+  if (!state.pendingImportData) {
+    closeImportModeModal();
+    return;
+  }
+  const mode = getImportMode();
+  const summary = applyImportData(mode, state.pendingImportData);
+  state.pendingImportData = null;
+  if (ui.dom.inputImportJson) ui.dom.inputImportJson.value = '';
+  closeImportModeModal();
+  showImportSummary(mode, summary);
+}
+
+function handleCancelImport() {
+  state.pendingImportData = null;
+  closeImportModeModal();
+  if (ui.dom.inputImportJson) ui.dom.inputImportJson.value = '';
+}
+
+function getDueRecurringQueue(today) {
+  const queue = [];
+  let changed = false;
+
+  state.recurringExpenses.forEach((rec) => {
+    if (!rec) return;
+    if (!rec.id) {
+      rec.id = calc.generateId();
+      changed = true;
+    }
+    if (!rec.template) return;
+    if (rec.template.recurringSourceId !== rec.id) {
+      rec.template.recurringSourceId = rec.id;
+      changed = true;
+    }
+
+    let cursor = normalizeText(rec.nextDate);
+    if (!validation.isValidIsoDate(cursor)) {
+      cursor = today;
+      rec.nextDate = today;
+      changed = true;
+    }
+
+    const dueItems = [];
+    while (cursor <= today) {
+      dueItems.push({
+        id: calc.generateId(),
+        date: cursor,
+      });
+      cursor = getRecurringNextDate(cursor);
+    }
+
+    if (dueItems.length > 0) {
+      queue.push({
+        recurringId: rec.id,
+        template: rec.template,
+        dueItems,
+        nextDate: cursor,
+      });
+    }
+  });
+
+  return { queue, changed };
+}
+
+function closeRecurringModal() {
+  const overlay = document.getElementById('recurring-overlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+function renderRecurringPrompt() {
+  const overlay = document.getElementById('recurring-overlay');
+  const list = document.getElementById('recurring-list');
+  const desc = document.getElementById('recurring-desc');
+  if (!overlay || !list || !desc) {
+    handleConfirmRecurring();
+    return;
+  }
+
+  let totalDue = 0;
+  list.innerHTML = '';
+  state.pendingRecurring.forEach((entry) => {
+    totalDue += entry.dueItems.length;
+    const item = document.createElement('div');
+    item.className = 'wallet-item';
+    item.innerHTML =
+      '<div class="wallet-item-icon"><i class="ph-fill ph-arrows-clockwise"></i></div>' +
+      '<div class="wallet-item-meta">' +
+      '<div class="wallet-item-name">' + calc.escapeHtml(entry.template.title || 'Tagihan Berulang') + '</div>' +
+      '<div class="wallet-item-usage">' +
+      entry.dueItems.length + 'x jatuh tempo • ' + calc.formatRupiah((entry.template.amount || 0) * entry.dueItems.length) +
+      '</div></div>';
+    list.appendChild(item);
+  });
+
+  desc.textContent = 'Ada ' + totalDue + ' transaksi recurring yang jatuh tempo. Tambahkan sekarang?';
+  overlay.classList.add('active');
+}
+
+function handleConfirmRecurring() {
+  if (!Array.isArray(state.pendingRecurring) || state.pendingRecurring.length === 0) {
+    closeRecurringModal();
+    return;
+  }
+
+  pushUndo();
+  let addedCount = 0;
+  state.pendingRecurring.forEach((entry) => {
+    const rec = state.recurringExpenses.find((item) => item.id === entry.recurringId);
+    if (!rec || !rec.template) return;
+    entry.dueItems.forEach((due) => {
+      const newItem = {
+        ...rec.template,
+        id: due.id,
+        date: due.date,
+        isRecurring: true,
+        recurringSourceId: rec.id,
+      };
+      state.expenses.unshift(newItem);
+      addedCount += 1;
+    });
+    rec.nextDate = entry.nextDate;
+  });
+
+  storage.saveExpenses(state.expenses);
+  storage.saveRecurring(state.recurringExpenses);
+  state.pendingRecurring = [];
+  closeRecurringModal();
+  ui.renderTable();
+  ui.renderRecentTransactions();
+  ui.showToast(addedCount + ' transaksi recurring ditambahkan', 'success');
+}
+
+function handleSkipRecurring() {
+  state.pendingRecurring = [];
+  closeRecurringModal();
+  ui.showToast('Tagihan recurring dilewati untuk saat ini', 'info');
+}
 
 // ─── Initialization ───────────────────────
 function init() {
   ui.cacheDom();
   
   // Load initial state from storage
-  state.expenses = storage.loadExpenses();
-  state.recurringExpenses = storage.loadRecurring();
-  state.customCategories = storage.loadCustomCategoriesData();
-  state.goals = storage.loadGoals();
-  state.wallets = storage.loadWalletsData() || [
+  state.expenses = storage.loadExpenses().map(sanitizeExpenseItem).filter(Boolean);
+  state.recurringExpenses = storage.loadRecurring().map(sanitizeRecurring).filter(Boolean);
+  state.customCategories = storage.loadCustomCategoriesData().map(sanitizeCustomCategory).filter(Boolean);
+  state.goals = storage.loadGoals().map(sanitizeGoal).filter(Boolean);
+  state.wallets = dedupeWallets((storage.loadWalletsData() || []).map(sanitizeWallet).filter(Boolean));
+  if (state.wallets.length === 0) {
+    state.wallets = [
     { id: 'w1', name: 'Tunai', icon: 'ph-money' },
     { id: 'w2', name: 'Rekening Bank', icon: 'ph-bank' },
     { id: 'w3', name: 'E-Wallet', icon: 'ph-device-mobile' }
-  ];
-  state.templates = storage.loadTemplatesData();
-  state.categoryBudgets = storage.loadCategoryBudgets();
+    ];
+  }
+  state.templates = storage.loadTemplatesData().map(sanitizeTemplate).filter(Boolean);
+  state.categoryBudgets = sanitizeCategoryBudgets(storage.loadCategoryBudgets());
   state.userProfile = storage.loadProfile();
-  state.splitLedger = storage.loadSplitLedger();
+  state.splitLedger = storage.loadSplitLedger().map(sanitizeSplitEntry).filter(Boolean);
 
   // Setup UI
   ui.setTheme(storage.getTheme());
@@ -35,6 +835,7 @@ function init() {
   ui.renderTable();
   ui.renderGoals(handleOpenFundGoal, handleDeleteGoal);
   ui.renderSplitLedgerTable();
+  ui.renderSplitHistory();
   ui.renderRecentTransactions();
   
   // Set initial view
@@ -47,7 +848,53 @@ function init() {
 
   setupEventListeners();
   ui.syncConditionalFields();
+  registerServiceWorker();
   processRecurringExpenses();
+}
+
+function resetSplitForm() {
+  state.splitEditingId = null;
+  state.currentSplitResults = null;
+  ui.updateSplitModalHeader();
+  ui.dom.splitBillName.value = '';
+  ui.dom.splitTotal.value = '';
+  ui.dom.splitOwnerName.value = '';
+  ui.dom.splitPayer.innerHTML = '';
+  ui.dom.splitPersonList.innerHTML = '';
+  ui.dom.splitFormView.style.display = 'block';
+  ui.dom.splitResultsView.style.display = 'none';
+  ui.applySplitMode('equal');
+  ui.addPersonRow('');
+  ui.addPersonRow('');
+}
+
+function openSplitEditor(entry) {
+  if (!entry) return;
+  state.splitEditingId = entry.id;
+  state.currentSplitResults = null;
+  ui.updateSplitModalHeader();
+  ui.dom.splitOverlay.classList.add('active');
+  ui.dom.splitBillName.value = entry.billName || '';
+  const totalValue = Number(entry.total);
+  ui.dom.splitTotal.value = Number.isFinite(totalValue) ? totalValue.toLocaleString('en-US') : '';
+  ui.dom.splitOwnerName.value = entry.ownerName || '';
+  ui.dom.splitPersonList.innerHTML = '';
+  ui.dom.splitFormView.style.display = 'block';
+  ui.dom.splitResultsView.style.display = 'none';
+
+  const mode = entry.mode === 'custom' ? 'custom' : 'equal';
+  ui.applySplitMode(mode);
+  (entry.people || []).forEach((person) => {
+    const row = ui.addPersonRow(person.name || '');
+    row.dataset.personId = person.id || row.dataset.personId;
+    if (mode === 'custom') {
+      const customAmount = row.querySelector('.custom-amount');
+      if (customAmount) customAmount.value = Number(person.share || 0).toLocaleString('en-US');
+    }
+  });
+  if (ui.dom.splitPersonList.children.length < 2) ui.addPersonRow('');
+  ui.syncSplitPayerOptions();
+  if (entry.payerId) ui.dom.splitPayer.value = entry.payerId;
 }
 
 // ─── Event Listeners ───────────────────────
@@ -172,8 +1019,29 @@ function setupEventListeners() {
     ui.dom.inputImportJson.addEventListener('change', handleImportJson);
   }
 
+  const btnConfirmImport = document.getElementById('btn-confirm-import');
+  if (btnConfirmImport) btnConfirmImport.addEventListener('click', handleConfirmImport);
+
+  const btnCancelImport = document.getElementById('btn-cancel-import');
+  if (btnCancelImport) btnCancelImport.addEventListener('click', handleCancelImport);
+
+  const btnCloseImportSummary = document.getElementById('btn-close-import-summary');
+  if (btnCloseImportSummary) btnCloseImportSummary.addEventListener('click', closeImportSummaryModal);
+
   // Undo
   ui.dom.btnUndo.addEventListener('click', handleUndo);
+
+  const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+  if (btnConfirmDelete) btnConfirmDelete.addEventListener('click', confirmDeleteModal);
+
+  const btnCancelDelete = document.getElementById('btn-cancel-delete');
+  if (btnCancelDelete) btnCancelDelete.addEventListener('click', closeDeleteModal);
+
+  if (ui.dom.modalOverlay) {
+    ui.dom.modalOverlay.addEventListener('click', (e) => {
+      if (e.target === ui.dom.modalOverlay) closeDeleteModal();
+    });
+  }
 
   // Table Actions
   ui.dom.tbody.addEventListener('click', handleTableAction);
@@ -181,9 +1049,22 @@ function setupEventListeners() {
   // Wallet Management
   const btnManageWallet = document.getElementById('btn-manage-wallet');
   if (btnManageWallet) {
-    btnManageWallet.addEventListener('click', () => {
-      // Basic implementation for parity
-      ui.showToast('Manajamen Dompet — Fitur ini disederhanakan dalam versi modular', 'info');
+    btnManageWallet.addEventListener('click', handleOpenWalletModal);
+  }
+
+  const btnAddWallet = document.getElementById('btn-add-wallet');
+  if (btnAddWallet) btnAddWallet.addEventListener('click', handleAddWallet);
+
+  const btnCloseWallet = document.getElementById('btn-close-wallet');
+  if (btnCloseWallet) btnCloseWallet.addEventListener('click', handleCloseWalletModal);
+
+  const walletNameInput = document.getElementById('input-wallet-name');
+  if (walletNameInput) {
+    walletNameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAddWallet();
+      }
     });
   }
 
@@ -271,6 +1152,12 @@ function setupEventListeners() {
     btnCancelGoalFund.addEventListener('click', () => ui.dom.goalFundOverlay.classList.remove('active'));
   }
 
+  const btnConfirmRecurring = document.getElementById('btn-confirm-recurring');
+  if (btnConfirmRecurring) btnConfirmRecurring.addEventListener('click', handleConfirmRecurring);
+
+  const btnCancelRecurring = document.getElementById('btn-cancel-recurring');
+  if (btnCancelRecurring) btnCancelRecurring.addEventListener('click', handleSkipRecurring);
+
   // Theme Toggle
   const btnThemeToggle = document.getElementById('btn-theme-toggle');
   if (btnThemeToggle) {
@@ -300,7 +1187,10 @@ function setupEventListeners() {
   }
 
   // Split Bill Actions
-  const openSplitOverlay = () => ui.dom.splitOverlay.classList.add('active');
+  const openSplitOverlay = () => {
+    resetSplitForm();
+    ui.dom.splitOverlay.classList.add('active');
+  };
 
   const btnOpenSplit = document.getElementById('btn-open-split');
   if (btnOpenSplit) btnOpenSplit.addEventListener('click', openSplitOverlay);
@@ -315,7 +1205,14 @@ function setupEventListeners() {
   if (btnOpenSplitTools) btnOpenSplitTools.addEventListener('click', openSplitOverlay);
 
   const btnCloseSplit = document.getElementById('btn-close-split');
-  if (btnCloseSplit) btnCloseSplit.addEventListener('click', () => ui.dom.splitOverlay.classList.remove('active'));
+  if (btnCloseSplit) {
+    btnCloseSplit.addEventListener('click', () => {
+      ui.dom.splitOverlay.classList.remove('active');
+      state.splitEditingId = null;
+      state.currentSplitResults = null;
+      ui.updateSplitModalHeader();
+    });
+  }
 
   const btnCalculateSplit = document.getElementById('btn-calculate-split');
   if (btnCalculateSplit) btnCalculateSplit.addEventListener('click', handleCalculateSplit);
@@ -328,15 +1225,31 @@ function setupEventListeners() {
     btnBackSplit.addEventListener('click', () => {
       ui.dom.splitFormView.style.display = 'block';
       ui.dom.splitResultsView.style.display = 'none';
+      state.currentSplitResults = null;
     });
   }
 
   ui.dom.splitLedgerTbody.addEventListener('click', handleSplitLedgerAction);
+  ui.dom.splitTotal.addEventListener('input', ui.formatInputCurrency);
+  ui.dom.splitPersonList.addEventListener('input', (e) => {
+    if (e.target.classList.contains('custom-amount')) ui.formatInputCurrency(e);
+    if (e.target.classList.contains('person-name-input')) ui.syncSplitPayerOptions();
+  });
+  document.querySelectorAll('.split-mode-btn[data-mode]').forEach((btn) => {
+    btn.addEventListener('click', () => ui.applySplitMode(btn.dataset.mode));
+  });
   
   const btnAddPerson = document.getElementById('btn-add-person');
   if (btnAddPerson) {
     btnAddPerson.addEventListener('click', () => ui.addPersonRow(''));
   }
+
+  ui.updateSplitModalHeader();
+  if (ui.dom.splitPersonList.children.length === 0) {
+    ui.addPersonRow('');
+    ui.addPersonRow('');
+  }
+  ui.syncSplitPayerOptions();
 
   // Custom Category
   const btnAddCategory = document.getElementById('btn-add-category');
@@ -375,6 +1288,7 @@ function handleSubmit(e) {
   e.preventDefault();
   
   const type = document.querySelector('input[name="input-type"]:checked').value;
+  const existingItem = state.editingId ? state.expenses.find(item => item.id === state.editingId) : null;
   const formData = {
     date: ui.dom.inputDate.value,
     title: ui.dom.inputTitle.value,
@@ -401,28 +1315,25 @@ function handleSubmit(e) {
     type: type,
     wallet: formData.wallet,
     walletTo: type === 'transfer' ? formData.walletTo : null,
-    isRecurring: ui.dom.inputRecurring.checked
+    isRecurring: ui.dom.inputRecurring.checked,
+    recurringSourceId: existingItem && existingItem.recurringSourceId ? existingItem.recurringSourceId : null
   };
 
   pushUndo();
 
-  if (state.editingId) {
+  const hadEditingId = state.editingId;
+  if (hadEditingId) {
     state.expenses = state.expenses.map(item => item.id === state.editingId ? expenseItem : item);
+    if (syncRecurringForExpense(expenseItem)) {
+      storage.saveRecurring(state.recurringExpenses);
+    }
     ui.showToast('Transaksi diperbarui', 'success');
   } else {
     state.expenses.unshift(expenseItem);
-    ui.showToast('Transaksi disimpan', 'success');
-    
-    if (expenseItem.isRecurring) {
-      const nextDate = new Date(expenseItem.date);
-      nextDate.setMonth(nextDate.getMonth() + 1);
-      state.recurringExpenses.push({
-        id: calc.generateId(),
-        template: { ...expenseItem, isRecurring: true },
-        nextDate: nextDate.toISOString().split('T')[0]
-      });
+    if (syncRecurringForExpense(expenseItem)) {
       storage.saveRecurring(state.recurringExpenses);
     }
+    ui.showToast('Transaksi disimpan', 'success');
   }
 
   storage.saveExpenses(state.expenses);
@@ -442,7 +1353,7 @@ function handleTableAction(e) {
     if (item) startEdit(item);
   } else if (deleteBtn) {
     const id = deleteBtn.dataset.id;
-    if (confirm('Hapus transaksi ini?')) deleteExpense(id);
+    if (id) openDeleteModal(id);
   } else if (pinBtn) {
     const id = pinBtn.dataset.id;
     const item = state.expenses.find(ex => ex.id === id);
@@ -480,6 +1391,9 @@ function startEdit(item) {
 function deleteExpense(id) {
   pushUndo();
   state.expenses = state.expenses.filter(e => e.id !== id);
+  if (removeRecurringForExpenseId(id)) {
+    storage.saveRecurring(state.recurringExpenses);
+  }
   storage.saveExpenses(state.expenses);
   ui.renderTable();
   ui.renderRecentTransactions();
@@ -489,7 +1403,25 @@ function deleteExpense(id) {
 function handleUndo() {
   if (state.undoStack.length === 0) return;
   const lastState = state.undoStack.pop();
-  state.expenses = JSON.parse(lastState);
+  let parsed = null;
+  try {
+    parsed = JSON.parse(lastState);
+  } catch (e) {
+    parsed = null;
+  }
+
+  if (Array.isArray(parsed)) {
+    state.expenses = parsed.map(sanitizeExpenseItem).filter(Boolean);
+  } else if (parsed && typeof parsed === 'object') {
+    if (Array.isArray(parsed.expenses)) {
+      state.expenses = parsed.expenses.map(sanitizeExpenseItem).filter(Boolean);
+    }
+    if (Array.isArray(parsed.recurringExpenses)) {
+      state.recurringExpenses = parsed.recurringExpenses.map(sanitizeRecurring).filter(Boolean);
+      storage.saveRecurring(state.recurringExpenses);
+    }
+  }
+
   storage.saveExpenses(state.expenses);
   ui.renderTable();
   ui.renderRecentTransactions();
@@ -498,7 +1430,10 @@ function handleUndo() {
 }
 
 function pushUndo() {
-  state.undoStack.push(JSON.stringify(state.expenses));
+  state.undoStack.push(JSON.stringify({
+    expenses: state.expenses,
+    recurringExpenses: state.recurringExpenses,
+  }));
   if (state.undoStack.length > MAX_UNDO) state.undoStack.shift();
   ui.updateUndoIndicator();
 }
@@ -507,7 +1442,7 @@ function handleSaveBudget() {
   const val = Number(ui.dom.inputBudgetLimit.value.replace(/,/g, ''));
   storage.saveBudgetLimit(val);
   ui.dom.budgetOverlay.classList.remove('active');
-  ui.renderHero();
+  ui.updateHero();
   ui.showToast('Batas bulanan disimpan', 'success');
 }
 
@@ -647,16 +1582,18 @@ function handleExportCsv() {
   
   const headers = ['Tanggal', 'Judul', 'Kategori', 'Tipe', 'Dompet', 'Tujuan', 'Nominal'];
   const rows = state.expenses.map(e => [
-    e.date, 
-    `"${e.title}"`, 
-    e.category, 
-    e.type, 
-    e.wallet, 
-    e.walletTo || '', 
+    e.date,
+    e.title,
+    e.category,
+    e.type,
+    e.wallet,
+    e.walletTo || '',
     e.amount
   ]);
   
-  const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const csvContent = [headers, ...rows]
+    .map(r => r.map(escapeCsvCell).join(','))
+    .join('\n');
   downloadFile(csvContent, 'expense_tracker_export.csv', 'text/csv');
   ui.showToast('CSV Berhasil diekspor', 'success');
 }
@@ -684,19 +1621,13 @@ function handleImportJson(e) {
   const reader = new FileReader();
   reader.onload = (event) => {
     try {
-      const data = JSON.parse(event.target.result);
-      if (confirm('Import data akan menimpa data saat ini. Lanjutkan?')) {
-        if (data.expenses) storage.saveExpenses(data.expenses);
-        if (data.wallets) storage.saveWallets(data.wallets);
-        if (data.categories) storage.saveCustomCategories(data.categories);
-        if (data.goals) storage.saveGoals(data.goals);
-        if (data.templates) storage.saveTemplates(data.templates);
-        if (data.recurring) storage.saveRecurring(data.recurring);
-        if (data.budgets) storage.saveCategoryBudgets(data.budgets);
-        if (data.split) storage.saveSplitLedger(data.split);
-        
-        window.location.reload();
+      const rawData = JSON.parse(event.target.result);
+      const data = sanitizeImportPayload(rawData);
+      if (!data.hasValidSection) {
+        ui.showToast('Struktur JSON tidak dikenali', 'error');
+        return;
       }
+      openImportModeModal(data);
     } catch (err) {
       ui.showToast('Format JSON tidak valid', 'error');
     }
@@ -756,18 +1687,48 @@ function handleCalculateSplit() {
 
 function handleSaveSplitToLedger() {
   if (!state.currentSplitResults) return;
-  
+
+  if (state.splitEditingId) {
+    const existingIndex = state.splitLedger.findIndex(item => item.id === state.splitEditingId);
+    if (existingIndex !== -1) {
+      const previous = state.splitLedger[existingIndex];
+      const updatedEntry = {
+        ...previous,
+        ...state.currentSplitResults,
+        id: previous.id,
+      };
+      if (previous.syncedExpenseId && Number(previous.ownerShare) !== Number(updatedEntry.ownerShare)) {
+        updatedEntry.syncedExpenseId = null;
+        updatedEntry.syncedAt = null;
+      }
+      state.splitLedger[existingIndex] = updatedEntry;
+      storage.saveSplitLedger(state.splitLedger);
+      ui.renderSplitLedgerTable();
+      ui.renderSplitHistory();
+      ui.dom.splitOverlay.classList.remove('active');
+      state.splitEditingId = null;
+      state.currentSplitResults = null;
+      ui.updateSplitModalHeader();
+      ui.showToast('Split bill diperbarui', 'success');
+      return;
+    }
+    state.splitEditingId = null;
+  }
+
   const entry = {
     ...state.currentSplitResults,
     id: calc.generateId(),
     isDone: false,
     syncedExpenseId: null
   };
-  
+
   state.splitLedger.unshift(entry);
   storage.saveSplitLedger(state.splitLedger);
   ui.renderSplitLedgerTable();
+  ui.renderSplitHistory();
   ui.dom.splitOverlay.classList.remove('active');
+  state.currentSplitResults = null;
+  ui.updateSplitModalHeader();
   ui.showToast('Split bill disimpan ke ledger', 'success');
 }
 
@@ -779,11 +1740,14 @@ function handleSplitLedgerAction(e) {
   const id = btn.dataset.id;
   const entry = state.splitLedger.find(s => s.id === id);
   
-  if (action === 'delete') {
+  if (action === 'edit') {
+    if (entry) openSplitEditor(entry);
+  } else if (action === 'delete') {
     if (confirm('Hapus riwayat split ini?')) {
       state.splitLedger = state.splitLedger.filter(s => s.id !== id);
       storage.saveSplitLedger(state.splitLedger);
       ui.renderSplitLedgerTable();
+      ui.renderSplitHistory();
       ui.showToast('Riwayat split dihapus', 'info');
     }
   } else if (action === 'done') {
@@ -792,6 +1756,7 @@ function handleSplitLedgerAction(e) {
       entry.doneAt = calc.getTodayString();
       storage.saveSplitLedger(state.splitLedger);
       ui.renderSplitLedgerTable();
+      ui.renderSplitHistory();
       ui.showToast('Split ditandai selesai', 'success');
     }
   } else if (action === 'sync') {
@@ -813,6 +1778,7 @@ function handleSplitLedgerAction(e) {
       storage.saveSplitLedger(state.splitLedger);
       ui.renderTable();
       ui.renderSplitLedgerTable();
+      ui.renderSplitHistory();
       ui.showToast('Sinkron ke pengeluaran berhasil', 'success');
     }
   }
@@ -821,30 +1787,14 @@ function handleSplitLedgerAction(e) {
 // ─── Recurring ────────────────────────────
 function processRecurringExpenses() {
   const today = calc.getTodayString();
-  let changed = false;
-  
-  state.recurringExpenses.forEach(rec => {
-    while (rec.nextDate <= today) {
-      const newItem = {
-        ...rec.template,
-        id: calc.generateId(),
-        date: rec.nextDate,
-        isRecurring: true
-      };
-      state.expenses.unshift(newItem);
-      
-      const d = new Date(rec.nextDate);
-      d.setMonth(d.getMonth() + 1);
-      rec.nextDate = d.toISOString().split('T')[0];
-      changed = true;
-    }
-  });
-
-  if (changed) {
-    storage.saveExpenses(state.expenses);
+  const recurringState = getDueRecurringQueue(today);
+  if (recurringState.changed) {
     storage.saveRecurring(state.recurringExpenses);
-    ui.renderTable();
   }
+
+  if (recurringState.queue.length === 0) return;
+  state.pendingRecurring = recurringState.queue;
+  renderRecurringPrompt();
 }
 
 // ─── Init ──────────────────────────────────
