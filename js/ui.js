@@ -454,7 +454,7 @@ export function renderTrendChart() {
   let chartH = canvasHeight - padding.top - padding.bottom;
   let barGap = 20; let barWidth = (chartW / 6) - barGap;
   ctx.fillStyle = storage.getTheme() === 'dark' ? '#94a3b8' : '#64748b';
-  ctx.font = '10px Inter'; ctx.textAlign = 'right';
+  ctx.font = '600 10px "Manrope", "Plus Jakarta Sans", sans-serif'; ctx.textAlign = 'right';
   for (let j = 0; j <= 4; j++) {
     let y = padding.top + chartH - (j * (chartH / 4));
     let labelVal = (maxVal / 4) * j;
@@ -876,9 +876,9 @@ export function renderChart(data) {
   let theme = storage.getTheme();
   ctx.fillStyle = theme === 'dark' ? '#e2e8f0' : '#0f172a';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.font = '700 1rem "Archivo", system-ui, -apple-system, sans-serif';
+  ctx.font = '700 1rem "Sora", "Space Grotesk", sans-serif';
   ctx.fillText(calc.formatRupiah(total), center, center - 8);
-  ctx.font = '500 0.7rem "Archivo", system-ui, -apple-system, sans-serif';
+  ctx.font = '600 0.7rem "Manrope", "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle = theme === 'dark' ? '#94a3b8' : '#64748b';
   ctx.fillText('Total', center, center + 14);
 }
