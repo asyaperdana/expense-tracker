@@ -1027,19 +1027,26 @@ function setupEventListeners() {
   });
   ui.dom.filterSort.addEventListener('change', () => ui.renderTable());
   ui.dom.filterSearch.addEventListener('input', () => ui.renderTable());
+
+  const resetFiltersAndRender = (showToastMessage) => {
+    ui.dom.filterSearch.value = '';
+    ui.dom.filterCategory.value = 'Semua';
+    ui.dom.filterMonth.value = '';
+    ui.dom.filterSort.value = 'date-desc';
+    state.calendarViewDate = new Date();
+    ui.closeCalendarDetail();
+    ui.renderTable();
+    if (showToastMessage) ui.showToast('Filter direset', 'info');
+  };
   
   const btnResetFilter = document.getElementById('btn-reset-filter');
   if (btnResetFilter) {
-    btnResetFilter.addEventListener('click', () => {
-      ui.dom.filterSearch.value = '';
-      ui.dom.filterCategory.value = 'Semua';
-      ui.dom.filterMonth.value = '';
-      ui.dom.filterSort.value = 'date-desc';
-      state.calendarViewDate = new Date();
-      ui.closeCalendarDetail();
-      ui.renderTable();
-      ui.showToast('Filter direset', 'info');
-    });
+    btnResetFilter.addEventListener('click', () => resetFiltersAndRender(true));
+  }
+
+  const btnHistoryEmptySecondary = document.getElementById('btn-history-empty-secondary');
+  if (btnHistoryEmptySecondary) {
+    btnHistoryEmptySecondary.addEventListener('click', () => resetFiltersAndRender(true));
   }
 
   // Calendar Controls

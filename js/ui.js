@@ -46,6 +46,10 @@ export function cacheDom() {
   dom.budgetFill = document.getElementById('budget-fill');
   dom.budgetNote = document.getElementById('budget-note');
   dom.emptyState = document.getElementById('empty-state');
+  dom.historyEmptyTitle = document.getElementById('history-empty-title');
+  dom.historyEmptyText = document.getElementById('history-empty-text');
+  dom.historyEmptyPrimaryBtn = document.getElementById('btn-history-empty-primary');
+  dom.historyEmptySecondaryBtn = document.getElementById('btn-history-empty-secondary');
   dom.dateHelp = document.getElementById('date-help');
   dom.titleHelp = document.getElementById('title-help');
   dom.walletHelp = document.getElementById('wallet-help');
@@ -141,6 +145,15 @@ export function cacheDom() {
   dom.categoryOverlay = document.getElementById('category-overlay');
   dom.inputCustomCatName = document.getElementById('input-custom-cat-name');
   dom.inputCustomCatType = document.getElementById('input-custom-cat-type');
+
+  dom.summaryCard = document.querySelector('.summary-card');
+  dom.chartCard = document.querySelector('.chart-card');
+  dom.historyTableCard = document.querySelector('.history-table-card');
+  dom.reportCard = document.querySelector('.report-card');
+  dom.trendCard = document.querySelector('.trend-card');
+  dom.dashboardLoadingCards = [dom.summaryCard, dom.chartCard].filter(Boolean);
+  dom.historyLoadingCards = [dom.historyTableCard].filter(Boolean);
+  dom.reportLoadingCards = [dom.reportCard, dom.trendCard].filter(Boolean);
 }
 
 export { dom };
@@ -152,6 +165,10 @@ const getCssColor = (tokenName, fallback) => {
   return value || fallback;
 };
 let renderStateTimer = null;
+let coreLoadingReleaseTimer = null;
+let coreLoadingStartedAt = 0;
+let coreLoadingVisible = false;
+const CORE_LOADING_MIN_MS = 220;
 const RENDER_STATE_ICONS = {
   loading: 'ph-bold ph-spinner-gap',
   success: 'ph-fill ph-check-circle',
@@ -242,6 +259,68 @@ export function flashRenderState(message, type, ms) {
     setRenderState('');
     renderStateTimer = null;
   }, ms || 2200);
+}
+
+function toggleLoadingCards(cards, loading) {
+  if (!Array.isArray(cards) || cards.length === 0) return;
+  cards.forEach(function (card) {
+    if (card) card.classList.toggle('is-loading', loading);
+  });
+}
+
+function setCoreLoading(loading) {
+  toggleLoadingCards(dom.dashboardLoadingCards, loading);
+  toggleLoadingCards(dom.historyLoadingCards, loading);
+  toggleLoadingCards(dom.reportLoadingCards, loading);
+}
+
+function beginCoreLoading() {
+  if (coreLoadingReleaseTimer) {
+    clearTimeout(coreLoadingReleaseTimer);
+    coreLoadingReleaseTimer = null;
+  }
+  coreLoadingStartedAt = Date.now();
+  if (coreLoadingVisible) return;
+  coreLoadingVisible = true;
+  setCoreLoading(true);
+}
+
+function finishCoreLoading() {
+  if (!coreLoadingVisible) {
+    if (dom.renderStateEl && dom.renderStateEl.classList.contains('state-loading')) {
+      setRenderState('');
+    }
+    return;
+  }
+  let elapsed = Date.now() - coreLoadingStartedAt;
+  let wait = Math.max(0, CORE_LOADING_MIN_MS - elapsed);
+  if (coreLoadingReleaseTimer) clearTimeout(coreLoadingReleaseTimer);
+  coreLoadingReleaseTimer = setTimeout(function () {
+    setCoreLoading(false);
+    coreLoadingVisible = false;
+    coreLoadingReleaseTimer = null;
+    if (dom.renderStateEl && dom.renderStateEl.classList.contains('state-loading')) {
+      setRenderState('');
+    }
+  }, wait);
+}
+
+function updateHistoryEmptyState(hasAnyTransaction) {
+  if (!dom.historyEmptyTitle || !dom.historyEmptyText || !dom.historyEmptyPrimaryBtn || !dom.historyEmptySecondaryBtn) return;
+  if (hasAnyTransaction) {
+    dom.historyEmptyTitle.textContent = 'Filter tidak menemukan transaksi';
+    dom.historyEmptyText.textContent = 'Ubah kata kunci, kategori, atau periode. Bisa juga reset filter untuk melihat semua data.';
+    dom.historyEmptyPrimaryBtn.textContent = 'Tambah Transaksi';
+    dom.historyEmptyPrimaryBtn.setAttribute('data-nav-target', 'add');
+    dom.historyEmptySecondaryBtn.textContent = 'Reset Filter';
+    dom.historyEmptySecondaryBtn.classList.remove('is-hidden');
+    return;
+  }
+  dom.historyEmptyTitle.textContent = 'Belum ada transaksi';
+  dom.historyEmptyText.textContent = 'Yuk catat pengeluaran pertamamu.';
+  dom.historyEmptyPrimaryBtn.textContent = 'Tambah Transaksi';
+  dom.historyEmptyPrimaryBtn.setAttribute('data-nav-target', 'add');
+  dom.historyEmptySecondaryBtn.classList.add('is-hidden');
 }
 
 // ─── Summary ──────────────────────────────
@@ -470,9 +549,7 @@ function formatTrendMonthShort(monthKey) {
 }
 
 function formatTrendAxisValue(value) {
-  let num = Number(value) || 0;
-  if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' jt';
-  return Math.round(num / 1000) + ' rb';
+  return calc.formatRupiahCompact(value, { withPrefix: false, maxFractionDigits: 1 });
 }
 
 function setTrendLegendTotals(data) {
@@ -484,8 +561,8 @@ function setTrendLegendTotals(data) {
   });
   let incomeEl = document.getElementById('trend-legend-income-value');
   let expenseEl = document.getElementById('trend-legend-expense-value');
-  if (incomeEl) incomeEl.textContent = calc.formatRupiah(incomeTotal);
-  if (expenseEl) expenseEl.textContent = calc.formatRupiah(expenseTotal);
+  if (incomeEl) incomeEl.textContent = calc.formatRupiahCompact(incomeTotal, { maxFractionDigits: 1 });
+  if (expenseEl) expenseEl.textContent = calc.formatRupiahCompact(expenseTotal, { maxFractionDigits: 1 });
 }
 
 function hideTrendTooltip() {
@@ -502,11 +579,11 @@ function showTrendTooltip(bar, clientX, clientY) {
   if (!dom.trendTooltip || !bar || !dom.trendChartCanvas || !dom.trendChartCanvas.parentElement) return;
   let net = bar.income - bar.expense;
   let netClass = net >= 0 ? 'is-positive' : 'is-negative';
-  let netLabel = (net >= 0 ? '+' : '') + calc.formatRupiah(net);
+  let netLabel = (net >= 0 ? '+' : '') + calc.formatRupiahCompact(net, { maxFractionDigits: 1 });
   dom.trendTooltip.innerHTML =
     '<div class="trend-tooltip-head">' + calc.escapeHtml(bar.monthLabel) + '</div>' +
-    '<div class="trend-tooltip-row"><span>Pemasukan</span><strong class="text-success">' + calc.formatRupiah(bar.income) + '</strong></div>' +
-    '<div class="trend-tooltip-row"><span>Pengeluaran</span><strong class="text-danger">' + calc.formatRupiah(bar.expense) + '</strong></div>' +
+    '<div class="trend-tooltip-row"><span>Pemasukan</span><strong class="text-success">' + calc.formatRupiahCompact(bar.income, { maxFractionDigits: 1 }) + '</strong></div>' +
+    '<div class="trend-tooltip-row"><span>Pengeluaran</span><strong class="text-danger">' + calc.formatRupiahCompact(bar.expense, { maxFractionDigits: 1 }) + '</strong></div>' +
     '<div class="trend-tooltip-row trend-tooltip-row-net ' + netClass + '"><span>Selisih</span><strong>' + netLabel + '</strong></div>';
 
   let containerRect = dom.trendChartCanvas.parentElement.getBoundingClientRect();
@@ -598,10 +675,10 @@ export function renderTrendChart() {
   maxVal = Math.max(maxVal, 10000);
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
   if (state.expenses.length === 0) {
-    if (dom.trendEmpty) dom.trendEmpty.style.display = 'block';
+    if (dom.trendEmpty) dom.trendEmpty.classList.add('visible');
     dom.trendChartCanvas.style.display = 'none'; return;
   }
-  if (dom.trendEmpty) dom.trendEmpty.style.display = 'none';
+  if (dom.trendEmpty) dom.trendEmpty.classList.remove('visible');
   dom.trendChartCanvas.style.display = 'block';
   let compact = canvasWidth < 360;
   let padding = compact
@@ -696,16 +773,11 @@ function getCalendarMonthKey(year, month) {
 }
 
 function formatCompactAmount(value) {
-  let number = Number(value) || 0;
-  if (number >= 1000000) {
-    let million = number / 1000000;
-    return million.toFixed(million >= 10 ? 0 : 1).replace('.0', '') + 'jt';
-  }
-  if (number >= 1000) {
-    let thousand = number / 1000;
-    return thousand.toFixed(thousand >= 100 ? 0 : 1).replace('.0', '') + 'k';
-  }
-  return String(number);
+  return calc.formatRupiahCompact(value, {
+    withPrefix: false,
+    unitSpacing: false,
+    maxFractionDigits: 1,
+  });
 }
 
 function getNoSpendStreak(expenseByDay, year, month, daysInMonth) {
@@ -1024,14 +1096,16 @@ function renderCategoryLegendItems(categories, catTotals, total, fallbackSliceCo
   dom.chartLegend.innerHTML = '';
   categories.forEach(function (cat, idx) {
     let pct = total > 0 ? ((catTotals[cat] / total) * 100) : 0;
+    let rawLabel = String(cat || '');
+    let shortLabel = calc.truncateLabel(rawLabel, 20);
     let legendItem = document.createElement('div');
     legendItem.className = 'legend-item';
     legendItem.innerHTML =
       '<span class="legend-rank">' + String(idx + 1).padStart(2, '0') + '</span>' +
       '<span class="legend-color" style="background:' + (CATEGORY_COLORS[cat] || fallbackSliceColor) + '"></span>' +
-      '<span class="legend-label">' + (CATEGORY_ICONS[cat] || '<i class="ph-bold ph-tag"></i>') + ' ' + calc.escapeHtml(cat) + '</span>' +
-      '<span class="legend-value">' + calc.formatRupiah(catTotals[cat]) + '</span>' +
-      '<span class="legend-share">' + pct.toFixed(1) + '%</span>';
+      '<span class="legend-label" title="' + calc.escapeHtml(rawLabel) + '">' + (CATEGORY_ICONS[cat] || '<i class="ph-bold ph-tag"></i>') + ' ' + calc.escapeHtml(shortLabel) + '</span>' +
+      '<span class="legend-value">' + calc.formatRupiahCompact(catTotals[cat], { maxFractionDigits: 1 }) + '</span>' +
+      '<span class="legend-share">' + calc.formatPercent(pct, 1) + '</span>';
     dom.chartLegend.appendChild(legendItem);
   });
 }
@@ -1129,7 +1203,7 @@ export function renderChart(data) {
   ctx.fillStyle = getCssColor('--clr-text', '#0f172a');
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.font = '700 1rem "Sora", "Space Grotesk", sans-serif';
-  ctx.fillText(calc.formatRupiah(total), center, center - 8);
+  ctx.fillText(calc.formatRupiahCompact(total, { maxFractionDigits: 1 }), center, center - 8);
   ctx.font = '600 0.7rem "Manrope", "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle = getCssColor('--clr-chart-axis', '#64748b');
   ctx.fillText('Total', center, center + 14);
@@ -1142,11 +1216,13 @@ export function hideChartTooltip() {
 
 function showCategoryTooltip(category, amount, percent, clientX, clientY) {
   if (!dom.chartTooltip || !dom.chartCanvas || !dom.chartCanvas.parentElement) return;
+  let categoryRaw = String(category || '');
+  let categoryShort = calc.truncateLabel(categoryRaw, 24);
   let icon = CATEGORY_ICONS[category] || '<i class="ph-bold ph-tag"></i>';
   dom.chartTooltip.innerHTML =
-    '<div class="chart-tooltip-head">' + icon + '<span>' + calc.escapeHtml(category) + '</span></div>' +
-    '<div class="chart-tooltip-row"><span>Nominal</span><strong>' + calc.formatRupiah(amount) + '</strong></div>' +
-    '<div class="chart-tooltip-row"><span>Porsi</span><strong>' + percent.toFixed(1) + '%</strong></div>';
+    '<div class="chart-tooltip-head" title="' + calc.escapeHtml(categoryRaw) + '">' + icon + '<span>' + calc.escapeHtml(categoryShort) + '</span></div>' +
+    '<div class="chart-tooltip-row"><span>Nominal</span><strong>' + calc.formatRupiahCompact(amount, { maxFractionDigits: 1 }) + '</strong></div>' +
+    '<div class="chart-tooltip-row"><span>Porsi</span><strong>' + calc.formatPercent(percent, 1) + '</strong></div>';
 
   let containerRect = dom.chartCanvas.parentElement.getBoundingClientRect();
   let left = clientX - containerRect.left + 12;
@@ -1283,9 +1359,9 @@ export function renderSplitLedgerTable() {
     let actionHtml = '<div class="action-group"><button class="btn btn-sm btn-edit" type="button" data-split-action="edit" data-id="' + entry.id + '"><i class="ph-bold ph-pencil-simple"></i> Edit</button>' + doneButton + syncButton + deleteButton + '</div>';
     tr.innerHTML =
       '<td data-label="Tanggal">' + calc.formatDate(entry.date) + '</td>' +
-      '<td data-label="Bill"><div style="font-weight:700">' + calc.escapeHtml(entry.billName) + '</div><div style="font-size:0.78rem; color:var(--clr-text-secondary)">Saya: ' + calc.escapeHtml(entry.ownerName || '-') + ' • Dibayar: ' + calc.escapeHtml(entry.payerName || '-') + '</div></td>' +
-      '<td class="text-right" data-label="Total"><strong>' + calc.formatRupiah(entry.total) + '</strong></td>' +
-      '<td class="text-right" data-label="Porsi Saya"><strong>' + calc.formatRupiah(entry.ownerShare || 0) + '</strong></td>' +
+      '<td data-label="Bill"><div class="split-ledger-bill-name">' + calc.escapeHtml(entry.billName) + '</div><div class="split-ledger-bill-meta">Saya: ' + calc.escapeHtml(entry.ownerName || '-') + ' • Dibayar: ' + calc.escapeHtml(entry.payerName || '-') + '</div></td>' +
+      '<td class="text-right" data-label="Total"><strong class="split-ledger-amount">' + calc.formatRupiah(entry.total) + '</strong></td>' +
+      '<td class="text-right" data-label="Porsi Saya"><strong class="split-ledger-amount">' + calc.formatRupiah(entry.ownerShare || 0) + '</strong></td>' +
       '<td data-label="Status Saya"><span class="split-ledger-status ' + doneClass + '">' + calc.escapeHtml(doneText) + '</span></td>' +
       '<td data-label="Sync"><span class="split-ledger-sync ' + syncClass + '">' + calc.escapeHtml(syncText) + '</span></td>' +
       '<td class="text-center" data-label="Aksi">' + actionHtml + '</td>';
@@ -1574,6 +1650,7 @@ export function renderTableNow(renderTableCallback) {
   renderMonthlyReport();
   renderCategoryBudgetSummary();
   renderCalendar();
+  updateHistoryEmptyState(state.expenses.length > 0 && data.length === 0);
   if (data.length === 0) {
     dom.emptyState.classList.add('visible');
     updateSummary(data);
@@ -1615,11 +1692,15 @@ export function renderTableNow(renderTableCallback) {
 
 export function renderTable(renderTableCallback) {
   if (state.renderTimer) clearTimeout(state.renderTimer);
+  beginCoreLoading();
   setRenderState('Memuat transaksi...', 'loading');
   state.renderTimer = setTimeout(function () {
     state.renderTimer = null;
-    renderTableNow(renderTableCallback);
-    setRenderState('');
+    try {
+      renderTableNow(renderTableCallback);
+    } finally {
+      finishCoreLoading();
+    }
   }, 0);
 }
 

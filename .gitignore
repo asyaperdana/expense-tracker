@@ -1,0 +1,7 @@
+node_modules/
+
+# Playwright artifacts
+tests/visual/playwright-report/
+tests/visual/test-results/
+tests/visual/tests/
+test-results/

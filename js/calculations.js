@@ -8,6 +8,66 @@ export function formatRupiah(num) {
   return 'Rp ' + Number(num).toLocaleString('id-ID');
 }
 
+function clampNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatLocaleNumber(value, maxFractionDigits, minFractionDigits) {
+  return Number(value).toLocaleString('id-ID', {
+    minimumFractionDigits: minFractionDigits,
+    maximumFractionDigits: maxFractionDigits,
+  });
+}
+
+function getCompactFractionDigits(scaled) {
+  const absScaled = Math.abs(Number(scaled) || 0);
+  if (absScaled >= 100) return 0;
+  if (absScaled >= 10) return 1;
+  return 2;
+}
+
+export function formatRupiahCompact(num, options = {}) {
+  const value = clampNumber(num);
+  const abs = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+  const withPrefix = options.withPrefix !== false;
+  const unitSpacing = options.unitSpacing !== false ? ' ' : '';
+  const minFractionDigits = Number.isFinite(options.minFractionDigits) ? Math.max(0, options.minFractionDigits) : 0;
+  const fixedMaxFractionDigits = Number.isFinite(options.maxFractionDigits) ? Math.max(minFractionDigits, options.maxFractionDigits) : null;
+  let divisor = 1;
+  let suffix = '';
+
+  if (abs >= 1000000) {
+    divisor = 1000000;
+    suffix = 'jt';
+  } else if (abs >= 1000) {
+    divisor = 1000;
+    suffix = 'rb';
+  }
+
+  const scaled = value / divisor;
+  const maxFractionDigits = fixedMaxFractionDigits == null
+    ? getCompactFractionDigits(scaled)
+    : fixedMaxFractionDigits;
+  const formatted = formatLocaleNumber(Math.abs(scaled), maxFractionDigits, minFractionDigits);
+  const core = suffix ? (formatted + unitSpacing + suffix) : formatted;
+  return withPrefix ? (sign + 'Rp ' + core) : (sign + core);
+}
+
+export function formatPercent(value, decimals = 1) {
+  const safeDecimals = Number.isFinite(decimals) ? Math.max(0, decimals) : 1;
+  const n = clampNumber(value);
+  return formatLocaleNumber(n, safeDecimals, 0) + '%';
+}
+
+export function truncateLabel(label, maxLength = 24) {
+  const text = String(label || '').trim();
+  const safeLength = Number.isFinite(maxLength) ? Math.max(2, Math.floor(maxLength)) : 24;
+  if (text.length <= safeLength) return text;
+  return text.slice(0, safeLength - 1).trimEnd() + '…';
+}
+
 export function formatDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('id-ID', {

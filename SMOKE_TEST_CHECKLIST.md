@@ -73,6 +73,22 @@ Dokumen ini adalah checklist manual untuk validasi flow kritikal setelah perubah
 6. Aktifkan `prefers-reduced-motion` (atau mode perf-lite) lalu ulangi perpindahan view.
    Ekspektasi: animasi/transisi diminimalkan, interaksi tetap normal.
 
+## 7) Automated Visual Regression
+1. Install dependency sekali saat setup lokal:
+   `npm install`
+2. Generate/update baseline snapshot saat perubahan UI memang disengaja:
+   `npm run test:visual:update`
+3. Validasi snapshot pada perubahan berikutnya:
+   `npm run test:visual`
+4. Jika ada mismatch, review diff HTML report:
+   `npm run test:visual:report`
+5. Pastikan matrix berikut ikut lolos:
+   desktop/mobile + light/dark untuk view `dashboard`, `history`, `report`.
+
 ## Catatan Eksekusi Cepat
 - Lakukan smoke test ini setiap ada perubahan di `index.html`, `css/style.css`, `js/app.js`, `js/calculations.js`, `js/ui.js`, atau fitur import/recurring/split/wallet.
+- Untuk release candidate, jalankan minimal:
+  1) `npm run test:unit`
+  2) `npm run test:visual`
+  3) checklist manual bagian 1-6.
 - Simpan hasil uji dalam format sederhana: `tanggal - branch/commit - pass/fail - catatan`.

@@ -11,7 +11,12 @@ import {
   escapeCsvCell,
   getDueRecurringQueue,
 } from '../js/app.js';
-import { calculateSplitResults } from '../js/calculations.js';
+import {
+  calculateSplitResults,
+  formatRupiahCompact,
+  formatPercent,
+  truncateLabel,
+} from '../js/calculations.js';
 
 test('sanitizeExpenseItem normalizes legacy category value', () => {
   const item = sanitizeExpenseItem({
@@ -148,6 +153,23 @@ test('calculateSplitResults succeeds when custom totals match', () => {
   assert.ok(result);
   assert.equal(result.ownerShare, 40000);
   assert.equal(result.people.length, 2);
+});
+
+test('formatRupiahCompact standardizes rb/jt suffix and precision', () => {
+  assert.equal(formatRupiahCompact(1250000, { maxFractionDigits: 1 }), 'Rp 1,3 jt');
+  assert.equal(formatRupiahCompact(75000, { maxFractionDigits: 1 }), 'Rp 75 rb');
+  assert.equal(formatRupiahCompact(75000, { withPrefix: false, maxFractionDigits: 1 }), '75 rb');
+  assert.equal(formatRupiahCompact(1250000, { withPrefix: false, maxFractionDigits: 1, unitSpacing: false }), '1,3jt');
+});
+
+test('formatPercent uses id locale decimal separator', () => {
+  assert.equal(formatPercent(12.34, 1), '12,3%');
+  assert.equal(formatPercent(0, 1), '0%');
+});
+
+test('truncateLabel keeps short values and truncates long labels', () => {
+  assert.equal(truncateLabel('Makan', 10), 'Makan');
+  assert.equal(truncateLabel('Kategori Pengeluaran Panjang Sekali', 12), 'Kategori Pe…');
 });
 
 test('recurring queue respects skip_until and backfills overdue months', () => {
