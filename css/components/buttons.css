@@ -193,3 +193,34 @@
   color: var(--clr-text);
   background: var(--clr-surface);
 }
+
+/* Button Variants */
+.btn-manage-wallet {
+  font-size: 0.78rem;
+}
+
+.btn-budget-edit {
+  font-size: 0.72rem;
+  padding: 0.35rem 0.6rem;
+  min-height: 32px;
+}
+
+.btn-add-goal {
+  white-space: nowrap;
+}
+
+.btn-cal-nav {
+  padding: 0.35rem 0.5rem;
+  min-height: 32px;
+  min-width: 32px;
+}
+
+.btn-submit-full,
+.btn-cancel-full {
+  flex: 1;
+}
+
+/* Is Hidden Utility */
+.is-hidden {
+  display: none !important;
+}

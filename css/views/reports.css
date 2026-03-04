@@ -151,3 +151,125 @@
   box-shadow: var(--shadow-md);
   min-width: 130px;
 }
+
+/* Report Insights */
+.report-insights {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+}
+
+.insights-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--clr-text);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.insights-scroll {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.insight-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  color: var(--clr-text-2);
+}
+
+.insight-card i {
+  color: var(--clr-primary);
+}
+
+.advice-card {
+  border-left: 3px solid var(--clr-warning);
+}
+
+.advice-card i {
+  color: var(--clr-warning);
+}
+
+/* Report Main Stats */
+.report-main-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.report-stat-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+}
+
+.report-stat-group.income {
+  border-left: 4px solid var(--clr-success);
+}
+
+.report-stat-group.expense {
+  border-left: 4px solid var(--clr-danger);
+}
+
+.report-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.report-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.report-secondary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.report-secondary-grid .report-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+.report-secondary-grid .report-item i {
+  color: var(--clr-primary);
+  font-size: 1.1rem;
+}
+
+.report-item.mini {
+  padding: 0.5rem 0.75rem;
+}
+
+.report-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}

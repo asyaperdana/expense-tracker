@@ -80,6 +80,12 @@
   margin-left: 0;
 }
 
+.ledger-member-name {
+  font-size: var(--fs-300);
+  font-weight: 600;
+  color: var(--clr-text);
+}
+
 .ledger-status-badge {
   display: inline-flex;
   align-items: center;

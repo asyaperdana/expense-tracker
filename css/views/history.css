@@ -277,3 +277,176 @@
 .category-icon {
   font-size: 1.2rem;
 }
+
+/* Calendar Legend */
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+}
+
+.calendar-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--clr-text-2);
+}
+
+.calendar-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.calendar-legend-dot.expense {
+  background: var(--clr-danger);
+}
+
+.calendar-legend-dot.income {
+  background: var(--clr-success);
+}
+
+.calendar-legend-dot.transfer {
+  background: var(--clr-accent);
+}
+
+.calendar-legend-note {
+  color: var(--clr-text-muted);
+  font-size: 0.68rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+/* Calendar Helper */
+.calendar-helper {
+  font-size: 0.78rem;
+  color: var(--clr-text-2);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Calendar Insights */
+.calendar-insights {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  display: none;
+}
+
+.empty-state.visible {
+  display: block;
+}
+
+.empty-state .empty-svg {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 1rem;
+  color: var(--clr-text-muted);
+}
+
+.empty-state .empty-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--clr-text);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state .empty-text {
+  font-size: 0.85rem;
+  color: var(--clr-text-2);
+  margin-bottom: 1rem;
+}
+
+/* History Card Head */
+.history-card-head {
+  margin-bottom: 1rem;
+}
+
+.history-card-head-tight {
+  margin-bottom: 0.75rem;
+}
+
+.history-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  border: 1px solid color-mix(in srgb, var(--clr-primary) 28%, var(--clr-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--clr-primary) 9%, transparent);
+  padding: 0.16rem 0.56rem;
+  font-size: var(--type-kicker-size);
+  font-weight: var(--type-kicker-weight);
+  letter-spacing: var(--type-kicker-spacing);
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--clr-primary) 80%, var(--clr-text));
+  margin-bottom: 0.5rem;
+}
+
+.history-subtitle {
+  font-size: var(--type-subtitle-size);
+  color: var(--clr-text-2);
+  line-height: var(--type-subtitle-line);
+}
+
+/* History Table Card */
+.history-table-card {
+  padding: var(--space-5);
+}
+
+.history-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+/* History Calendar Card */
+.history-calendar-card {
+  padding: var(--space-5);
+  position: relative;
+}
+
+/* History Filter Card */
+.history-filter-card {
+  padding: var(--space-5);
+}
+
+/* Cal Dot */
+.cal-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.cal-dot.expense {
+  background: var(--clr-danger);
+}
+
+.cal-dot.income {
+  background: var(--clr-success);
+}
+
+.cal-dot.transfer {
+  background: var(--clr-accent);
+}
+

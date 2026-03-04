@@ -262,3 +262,322 @@ input[type='search']::-webkit-search-decoration,
 input[type='search']::-webkit-search-cancel-button {
   display: none;
 }
+
+/* Form Amount Hero */
+.form-amount-hero {
+  text-align: center;
+  padding: 1.5rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+}
+
+.form-amount-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--clr-text-2);
+  margin-bottom: 0.5rem;
+}
+
+.form-amount-display {
+  font-family: var(--num-font-display);
+  font-size: var(--num-size-hero);
+  font-weight: 800;
+  color: var(--clr-text);
+  margin-bottom: 0.5rem;
+}
+
+.form-amount-prefix {
+  color: var(--clr-text-2);
+}
+
+.form-amount-value {
+  color: var(--clr-primary);
+}
+
+.form-amount-input {
+  width: 100%;
+  max-width: 200px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 0.75rem;
+  border: 2px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  background: var(--clr-surface);
+  color: var(--clr-text);
+}
+
+.form-amount-help {
+  min-height: 1.2rem;
+  text-align: center;
+}
+
+/* Form Layout */
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-main {
+  min-width: 0;
+}
+
+.form-side {
+  min-width: 0;
+}
+
+.form-side-card {
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+}
+
+.form-side-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--clr-text);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.form-side-list {
+  list-style: none;
+  font-size: 0.78rem;
+  color: var(--clr-text-2);
+}
+
+.form-side-list li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--clr-border);
+}
+
+.form-side-list li:last-child {
+  border-bottom: none;
+}
+
+/* Form Sections */
+.form-section {
+  margin-bottom: 1rem;
+}
+
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.form-stack-heading {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--clr-text-2);
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Form Input Group */
+.form-input-group {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.form-input-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  color: var(--clr-text-2);
+  font-size: 1.1rem;
+}
+
+.form-input-body {
+  min-width: 0;
+}
+
+.form-input-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--clr-text-2);
+  margin-bottom: 0.35rem;
+}
+
+.form-input-body input,
+.form-input-body select {
+  width: 100%;
+}
+
+/* Form Toggle Row */
+.form-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+}
+
+.form-toggle-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.form-toggle-icon {
+  color: var(--clr-primary);
+  font-size: 1.1rem;
+}
+
+/* Form Actions */
+.form-actions-full {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.form-actions-full .btn {
+  flex: 1;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--clr-border-strong);
+  border-radius: 999px;
+  transition: background 0.3s ease;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--clr-primary);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(22px);
+}
+
+/* Form Card Head */
+.form-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  border: 1px solid color-mix(in srgb, var(--clr-primary) 28%, var(--clr-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--clr-primary) 9%, transparent);
+  padding: 0.16rem 0.56rem;
+  font-size: var(--type-kicker-size);
+  font-weight: var(--type-kicker-weight);
+  letter-spacing: var(--type-kicker-spacing);
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--clr-primary) 80%, var(--clr-text));
+  margin-bottom: 0.5rem;
+}
+
+.form-title {
+  font-size: var(--type-title-size);
+  font-weight: var(--type-title-weight);
+  margin-bottom: 0.25rem;
+}
+
+.form-subtitle {
+  font-size: var(--type-subtitle-size);
+  color: var(--clr-text-2);
+  margin-bottom: 1rem;
+}
+
+.form-progress {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.72rem;
+  color: var(--clr-text-2);
+}
+
+.form-progress-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.form-progress-item strong {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--clr-border);
+  border-radius: 50%;
+  font-size: 0.65rem;
+}
+
+.form-progress-item.is-active strong {
+  background: var(--clr-primary);
+  color: white;
+}
+
+.form-head-tip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--clr-primary-soft);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  color: var(--clr-primary);
+}
+
+.form-head-tip i {
+  font-size: 1.1rem;
+}

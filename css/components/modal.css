@@ -1,0 +1,130 @@
+/* ===========================
+   Modal Components
+   =========================== */
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-overlay.visible {
+  display: flex;
+}
+
+.modal-overlay-destructive .modal {
+  border-top: 4px solid var(--clr-danger);
+}
+
+.modal-overlay-informative .modal {
+  border-top: 4px solid var(--clr-primary);
+}
+
+/* Modal Container */
+.modal {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: modalEnter 0.3s ease;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Modal Icon */
+.modal-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--clr-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  font-size: 1.75rem;
+}
+
+/* Modal Text */
+.modal-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--clr-text);
+  margin-bottom: 0.5rem;
+}
+
+.modal-subtext {
+  font-size: 0.85rem;
+  color: var(--clr-text-2);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.modal-actions .btn {
+  flex: 1;
+}
+
+/* Category Budget Modal */
+.category-budget-modal {
+  max-width: 520px;
+}
+
+/* Split Modal */
+.split-modal {
+  max-width: 600px;
+}
+
+/* Import Modal */
+.import-modal,
+.import-summary-modal {
+  max-width: 520px;
+}
+
+/* Split Body */
+.split-body {
+  margin-bottom: 1rem;
+}
+
+.split-results {
+  display: none;
+}
+
+.split-results.visible {
+  display: block;
+}
+
+/* Goal Fund Subtitle */
+.goal-fund-subtitle {
+  font-size: 0.85rem;
+  color: var(--clr-text-2);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}

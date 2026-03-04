@@ -552,3 +552,102 @@
   padding: 0.5rem;
   border-radius: 8px;
 }
+
+/* Tools Overview Card */
+.tools-overview-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tools-overview-title {
+  margin-bottom: 0.25rem;
+}
+
+.tools-overview-subtitle {
+  font-size: var(--type-subtitle-size);
+  color: var(--clr-text-2);
+}
+
+.tools-overview-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tools-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.tools-metric {
+  padding: 1rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.tools-metric-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--clr-text-2);
+  margin-bottom: 0.5rem;
+}
+
+.tools-metric-value {
+  font-family: var(--num-font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--clr-primary);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.tools-metric-meta {
+  font-size: 0.68rem;
+  color: var(--clr-text-muted);
+}
+
+/* Tools Card Header */
+.tools-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.tools-card-copy {
+  flex: 1;
+}
+
+.tools-card-subtitle {
+  font-size: var(--type-subtitle-size);
+  color: var(--clr-text-2);
+}
+
+/* Responsive Tools Grid */
+@media (max-width: 768px) {
+  .tools-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .tools-overview-head {
+    flex-direction: column;
+  }
+  
+  .tools-overview-actions {
+    width: 100%;
+  }
+  
+  .tools-overview-actions .btn {
+    flex: 1;
+  }
+}

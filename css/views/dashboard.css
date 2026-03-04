@@ -92,6 +92,99 @@
   animation: pulse 0.5s ease;
 }
 
+/* Budget Styles */
+.budget-container {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+}
+
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.budget-header-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--clr-text-2);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.budget-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.budget-text-used {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--clr-text);
+}
+
+.budget-text-limit {
+  font-size: 0.78rem;
+  color: var(--clr-text-2);
+}
+
+.budget-bar {
+  height: 8px;
+  background: var(--clr-border);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.budget-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--clr-success), var(--clr-primary));
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+
+.budget-fill.is-warn {
+  background: linear-gradient(90deg, var(--clr-warning), var(--clr-danger));
+}
+
+.budget-fill.is-over {
+  background: var(--clr-danger);
+}
+
+.budget-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.budget-pct {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  background: var(--clr-primary-soft);
+  color: var(--clr-primary);
+  border-radius: 999px;
+}
+
+.budget-pct.is-warn {
+  background: var(--clr-status-warning-soft);
+  color: var(--clr-warning);
+}
+
+.budget-pct.is-over {
+  background: var(--clr-danger-soft);
+  color: var(--clr-danger);
+}
+
 @keyframes pulse {
   50% {
     transform: scale(1.06);
@@ -305,4 +398,107 @@
   font-weight: 700;
   color: var(--clr-text);
   white-space: nowrap;
+}
+
+/* Wallet Balances */
+.wallet-balances {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.wallet-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+.wallet-pill-icon {
+  color: var(--clr-primary);
+}
+
+.wallet-pill-label {
+  color: var(--clr-text-2);
+}
+
+.wallet-pill-amount {
+  font-weight: 700;
+  color: var(--clr-text);
+}
+
+/* Empty Block */
+.empty-block {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+}
+
+.empty-block .empty-svg {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1rem;
+  color: var(--clr-text-muted);
+}
+
+.empty-block .empty-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--clr-text);
+  margin-bottom: 0.5rem;
+}
+
+.empty-block .empty-text {
+  font-size: 0.82rem;
+  color: var(--clr-text-2);
+  margin-bottom: 1rem;
+}
+
+/* Empty Actions */
+.empty-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Chart Empty State */
+.chart-empty {
+  text-align: center;
+  padding: 2rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+}
+
+.chart-empty .empty-svg {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1rem;
+  color: var(--clr-text-muted);
+}
+
+.chart-empty .empty-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--clr-text);
+  margin-bottom: 0.5rem;
+}
+
+.chart-empty .empty-text {
+  font-size: 0.82rem;
+  color: var(--clr-text-2);
+  margin-bottom: 1rem;
+}
+
+/* Card Skeleton History */
+.card-skeleton-history {
+  padding: 1rem;
 }
