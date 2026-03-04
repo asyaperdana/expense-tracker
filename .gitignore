@@ -3,5 +3,17 @@ node_modules/
 # Playwright artifacts
 tests/visual/playwright-report/
 tests/visual/test-results/
-tests/visual/tests/
 test-results/
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+.npm/
+
+# Build & Cache
+.cache/
+dist/
+build/

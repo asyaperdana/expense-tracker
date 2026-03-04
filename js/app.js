@@ -10,10 +10,10 @@ import {
   normalizeWalletIcon,
   normalizeCategoryName,
   OTHER_EXPENSE_CATEGORY
-} from './state.js';
-import * as storage from './storage.js';
-import * as calc from './calculations.js';
-import * as validation from './validation.js';
+} from './modules/state.js';
+import * as storage from './modules/storage.js';
+import * as calc from './modules/calculations.js';
+import * as validation from './modules/validation.js';
 import * as ui from './ui.js';
 
 const VALID_TRANSACTION_TYPES = ['expense', 'income', 'transfer'];

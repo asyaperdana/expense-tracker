@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { state } from '../js/state.js';
+import { state } from '../../js/modules/state.js';
 import {
   sanitizeExpenseItem,
   sanitizeWallet,
@@ -10,13 +10,13 @@ import {
   sanitizeImportPayload,
   escapeCsvCell,
   getDueRecurringQueue,
-} from '../js/app.js';
+} from '../../js/app.js';
 import {
   calculateSplitResults,
   formatRupiahCompact,
   formatPercent,
   truncateLabel,
-} from '../js/calculations.js';
+} from '../../js/modules/calculations.js';
 
 test('sanitizeExpenseItem normalizes legacy category value', () => {
   const item = sanitizeExpenseItem({

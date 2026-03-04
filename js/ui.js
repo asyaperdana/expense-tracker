@@ -9,9 +9,9 @@ import {
   AVATAR_COLORS,
   VALID_VIEWS,
   normalizeWalletIcon
-} from './state.js';
-import * as calc from './calculations.js';
-import * as storage from './storage.js';
+} from './modules/state.js';
+import * as calc from './modules/calculations.js';
+import * as storage from './modules/storage.js';
 
 // ─── DOM References (cached once) ─────────
 const dom = {};
