@@ -1,0 +1,253 @@
+/* ===========================
+   Navigation Layout
+   =========================== */
+
+/* App shell container */
+.app-shell {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-9) var(--space-8) 8rem;
+  min-width: 0;
+}
+
+/* Side navigation */
+.side-nav {
+  position: sticky;
+  top: 5rem;
+  align-self: flex-start;
+  width: 230px;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--clr-border);
+  background: var(--clr-surface);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem;
+}
+
+[data-theme='dark'] .side-nav {
+  background: color-mix(in srgb, var(--clr-surface) 94%, #0e182a);
+  border-color: color-mix(in srgb, var(--clr-border) 88%, var(--clr-accent) 12%);
+}
+
+.side-nav-title {
+  color: var(--clr-text-2);
+  font-size: var(--type-kicker-size);
+  font-weight: var(--type-kicker-weight);
+  letter-spacing: var(--type-kicker-spacing);
+  text-transform: uppercase;
+  margin-bottom: 0.65rem;
+}
+
+.side-nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Navigation links */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--clr-text-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-snappy),
+    border-color var(--dur-normal) var(--ease),
+    background var(--dur-normal) var(--ease),
+    color var(--dur-normal) var(--ease),
+    box-shadow var(--dur-normal) var(--ease);
+  text-align: left;
+  box-shadow: inset 0 1px 0 transparent;
+}
+
+.nav-link:hover {
+  border-color: var(--clr-border-strong);
+  background: color-mix(in srgb, var(--clr-surface-alt) 90%, transparent);
+  color: var(--clr-text);
+  transform: translateX(2px);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--clr-white) 30%, transparent);
+}
+
+[data-theme='dark'] .nav-link:hover {
+  border-color: color-mix(in srgb, var(--clr-border-strong) 78%, var(--clr-primary));
+  background: color-mix(in srgb, var(--clr-surface-alt) 86%, #1a2a42);
+}
+
+.nav-link:active {
+  transform: translateX(1px) scale(0.99);
+  background: color-mix(in srgb, var(--clr-surface-hover) 86%, var(--clr-surface));
+}
+
+.nav-link.is-active {
+  color: var(--clr-white);
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--clr-primary) 35%, transparent);
+}
+
+[data-theme='dark'] .nav-link.is-active {
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--clr-primary) 30%, rgba(0, 0, 0, 0.68));
+}
+
+.nav-link.is-active:hover {
+  transform: translateX(1px);
+}
+
+.nav-link.is-active:active {
+  transform: scale(0.99);
+}
+
+.nav-link:focus-visible {
+  box-shadow:
+    var(--focus-ring),
+    inset 0 1px 0 color-mix(in srgb, var(--clr-white) 32%, transparent);
+}
+
+.nav-link[aria-disabled='true'],
+.nav-link:disabled {
+  opacity: var(--state-disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+}
+
+/* Main container */
+.container {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-rhythm-section);
+  position: relative;
+}
+
+/* Section visibility and animations */
+.container > section {
+  display: none !important;
+  opacity: 0;
+  transform: translate3d(0, var(--view-motion-shift-y), 0) scale(0.992);
+  transform-origin: top center;
+  pointer-events: none;
+}
+
+.container > section.is-active,
+.container > section.is-view-entering {
+  display: flex !important;
+  flex-direction: column;
+  gap: var(--space-rhythm-section);
+}
+
+.container > section.is-active {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  pointer-events: auto;
+}
+
+.container > section.is-view-entering {
+  animation: viewSectionEnter var(--view-motion-duration) var(--ease-emph) both;
+  animation-delay: var(--view-stagger, 0ms);
+  pointer-events: auto;
+}
+
+.container.view-forward > section.is-view-entering.is-enter-forward {
+  --view-enter-x: var(--view-motion-shift-x);
+}
+
+.container.view-backward > section.is-view-entering.is-enter-backward {
+  --view-enter-x: calc(var(--view-motion-shift-x) * -1);
+}
+
+@keyframes viewSectionEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--view-enter-x, 0), var(--view-motion-shift-y), 0) scale(0.985);
+    filter: saturate(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: saturate(1);
+  }
+}
+
+/* Bottom navigation (mobile) */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 25;
+  border-top: 1px solid var(--clr-border);
+  background: color-mix(in srgb, var(--clr-surface) 90%, transparent);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  padding: 0.4rem 0.5rem 0.35rem;
+}
+
+.bottom-link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem 0;
+  border: none;
+  background: none;
+  color: var(--clr-text-2);
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: color var(--ease);
+}
+
+.bottom-link i {
+  font-size: 1.2rem;
+}
+
+.bottom-link.is-active {
+  color: var(--clr-primary);
+}
+
+.bottom-link:hover {
+  color: var(--clr-text);
+}
+
+/* Floating action button */
+.fab-add {
+  position: fixed;
+  bottom: 5rem;
+  right: 1.5rem;
+  z-index: 20;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: none;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--clr-primary) 38%, transparent);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--ease);
+}
+
+.fab-add:hover {
+  transform: translateY(-2px) scale(1.04);
+}

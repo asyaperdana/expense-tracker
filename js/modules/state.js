@@ -51,22 +51,61 @@ export const DEFAULT_WALLETS = [
 ];
 
 export const AVAILABLE_ICONS = [
-  'ph-star', 'ph-heart', 'ph-airplane-tilt', 'ph-bag', 'ph-game-controller',
-  'ph-cat', 'ph-dog', 'ph-car', 'ph-house', 'ph-monitor', 'ph-music-note',
-  'ph-camera', 'ph-coffee', 'ph-bicycle', 'ph-barbell', 'ph-books',
-  'ph-graduation-cap', 'ph-bandaids', 'ph-bed', 'ph-plug'
+  'ph-star',
+  'ph-heart',
+  'ph-airplane-tilt',
+  'ph-bag',
+  'ph-game-controller',
+  'ph-cat',
+  'ph-dog',
+  'ph-car',
+  'ph-house',
+  'ph-monitor',
+  'ph-music-note',
+  'ph-camera',
+  'ph-coffee',
+  'ph-bicycle',
+  'ph-barbell',
+  'ph-books',
+  'ph-graduation-cap',
+  'ph-bandaids',
+  'ph-bed',
+  'ph-plug',
 ];
 
 export const AVAILABLE_COLORS = [
-  '#f43f5e', '#ec4899', '#d946ef', '#a855f7', '#8b5cf6', '#6366f1',
-  '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e',
-  '#84cc16', '#eab308', '#f59e0b', '#f97316', '#ef4444'
+  '#f43f5e',
+  '#ec4899',
+  '#d946ef',
+  '#a855f7',
+  '#8b5cf6',
+  '#6366f1',
+  '#3b82f6',
+  '#0ea5e9',
+  '#06b6d4',
+  '#14b8a6',
+  '#10b981',
+  '#22c55e',
+  '#84cc16',
+  '#eab308',
+  '#f59e0b',
+  '#f97316',
+  '#ef4444',
 ];
 
 export const AVATAR_COLORS = [
-  '#6366f1', '#ec4899', '#f97316', '#10b981',
-  '#3b82f6', '#8b5cf6', '#ef4444', '#06b6d4',
-  '#f59e0b', '#14b8a6', '#e11d48', '#7c3aed',
+  '#6366f1',
+  '#ec4899',
+  '#f97316',
+  '#10b981',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ef4444',
+  '#06b6d4',
+  '#f59e0b',
+  '#14b8a6',
+  '#e11d48',
+  '#7c3aed',
 ];
 
 export const MAX_UNDO = 10;
@@ -121,7 +160,9 @@ export function generateId() {
 }
 
 export function normalizeWalletName(value) {
-  return String(value || '').replace(/\s+/g, ' ').trim();
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export function normalizeWalletIcon(value) {
@@ -131,7 +172,9 @@ export function normalizeWalletIcon(value) {
 }
 
 export function normalizeCategoryName(value) {
-  const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+  const normalized = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (!normalized) return '';
   const key = normalized.toLowerCase();
   if (LEGACY_OTHER_EXPENSE_CATEGORY_KEYS.includes(key)) {

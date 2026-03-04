@@ -1,0 +1,468 @@
+/* ===========================
+   Shared Ledger View Styles
+   =========================== */
+
+/* --- Ledger List --- */
+.ledger-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ledger-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  cursor: pointer;
+  transition: all var(--dur-normal) var(--ease);
+  position: relative;
+}
+
+.ledger-card:hover {
+  border-color: var(--clr-border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.ledger-card.archived {
+  opacity: 0.6;
+}
+
+.ledger-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-3);
+}
+
+.ledger-card-title {
+  font-size: var(--fs-500);
+  font-weight: 700;
+  color: var(--clr-text);
+  margin: 0;
+}
+
+.ledger-card-description {
+  font-size: var(--fs-300);
+  color: var(--clr-text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.ledger-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--fs-200);
+  color: var(--clr-text-muted);
+}
+
+.ledger-member-avatars {
+  display: flex;
+  align-items: center;
+}
+
+.ledger-member-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-100);
+  font-weight: 700;
+  color: white;
+  margin-left: -8px;
+  border: 2px solid var(--clr-surface);
+}
+
+.ledger-member-avatar:first-child {
+  margin-left: 0;
+}
+
+.ledger-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-xs);
+  font-size: var(--fs-200);
+  font-weight: 600;
+}
+
+.ledger-status-settled {
+  background: var(--clr-status-success-soft);
+  color: var(--clr-status-success);
+}
+
+.ledger-status-pending {
+  background: var(--clr-status-warning-soft);
+  color: var(--clr-status-warning);
+}
+
+/* --- Ledger Detail --- */
+.ledger-detail {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.ledger-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--clr-border);
+}
+
+.ledger-detail-title {
+  font-size: var(--fs-600);
+  font-weight: 700;
+  color: var(--clr-text);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.ledger-detail-description {
+  font-size: var(--fs-300);
+  color: var(--clr-text-secondary);
+}
+
+.ledger-detail-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* --- Settlement Summary --- */
+.settlement-card {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--clr-surface) 96%, var(--clr-primary)),
+    var(--clr-surface)
+  );
+  border: 1px solid color-mix(in srgb, var(--clr-primary) 20%, var(--clr-border));
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.settlement-status {
+  text-align: center;
+  padding: var(--space-6);
+}
+
+.settlement-status-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-3);
+}
+
+.settlement-status-title {
+  font-size: var(--fs-500);
+  font-weight: 700;
+  color: var(--clr-text);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.settlement-status-subtitle {
+  font-size: var(--fs-300);
+  color: var(--clr-text-secondary);
+}
+
+/* --- Settlement Transactions --- */
+.settlement-transactions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.settlement-transaction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+}
+
+.settlement-transaction-parties {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.settlement-transaction-from,
+.settlement-transaction-to {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.settlement-transaction-arrow {
+  color: var(--clr-text-muted);
+  font-size: var(--fs-400);
+}
+
+.settlement-transaction-amount {
+  font-family: var(--num-font-display);
+  font-size: var(--fs-500);
+  font-weight: 700;
+  color: var(--clr-danger);
+}
+
+/* --- Member Balances --- */
+.member-balances {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.member-balance-card {
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.member-balance-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-400);
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.member-balance-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.member-balance-name {
+  font-weight: 600;
+  color: var(--clr-text);
+  margin-bottom: var(--space-1);
+}
+
+.member-balance-amount {
+  font-family: var(--num-font-display);
+  font-size: var(--fs-500);
+  font-weight: 700;
+}
+
+.member-balance-positive {
+  color: var(--clr-success);
+}
+
+.member-balance-negative {
+  color: var(--clr-danger);
+}
+
+.member-balance-neutral {
+  color: var(--clr-text-muted);
+}
+
+/* --- Ledger Bills List --- */
+.ledger-bills {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ledger-bill-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  transition: all var(--ease);
+}
+
+.ledger-bill-item:hover {
+  border-color: var(--clr-border-strong);
+}
+
+.ledger-bill-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ledger-bill-name {
+  font-weight: 600;
+  color: var(--clr-text);
+  margin-bottom: var(--space-1);
+}
+
+.ledger-bill-meta {
+  font-size: var(--fs-200);
+  color: var(--clr-text-muted);
+}
+
+.ledger-bill-amount {
+  font-family: var(--num-font-display);
+  font-size: var(--fs-500);
+  font-weight: 700;
+  color: var(--clr-text);
+}
+
+/* --- Create Ledger Form --- */
+.ledger-form {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.ledger-form-group {
+  margin-bottom: var(--space-5);
+}
+
+.ledger-form-label {
+  display: block;
+  font-size: var(--fs-300);
+  font-weight: 600;
+  color: var(--clr-text);
+  margin-bottom: var(--space-2);
+}
+
+.ledger-form-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-400);
+  color: var(--clr-text);
+  transition: all var(--ease);
+}
+
+.ledger-form-input:focus {
+  outline: none;
+  border-color: var(--field-border-focus);
+  box-shadow: var(--field-focus-ring);
+}
+
+/* --- Member Input --- */
+.ledger-members-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ledger-member-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.ledger-member-color-picker {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+}
+
+.ledger-member-color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.ledger-member-color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+/* --- Share Button --- */
+.ledger-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  background: linear-gradient(
+    135deg,
+    var(--clr-success),
+    color-mix(in srgb, var(--clr-success) 80%, #10b981)
+  );
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-400);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--ease);
+}
+
+.ledger-share-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--clr-success) 32%, transparent);
+}
+
+/* --- Empty State --- */
+.ledger-empty {
+  text-align: center;
+  padding: var(--space-9);
+}
+
+.ledger-empty-icon {
+  font-size: 4rem;
+  margin-bottom: var(--space-4);
+  opacity: 0.5;
+}
+
+.ledger-empty-title {
+  font-size: var(--fs-500);
+  font-weight: 700;
+  color: var(--clr-text);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.ledger-empty-text {
+  font-size: var(--fs-300);
+  color: var(--clr-text-secondary);
+  margin-bottom: var(--space-5);
+}
+
+/* --- Mobile Adjustments --- */
+@media (max-width: 640px) {
+  .ledger-detail-header {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .ledger-detail-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .ledger-detail-actions .btn {
+    flex: 1;
+  }
+
+  .member-balances {
+    grid-template-columns: 1fr;
+  }
+
+  .settlement-transaction {
+    flex-direction: column;
+    gap: var(--space-3);
+    text-align: center;
+  }
+
+  .settlement-transaction-parties {
+    flex-direction: column;
+  }
+
+  .settlement-transaction-arrow {
+    transform: rotate(90deg);
+  }
+}

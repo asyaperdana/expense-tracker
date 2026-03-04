@@ -1,0 +1,77 @@
+/* ===========================
+   Header Layout
+   =========================== */
+
+.header {
+  background: color-mix(in srgb, var(--clr-surface) 88%, transparent);
+  border-bottom: 1px solid var(--clr-border);
+  padding: 0.85rem var(--space-5);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+}
+
+.header-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  position: relative;
+  z-index: 1;
+}
+
+.header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clr-white);
+  font-size: 1.3rem;
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+  box-shadow: var(--shadow-sm);
+}
+
+.header h1 {
+  font-size: var(--fs-500);
+  font-weight: 800;
+  letter-spacing: -0.018em;
+}
+
+.header-subtitle {
+  font-size: var(--fs-200);
+  color: var(--clr-text-2);
+  margin-top: 0.15rem;
+  opacity: 1;
+}
+
+/* Theme toggle button */
+.btn-theme-toggle {
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--clr-border);
+  background: var(--clr-surface-alt);
+  color: var(--clr-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--ease);
+}
+
+.btn-theme-toggle:hover {
+  border-color: var(--clr-border-strong);
+  transform: translateY(-1px);
+}
+
+.theme-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: transform 0.4s ease;
+}

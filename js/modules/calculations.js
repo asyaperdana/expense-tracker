@@ -4,6 +4,11 @@
 import { OTHER_EXPENSE_CATEGORY } from './state.js';
 
 // ─── Format Helpers ───────────────────────
+/**
+ * Formats a number as Indonesian Rupiah currency.
+ * @param {number} num - The number to format
+ * @returns {string} Formatted Rupiah string (e.g., "Rp 1.000.000")
+ */
 export function formatRupiah(num) {
   return 'Rp ' + Number(num).toLocaleString('id-ID');
 }
@@ -27,14 +32,24 @@ function getCompactFractionDigits(scaled) {
   return 2;
 }
 
+/**
+ * Formats a number as compact Rupiah (e.g., "Rp 1,5 jt" or "Rp 500 rb").
+ * @param {number} num - The number to format
+ * @param {Object} options - Formatting options
+ * @returns {string} Compact formatted Rupiah string
+ */
 export function formatRupiahCompact(num, options = {}) {
   const value = clampNumber(num);
   const abs = Math.abs(value);
   const sign = value < 0 ? '-' : '';
   const withPrefix = options.withPrefix !== false;
   const unitSpacing = options.unitSpacing !== false ? ' ' : '';
-  const minFractionDigits = Number.isFinite(options.minFractionDigits) ? Math.max(0, options.minFractionDigits) : 0;
-  const fixedMaxFractionDigits = Number.isFinite(options.maxFractionDigits) ? Math.max(minFractionDigits, options.maxFractionDigits) : null;
+  const minFractionDigits = Number.isFinite(options.minFractionDigits)
+    ? Math.max(0, options.minFractionDigits)
+    : 0;
+  const fixedMaxFractionDigits = Number.isFinite(options.maxFractionDigits)
+    ? Math.max(minFractionDigits, options.maxFractionDigits)
+    : null;
   let divisor = 1;
   let suffix = '';
 
@@ -47,14 +62,19 @@ export function formatRupiahCompact(num, options = {}) {
   }
 
   const scaled = value / divisor;
-  const maxFractionDigits = fixedMaxFractionDigits == null
-    ? getCompactFractionDigits(scaled)
-    : fixedMaxFractionDigits;
+  const maxFractionDigits =
+    fixedMaxFractionDigits == null ? getCompactFractionDigits(scaled) : fixedMaxFractionDigits;
   const formatted = formatLocaleNumber(Math.abs(scaled), maxFractionDigits, minFractionDigits);
-  const core = suffix ? (formatted + unitSpacing + suffix) : formatted;
-  return withPrefix ? (sign + 'Rp ' + core) : (sign + core);
+  const core = suffix ? formatted + unitSpacing + suffix : formatted;
+  return withPrefix ? sign + 'Rp ' + core : sign + core;
 }
 
+/**
+ * Formats a number as percentage.
+ * @param {number} value - The value to format
+ * @param {number} decimals - Number of decimal places (default: 1)
+ * @returns {string} Formatted percentage string
+ */
 export function formatPercent(value, decimals = 1) {
   const safeDecimals = Number.isFinite(decimals) ? Math.max(0, decimals) : 1;
   const n = clampNumber(value);
@@ -78,7 +98,10 @@ export function formatDate(dateStr) {
 }
 
 export function normalizePersonName(name) {
-  return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  return String(name || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
 }
 
 export function escapeHtml(str) {
@@ -88,6 +111,10 @@ export function escapeHtml(str) {
   return div.innerHTML;
 }
 
+/**
+ * Generates a unique ID using timestamp and random string.
+ * @returns {string} Unique identifier
+ */
 export function generateId() {
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
 }
@@ -100,8 +127,20 @@ export function getCurrentMonthKey() {
 
 export function getMonthLabel(monthKey) {
   if (!monthKey || monthKey.length !== 7) return 'Bulan Ini';
-  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const monthNames = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
   const parts = monthKey.split('-');
   const year = Number(parts[0]);
   const monthIndex = Number(parts[1]) - 1;
@@ -143,18 +182,32 @@ export function getTodayString() {
 }
 
 // ─── Calculations ─────────────────────────
+/**
+ * Calculates totals for income, expense, and balance from expenses array.
+ * @param {Array} expenses - Array of expense items
+ * @returns {{income: number, expense: number, balance: number}} Totals object
+ */
 export function calculateTotal(expenses) {
-  return expenses.reduce(function (res, item) {
-    if (item.type === 'income') {
-      res.income += item.amount;
-    } else if (item.type === 'expense') {
-      res.expense += item.amount;
-    }
-    res.balance = res.income - res.expense;
-    return res;
-  }, { income: 0, expense: 0, balance: 0 });
+  return expenses.reduce(
+    function (res, item) {
+      if (item.type === 'income') {
+        res.income += item.amount;
+      } else if (item.type === 'expense') {
+        res.expense += item.amount;
+      }
+      res.balance = res.income - res.expense;
+      return res;
+    },
+    { income: 0, expense: 0, balance: 0 }
+  );
 }
 
+/**
+ * Calculates wallet balances based on all transactions.
+ * @param {Array} expenses - Array of expense items
+ * @param {Array} wallets - Array of wallet objects
+ * @returns {Object} Map of wallet names to balance values
+ */
 export function calculateWalletBalances(expenses, wallets) {
   const walletsResult = {};
   wallets.forEach(function (w) {
@@ -213,7 +266,12 @@ export function calculateMonthlySummary(expenses, monthKey) {
   });
 
   const prevExpense = expenses.reduce(function (sum, item) {
-    if (item.type !== 'income' && item.type !== 'transfer' && item.date && item.date.substring(0, 7) === previousMonthKey) {
+    if (
+      item.type !== 'income' &&
+      item.type !== 'transfer' &&
+      item.date &&
+      item.date.substring(0, 7) === previousMonthKey
+    ) {
       return sum + item.amount;
     }
     return sum;
@@ -237,11 +295,16 @@ export function calculateMonthlySummary(expenses, monthKey) {
   if (monthExpense === 0) {
     advice = 'Belum ada pengeluaran tercatat di bulan ini. Jaga konsistensi pencatatan.';
   } else if (net < 0) {
-    advice = 'Pengeluaran melebihi pemasukan. Prioritaskan biaya wajib dan kurangi pos non-esensial.';
-  } else if (topCategoryAmount > 0 && (topCategoryAmount / monthExpense) >= 0.45) {
-    advice = 'Kategori ' + topCategory + ' mendominasi pengeluaran. Pertimbangkan set budget lebih ketat di kategori ini.';
-  } else if (monthIncome > 0 && (monthExpense / monthIncome) >= 0.8) {
-    advice = 'Pengeluaran sudah mendekati pemasukan. Sisakan buffer minimal 20% untuk tabungan/darurat.';
+    advice =
+      'Pengeluaran melebihi pemasukan. Prioritaskan biaya wajib dan kurangi pos non-esensial.';
+  } else if (topCategoryAmount > 0 && topCategoryAmount / monthExpense >= 0.45) {
+    advice =
+      'Kategori ' +
+      topCategory +
+      ' mendominasi pengeluaran. Pertimbangkan set budget lebih ketat di kategori ini.';
+  } else if (monthIncome > 0 && monthExpense / monthIncome >= 0.8) {
+    advice =
+      'Pengeluaran sudah mendekati pemasukan. Sisakan buffer minimal 20% untuk tabungan/darurat.';
   } else {
     advice = 'Arus kas bulan ini cukup sehat. Pertahankan ritme dan tingkatkan porsi tabungan.';
   }
@@ -280,12 +343,18 @@ export function getFilteredData(expenses, filters) {
 
   let filtered = expenses.filter(function (e) {
     const haystack = [
-      e.date || '', e.title || '', e.category || '',
-      e.wallet || '', e.walletTo || '', e.type || '',
+      e.date || '',
+      e.title || '',
+      e.category || '',
+      e.wallet || '',
+      e.walletTo || '',
+      e.type || '',
       String(e.amount || ''),
       Number(e.amount || 0).toLocaleString('en-US'),
       Number(e.amount || 0).toLocaleString('id-ID'),
-    ].join(' ').toLowerCase();
+    ]
+      .join(' ')
+      .toLowerCase();
     const searchMatch = !selectedSearch || haystack.indexOf(selectedSearch) !== -1;
     const catMatch = selectedCat === 'Semua' || e.category === selectedCat;
     const monthMatch = !selectedMonth || e.date.substring(0, 7) === selectedMonth;
@@ -336,14 +405,22 @@ export function getOwnerSettlement(ownerName, results) {
   };
 }
 
-export function calculateSplitResults(billName, total, splitMode, people, payerId, ownerName, date) {
+export function calculateSplitResults(
+  billName,
+  total,
+  splitMode,
+  people,
+  payerId,
+  ownerName,
+  date
+) {
   let results = [];
-  const payer = people.find(p => p.id === payerId) || people[0];
+  const payer = people.find((p) => p.id === payerId) || people[0];
   let customTotal = 0;
 
   if (splitMode === 'equal') {
     const share = Math.round(total / people.length);
-    const remainder = total - (share * people.length);
+    const remainder = total - share * people.length;
     people.forEach((p, i) => {
       results.push({
         id: p.id,
@@ -353,7 +430,7 @@ export function calculateSplitResults(billName, total, splitMode, people, payerI
     });
   } else {
     // Custom mode
-    people.forEach(p => {
+    people.forEach((p) => {
       const share = Number(p.customAmount);
       const safeShare = Number.isFinite(share) && share >= 0 ? share : 0;
       customTotal += safeShare;
@@ -365,7 +442,12 @@ export function calculateSplitResults(billName, total, splitMode, people, payerI
       const direction = difference > 0 ? 'kurang' : 'lebih';
       return {
         errorCode: 'CUSTOM_TOTAL_MISMATCH',
-        errorMessage: 'Total porsi custom harus sama dengan total tagihan. Selisih ' + amount + ' (' + direction + ').',
+        errorMessage:
+          'Total porsi custom harus sama dengan total tagihan. Selisih ' +
+          amount +
+          ' (' +
+          direction +
+          ').',
         expectedTotal: total,
         actualTotal: customTotal,
         difference: difference,
@@ -373,7 +455,7 @@ export function calculateSplitResults(billName, total, splitMode, people, payerI
     }
   }
 
-  results = results.map(p => {
+  results = results.map((p) => {
     const paid = p.id === payerId ? total : 0;
     return {
       id: p.id,

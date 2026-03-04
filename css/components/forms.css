@@ -1,0 +1,264 @@
+/* ===========================
+   Form Components
+   =========================== */
+
+/* Form layout */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.75rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: var(--clr-text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+/* Form inputs */
+.form-group input,
+.form-group select,
+.filter-group input,
+.filter-group select,
+textarea,
+.wallet-add-row input,
+.wallet-add-row select,
+.category-budget-input,
+.split-person-row input {
+  padding: 0.75rem 1rem;
+  min-height: 46px;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  background: var(--clr-surface-alt);
+  color: var(--clr-text);
+  outline: none;
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease),
+    background var(--ease);
+}
+
+.form-group input::placeholder,
+.filter-group input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--clr-text-2) 80%, transparent);
+}
+
+.form-group input:hover,
+.form-group select:hover,
+.filter-group input:hover,
+.filter-group select:hover,
+textarea:hover,
+.wallet-add-row input:hover,
+.wallet-add-row select:hover,
+.category-budget-input:hover,
+.split-person-row input:hover {
+  border-color: var(--clr-border-strong);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.filter-group input:focus,
+.filter-group select:focus,
+textarea:focus,
+.wallet-add-row input:focus,
+.wallet-add-row select:focus,
+.category-budget-input:focus,
+.split-person-row input:focus {
+  border-color: color-mix(in srgb, var(--clr-primary) 45%, var(--clr-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--clr-primary) 14%, transparent);
+  background: var(--clr-surface);
+}
+
+/* Invalid state */
+.form-group input.invalid,
+.form-group select.invalid,
+.filter-group input.invalid,
+.split-person-row input.invalid {
+  border-color: color-mix(in srgb, var(--clr-danger) 65%, var(--clr-border));
+  box-shadow: 0 0 0 3px var(--clr-danger-soft);
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+/* Select options */
+.form-group select option {
+  color: var(--clr-text);
+  background-color: var(--clr-surface);
+}
+
+/* Help text */
+.help-text {
+  min-height: 0.9rem;
+  font-size: 0.72rem;
+  color: var(--clr-danger);
+}
+
+/* Form actions */
+.form-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Conditional groups */
+.conditional-group[data-collapsed='true'] {
+  display: none;
+}
+
+/* Field header */
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Add category button */
+.btn-add-category {
+  font-size: 0.72rem;
+  border: none;
+  background: none;
+  color: var(--clr-primary);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* Checkbox group */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.checkbox-group input[type='checkbox'] {
+  accent-color: var(--clr-primary);
+  width: 16px;
+  height: 16px;
+}
+
+.checkbox-group label {
+  font-size: 0.85rem;
+  color: var(--clr-text-2);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* --- Segmented Control --- */
+.segmented-control {
+  position: relative;
+  display: flex;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  height: 2.7rem;
+}
+
+.segmented-control input[type='radio'] {
+  display: none;
+}
+
+.segmented-control label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--clr-text-2);
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.3s ease;
+  user-select: none;
+  text-transform: none;
+  letter-spacing: normal;
+  margin: 0;
+}
+
+.segmented-control label:hover {
+  color: var(--clr-text);
+}
+
+.segmented-control input[type='radio']:checked + label {
+  color: #fff;
+}
+
+.segmented-bg {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: calc(33.333% - 2px);
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+  border-radius: 8px;
+  z-index: 1;
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.35s ease;
+}
+
+input[value='expense']:checked ~ .segmented-bg {
+  transform: translateX(3px);
+  background: var(--clr-danger);
+}
+
+input[value='income']:checked ~ .segmented-bg {
+  transform: translateX(calc(100% + 3px));
+  background: var(--clr-success);
+}
+
+input[value='transfer']:checked ~ .segmented-bg {
+  transform: translateX(calc(200% + 6px));
+  background: var(--clr-accent);
+}
+
+/* --- Filter Groups --- */
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.filter-group label {
+  color: var(--clr-text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+/* --- Search Input --- */
+input[type='search'] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-cancel-button {
+  display: none;
+}

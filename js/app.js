@@ -1,6 +1,8 @@
 /* ===========================
    app.js — Main Orchestrator
    =========================== */
+// TODO: This file is ~2000 lines. Consider extracting business logic into
+// separate modules (transactions.js, import-export.js, recurring.js, etc.)
 
 import {
   state,
@@ -9,20 +11,31 @@ import {
   normalizeWalletName,
   normalizeWalletIcon,
   normalizeCategoryName,
-  OTHER_EXPENSE_CATEGORY
+  OTHER_EXPENSE_CATEGORY,
 } from './modules/state.js';
 import * as storage from './modules/storage.js';
 import * as calc from './modules/calculations.js';
 import * as validation from './modules/validation.js';
+import * as sharedLedgers from './modules/shared-ledgers.js';
 import * as ui from './ui.js';
 
 const VALID_TRANSACTION_TYPES = ['expense', 'income', 'transfer'];
 let shouldReloadAfterImportSummary = false;
 
+/**
+ * Normalizes text input by trimming whitespace.
+ * @param {*} value - Value to normalize
+ * @returns {string} Trimmed string or empty string
+ */
 export function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
+/**
+ * Sanitizes and validates an expense item from raw data.
+ * @param {Object} raw - Raw expense data
+ * @returns {Object|null} Sanitized expense object or null if invalid
+ */
 export function sanitizeExpenseItem(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const type = VALID_TRANSACTION_TYPES.includes(raw.type) ? raw.type : 'expense';
@@ -75,7 +88,7 @@ export function sanitizeWallet(raw, index) {
   const name = normalizeText(raw.name);
   if (!name) return null;
   return {
-    id: normalizeText(raw.id) || ('w-import-' + (index + 1)),
+    id: normalizeText(raw.id) || 'w-import-' + (index + 1),
     name,
     icon: normalizeWalletIcon(raw.icon),
   };
@@ -99,7 +112,7 @@ export function sanitizeGoal(raw, index) {
   const target = Number(raw.target);
   if (!name || !Number.isFinite(target) || target <= 0) return null;
   return {
-    id: normalizeText(raw.id) || ('goal-import-' + (index + 1)),
+    id: normalizeText(raw.id) || 'goal-import-' + (index + 1),
     name,
     target,
   };
@@ -113,7 +126,7 @@ export function sanitizeTemplate(raw, index) {
   if (!title || !Number.isFinite(amount) || amount <= 0) return null;
   const category = normalizeCategoryName(raw.category);
   return {
-    id: normalizeText(raw.id) || ('tpl-import-' + (index + 1)),
+    id: normalizeText(raw.id) || 'tpl-import-' + (index + 1),
     title,
     category: category || (type === 'transfer' ? 'Transfer' : OTHER_EXPENSE_CATEGORY),
     amount,
@@ -128,7 +141,7 @@ export function sanitizeRecurring(raw, index) {
   const skipUntil = normalizeText(raw.skipUntil);
   const template = sanitizeExpenseItem(raw.template);
   if (!template || !validation.isValidIsoDate(nextDate)) return null;
-  const recurringId = normalizeText(raw.id) || ('rec-import-' + (index + 1));
+  const recurringId = normalizeText(raw.id) || 'rec-import-' + (index + 1);
   return {
     id: recurringId,
     template: {
@@ -161,10 +174,10 @@ export function sanitizeSplitPerson(raw, index) {
   const net = Number(raw.net);
   const safeShare = Number.isFinite(share) && share >= 0 ? share : 0;
   const safePaid = Number.isFinite(paid) && paid >= 0 ? paid : 0;
-  const safeNet = Number.isFinite(net) ? net : (safePaid - safeShare);
+  const safeNet = Number.isFinite(net) ? net : safePaid - safeShare;
   return {
-    id: normalizeText(raw.id) || ('p-' + (index + 1)),
-    name: normalizeText(raw.name) || ('Peserta ' + (index + 1)),
+    id: normalizeText(raw.id) || 'p-' + (index + 1),
+    name: normalizeText(raw.name) || 'Peserta ' + (index + 1),
     share: safeShare,
     paid: safePaid,
     net: safeNet,
@@ -185,15 +198,25 @@ export function sanitizeSplitEntry(raw, index) {
   const ownerId = normalizeText(raw.ownerId) || people[0].id;
   const payer = people.find((p) => p.id === payerId);
   const owner = people.find((p) => p.id === ownerId);
-  const ownerShare = Number.isFinite(Number(raw.ownerShare)) ? Number(raw.ownerShare) : (owner ? owner.share : 0);
-  const ownerPaid = Number.isFinite(Number(raw.ownerPaid)) ? Number(raw.ownerPaid) : (owner ? owner.paid : 0);
-  const ownerNet = Number.isFinite(Number(raw.ownerNet)) ? Number(raw.ownerNet) : (ownerPaid - ownerShare);
+  const ownerShare = Number.isFinite(Number(raw.ownerShare))
+    ? Number(raw.ownerShare)
+    : owner
+      ? owner.share
+      : 0;
+  const ownerPaid = Number.isFinite(Number(raw.ownerPaid))
+    ? Number(raw.ownerPaid)
+    : owner
+      ? owner.paid
+      : 0;
+  const ownerNet = Number.isFinite(Number(raw.ownerNet))
+    ? Number(raw.ownerNet)
+    : ownerPaid - ownerShare;
   const status = calc.getOwnerSettlementDescriptor(ownerNet);
   const doneAt = normalizeText(raw.doneAt);
   const syncedAt = normalizeText(raw.syncedAt);
 
   return {
-    id: normalizeText(raw.id) || ('split-import-' + (index + 1)),
+    id: normalizeText(raw.id) || 'split-import-' + (index + 1),
     billName: normalizeText(raw.billName) || 'Split Bill',
     total: Number.isFinite(Number(raw.total)) ? Number(raw.total) : 0,
     mode: raw.mode === 'custom' ? 'custom' : 'equal',
@@ -259,7 +282,7 @@ export function sanitizeImportPayload(raw) {
       .map(sanitizeCustomCategory)
       .filter(Boolean)
       .filter((cat) => {
-        const key = (cat.type + '|' + cat.name.toLowerCase());
+        const key = cat.type + '|' + cat.name.toLowerCase();
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -327,6 +350,11 @@ function registerServiceWorker() {
   navigator.serviceWorker.register('./service-worker.js').catch(() => {});
 }
 
+/**
+ * Deduplicates wallets by name (case-insensitive).
+ * @param {Array} wallets - Array of wallet objects
+ * @returns {Array} Deduplicated wallets array
+ */
 export function dedupeWallets(wallets) {
   const seen = new Set();
   return wallets.filter((wallet) => {
@@ -337,6 +365,11 @@ export function dedupeWallets(wallets) {
   });
 }
 
+/**
+ * Calculates the next recurring date (1 month from base date).
+ * @param {string} baseDate - ISO date string (YYYY-MM-DD)
+ * @returns {string} Next recurring date as ISO string
+ */
 export function getRecurringNextDate(baseDate) {
   const d = new Date(baseDate);
   if (isNaN(d.getTime())) return calc.getTodayString();
@@ -356,13 +389,14 @@ function syncRecurringForExpense(expenseItem) {
     const nextDate = getRecurringNextDate(expenseItem.date);
     if (recurringIndex !== -1) {
       const existing = state.recurringExpenses[recurringIndex];
-      const templateId = existing.template && existing.template.id ? existing.template.id : expenseItem.id;
+      const templateId =
+        existing.template && existing.template.id ? existing.template.id : expenseItem.id;
       expenseItem.recurringSourceId = existing.id;
       existing.template = {
         ...expenseItem,
         id: templateId,
         isRecurring: true,
-        recurringSourceId: existing.id
+        recurringSourceId: existing.id,
       };
       if (!validation.isValidIsoDate(existing.nextDate) || existing.nextDate <= expenseItem.date) {
         existing.nextDate = nextDate;
@@ -558,25 +592,36 @@ function applyImportData(mode, data) {
   let skipped = 0;
 
   if (mode === 'replace') {
-    state.expenses = ('expenses' in data ? data.expenses : []).map(sanitizeExpenseItem).filter(Boolean);
+    state.expenses = ('expenses' in data ? data.expenses : [])
+      .map(sanitizeExpenseItem)
+      .filter(Boolean);
     storage.saveExpenses(state.expenses);
 
-    const importedWallets = dedupeWallets(('wallets' in data ? data.wallets : []).map(sanitizeWallet).filter(Boolean));
-    state.wallets = importedWallets.length > 0
-      ? importedWallets
-      : DEFAULT_WALLETS.map(sanitizeWallet).filter(Boolean);
+    const importedWallets = dedupeWallets(
+      ('wallets' in data ? data.wallets : []).map(sanitizeWallet).filter(Boolean)
+    );
+    state.wallets =
+      importedWallets.length > 0
+        ? importedWallets
+        : DEFAULT_WALLETS.map(sanitizeWallet).filter(Boolean);
     storage.saveWallets(state.wallets);
 
-    state.customCategories = ('categories' in data ? data.categories : []).map(sanitizeCustomCategory).filter(Boolean);
+    state.customCategories = ('categories' in data ? data.categories : [])
+      .map(sanitizeCustomCategory)
+      .filter(Boolean);
     storage.saveCustomCategories(state.customCategories);
 
     state.goals = ('goals' in data ? data.goals : []).map(sanitizeGoal).filter(Boolean);
     storage.saveGoals(state.goals);
 
-    state.templates = ('templates' in data ? data.templates : []).map(sanitizeTemplate).filter(Boolean);
+    state.templates = ('templates' in data ? data.templates : [])
+      .map(sanitizeTemplate)
+      .filter(Boolean);
     storage.saveTemplates(state.templates);
 
-    state.recurringExpenses = ('recurring' in data ? data.recurring : []).map(sanitizeRecurring).filter(Boolean);
+    state.recurringExpenses = ('recurring' in data ? data.recurring : [])
+      .map(sanitizeRecurring)
+      .filter(Boolean);
     storage.saveRecurring(state.recurringExpenses);
 
     state.categoryBudgets = sanitizeCategoryBudgets('budgets' in data ? data.budgets : {});
@@ -584,6 +629,9 @@ function applyImportData(mode, data) {
 
     state.splitLedger = ('split' in data ? data.split : []).map(sanitizeSplitEntry).filter(Boolean);
     storage.saveSplitLedger(state.splitLedger);
+
+    const importedLedgers = 'sharedLedgers' in data ? data.sharedLedgers : [];
+    sharedLedgers.saveSharedLedgers(importedLedgers);
 
     added += state.expenses.length;
     added += state.wallets.length;
@@ -598,9 +646,14 @@ function applyImportData(mode, data) {
 
   if ('expenses' in data) {
     const incoming = data.expenses.map(sanitizeExpenseItem).filter(Boolean);
-    const merged = mode === 'merge-content'
-      ? mergeUniqueBy(state.expenses, incoming, expenseContentKey)
-      : mergeUniqueBy(state.expenses, incoming, (item) => normalizeText(item.id) || expenseContentKey(item));
+    const merged =
+      mode === 'merge-content'
+        ? mergeUniqueBy(state.expenses, incoming, expenseContentKey)
+        : mergeUniqueBy(
+            state.expenses,
+            incoming,
+            (item) => normalizeText(item.id) || expenseContentKey(item)
+          );
     state.expenses = merged.out;
     storage.saveExpenses(state.expenses);
     added += merged.added;
@@ -609,7 +662,9 @@ function applyImportData(mode, data) {
 
   if ('wallets' in data) {
     const incoming = data.wallets.map(sanitizeWallet).filter(Boolean);
-    const merged = mergeUniqueBy(state.wallets, incoming, (item) => normalizeWalletName(item.name).toLowerCase());
+    const merged = mergeUniqueBy(state.wallets, incoming, (item) =>
+      normalizeWalletName(item.name).toLowerCase()
+    );
     state.wallets = dedupeWallets(merged.out);
     storage.saveWallets(state.wallets);
     added += merged.added;
@@ -621,7 +676,7 @@ function applyImportData(mode, data) {
     const merged = mergeUniqueBy(
       state.customCategories,
       incoming,
-      (item) => (item.type + '|' + normalizeText(item.name).toLowerCase())
+      (item) => item.type + '|' + normalizeText(item.name).toLowerCase()
     );
     state.customCategories = merged.out;
     storage.saveCustomCategories(state.customCategories);
@@ -649,7 +704,11 @@ function applyImportData(mode, data) {
 
   if ('recurring' in data) {
     const incoming = data.recurring.map(sanitizeRecurring).filter(Boolean);
-    const merged = mergeUniqueBy(state.recurringExpenses, incoming, (item) => normalizeText(item.id) || normalizeText(item.template && item.template.id));
+    const merged = mergeUniqueBy(
+      state.recurringExpenses,
+      incoming,
+      (item) => normalizeText(item.id) || normalizeText(item.template && item.template.id)
+    );
     state.recurringExpenses = merged.out;
     storage.saveRecurring(state.recurringExpenses);
     added += merged.added;
@@ -664,7 +723,7 @@ function applyImportData(mode, data) {
     });
     storage.saveCategoryBudgets(state.categoryBudgets);
     const mergedKeys = Object.keys(state.categoryBudgets).length;
-    if (mergedKeys >= currentKeys) added += (mergedKeys - currentKeys);
+    if (mergedKeys >= currentKeys) added += mergedKeys - currentKeys;
   }
 
   if ('split' in data) {
@@ -672,6 +731,16 @@ function applyImportData(mode, data) {
     const merged = mergeUniqueBy(state.splitLedger, incoming, (item) => normalizeText(item.id));
     state.splitLedger = merged.out;
     storage.saveSplitLedger(state.splitLedger);
+    added += merged.added;
+    skipped += merged.skipped;
+  }
+
+  if ('sharedLedgers' in data && Array.isArray(data.sharedLedgers)) {
+    const currentLedgers = sharedLedgers.loadSharedLedgers();
+    const merged = mergeUniqueBy(currentLedgers, data.sharedLedgers, (item) =>
+      normalizeText(item.id)
+    );
+    sharedLedgers.saveSharedLedgers(merged.out);
     added += merged.added;
     skipped += merged.skipped;
   }
@@ -732,6 +801,12 @@ function handleCancelImport() {
   if (ui.dom.inputImportJson) ui.dom.inputImportJson.value = '';
 }
 
+/**
+ * Gets queue of due recurring expenses for a given date.
+ * @param {string} today - ISO date string (YYYY-MM-DD)
+ * @param {Function} idGenerator - Optional ID generator function
+ * @returns {{queue: Array, changed: boolean}} Queue of due items and change flag
+ */
 export function getDueRecurringQueue(today, idGenerator) {
   const queue = [];
   let changed = false;
@@ -810,14 +885,19 @@ function renderRecurringPrompt() {
     item.innerHTML =
       '<div class="wallet-item-icon"><i class="ph-bold ph-arrows-clockwise"></i></div>' +
       '<div class="wallet-item-meta">' +
-      '<div class="wallet-item-name">' + calc.escapeHtml(entry.template.title || 'Tagihan Berulang') + '</div>' +
+      '<div class="wallet-item-name">' +
+      calc.escapeHtml(entry.template.title || 'Tagihan Berulang') +
+      '</div>' +
       '<div class="wallet-item-usage">' +
-      entry.dueItems.length + 'x jatuh tempo • ' + calc.formatRupiah((entry.template.amount || 0) * entry.dueItems.length) +
+      entry.dueItems.length +
+      'x jatuh tempo • ' +
+      calc.formatRupiah((entry.template.amount || 0) * entry.dueItems.length) +
       '</div></div>';
     list.appendChild(item);
   });
 
-  desc.textContent = 'Ada ' + totalDue + ' transaksi recurring yang jatuh tempo. Tambahkan sekarang?';
+  desc.textContent =
+    'Ada ' + totalDue + ' transaksi recurring yang jatuh tempo. Tambahkan sekarang?';
   overlay.classList.add('active');
 }
 
@@ -872,13 +952,18 @@ function handleSkipRecurring() {
 // ─── Initialization ───────────────────────
 function init() {
   ui.cacheDom();
-  
+
   // Load initial state from storage
   state.expenses = storage.loadExpenses().map(sanitizeExpenseItem).filter(Boolean);
   state.recurringExpenses = storage.loadRecurring().map(sanitizeRecurring).filter(Boolean);
-  state.customCategories = storage.loadCustomCategoriesData().map(sanitizeCustomCategory).filter(Boolean);
+  state.customCategories = storage
+    .loadCustomCategoriesData()
+    .map(sanitizeCustomCategory)
+    .filter(Boolean);
   state.goals = storage.loadGoals().map(sanitizeGoal).filter(Boolean);
-  state.wallets = dedupeWallets((storage.loadWalletsData() || []).map(sanitizeWallet).filter(Boolean));
+  state.wallets = dedupeWallets(
+    (storage.loadWalletsData() || []).map(sanitizeWallet).filter(Boolean)
+  );
   if (state.wallets.length === 0) {
     state.wallets = DEFAULT_WALLETS.map(sanitizeWallet).filter(Boolean);
   }
@@ -896,8 +981,9 @@ function init() {
   ui.renderGoals(handleOpenFundGoal, handleDeleteGoal);
   ui.renderSplitLedgerTable();
   ui.renderSplitHistory();
+  renderSharedLedgers();
   ui.renderRecentTransactions();
-  
+
   // Set initial view
   const initialView = storage.getActiveView() || 'dashboard';
   ui.setActiveView(initialView, false);
@@ -966,7 +1052,7 @@ function applyFilterMonthAndRefresh(monthKey) {
 // ─── Event Listeners ───────────────────────
 function setupEventListeners() {
   // Navigation
-  document.querySelectorAll('[data-nav-view]').forEach(btn => {
+  document.querySelectorAll('[data-nav-view]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const view = btn.getAttribute('data-nav-view');
       ui.setActiveView(view, view === 'add');
@@ -1000,7 +1086,7 @@ function setupEventListeners() {
   ui.dom.inputAmount.addEventListener('input', ui.formatInputCurrency);
 
   // Type Toggle
-  document.querySelectorAll('input[name="input-type"]').forEach(radio => {
+  document.querySelectorAll('input[name="input-type"]').forEach((radio) => {
     radio.addEventListener('change', () => {
       setTimeout(ui.syncConditionalFields, 0);
     });
@@ -1038,7 +1124,7 @@ function setupEventListeners() {
     ui.renderTable();
     if (showToastMessage) ui.showToast('Filter direset', 'info');
   };
-  
+
   const btnResetFilter = document.getElementById('btn-reset-filter');
   if (btnResetFilter) {
     btnResetFilter.addEventListener('click', () => resetFiltersAndRender(true));
@@ -1080,13 +1166,13 @@ function setupEventListeners() {
   // Exports / Imports
   const btnExportCsv = document.getElementById('btn-export-csv');
   if (btnExportCsv) btnExportCsv.addEventListener('click', handleExportCsv);
-  
+
   const btnExportJson = document.getElementById('btn-export-json');
   if (btnExportJson) btnExportJson.addEventListener('click', handleExportJson);
-  
+
   const btnImportJson = document.getElementById('btn-import-json');
   if (btnImportJson) btnImportJson.addEventListener('click', () => ui.dom.inputImportJson.click());
-  
+
   if (ui.dom.inputImportJson) {
     ui.dom.inputImportJson.addEventListener('change', handleImportJson);
   }
@@ -1098,7 +1184,8 @@ function setupEventListeners() {
   if (btnCancelImport) btnCancelImport.addEventListener('click', handleCancelImport);
 
   const btnCloseImportSummary = document.getElementById('btn-close-import-summary');
-  if (btnCloseImportSummary) btnCloseImportSummary.addEventListener('click', closeImportSummaryModal);
+  if (btnCloseImportSummary)
+    btnCloseImportSummary.addEventListener('click', closeImportSummaryModal);
 
   // Undo
   ui.dom.btnUndo.addEventListener('click', handleUndo);
@@ -1157,15 +1244,18 @@ function setupEventListeners() {
 
   const btnCancelBudget = document.getElementById('btn-cancel-budget');
   if (btnCancelBudget) {
-    btnCancelBudget.addEventListener('click', () => ui.dom.budgetOverlay.classList.remove('active'));
+    btnCancelBudget.addEventListener('click', () =>
+      ui.dom.budgetOverlay.classList.remove('active')
+    );
   }
 
   // Category Budget Actions
   const btnEditCatBudget = document.getElementById('btn-edit-category-budget');
   if (btnEditCatBudget) btnEditCatBudget.addEventListener('click', ui.openCategoryBudgetModal);
-  
+
   const btnEditCatBudgetEmpty = document.getElementById('btn-edit-category-budget-empty');
-  if (btnEditCatBudgetEmpty) btnEditCatBudgetEmpty.addEventListener('click', ui.openCategoryBudgetModal);
+  if (btnEditCatBudgetEmpty)
+    btnEditCatBudgetEmpty.addEventListener('click', ui.openCategoryBudgetModal);
 
   const btnToolsOpenBudget = document.getElementById('btn-tools-open-budget');
   if (btnToolsOpenBudget) btnToolsOpenBudget.addEventListener('click', ui.openCategoryBudgetModal);
@@ -1175,7 +1265,7 @@ function setupEventListeners() {
     btnSaveCatBudget.addEventListener('click', () => {
       const inputs = ui.dom.categoryBudgetEditor.querySelectorAll('.category-budget-input');
       const next = {};
-      inputs.forEach(input => {
+      inputs.forEach((input) => {
         const cat = input.dataset.category;
         const val = Number(input.value.replace(/,/g, ''));
         if (cat && val > 0) next[cat] = val;
@@ -1191,7 +1281,9 @@ function setupEventListeners() {
 
   const btnCancelCatBudget = document.getElementById('btn-cancel-category-budget');
   if (btnCancelCatBudget) {
-    btnCancelCatBudget.addEventListener('click', () => ui.dom.categoryBudgetOverlay.classList.remove('active'));
+    btnCancelCatBudget.addEventListener('click', () =>
+      ui.dom.categoryBudgetOverlay.classList.remove('active')
+    );
   }
 
   // Goal Actions
@@ -1222,7 +1314,9 @@ function setupEventListeners() {
 
   const btnCancelGoalFund = document.getElementById('btn-cancel-goal-fund');
   if (btnCancelGoalFund) {
-    btnCancelGoalFund.addEventListener('click', () => ui.dom.goalFundOverlay.classList.remove('active'));
+    btnCancelGoalFund.addEventListener('click', () =>
+      ui.dom.goalFundOverlay.classList.remove('active')
+    );
   }
 
   const btnConfirmRecurring = document.getElementById('btn-confirm-recurring');
@@ -1248,7 +1342,7 @@ function setupEventListeners() {
       applyFilterMonthAndRefresh(calc.getPreviousMonthKey(current));
     });
   }
-  
+
   const btnNextMonth = document.getElementById('btn-report-next');
   if (btnNextMonth) {
     btnNextMonth.addEventListener('click', () => {
@@ -1265,7 +1359,7 @@ function setupEventListeners() {
 
   const btnOpenSplit = document.getElementById('btn-open-split');
   if (btnOpenSplit) btnOpenSplit.addEventListener('click', openSplitOverlay);
-  
+
   const btnOpenSplitEmpty = document.getElementById('btn-open-split-empty');
   if (btnOpenSplitEmpty) btnOpenSplitEmpty.addEventListener('click', openSplitOverlay);
 
@@ -1287,10 +1381,10 @@ function setupEventListeners() {
 
   const btnCalculateSplit = document.getElementById('btn-calculate-split');
   if (btnCalculateSplit) btnCalculateSplit.addEventListener('click', handleCalculateSplit);
-  
+
   const btnSaveSplit = document.getElementById('btn-save-split');
   if (btnSaveSplit) btnSaveSplit.addEventListener('click', handleSaveSplitToLedger);
-  
+
   const btnBackSplit = document.getElementById('btn-back-split');
   if (btnBackSplit) {
     btnBackSplit.addEventListener('click', () => {
@@ -1309,7 +1403,7 @@ function setupEventListeners() {
   document.querySelectorAll('.split-mode-btn[data-mode]').forEach((btn) => {
     btn.addEventListener('click', () => ui.applySplitMode(btn.dataset.mode));
   });
-  
+
   const btnAddPerson = document.getElementById('btn-add-person');
   if (btnAddPerson) {
     btnAddPerson.addEventListener('click', () => ui.addPersonRow(''));
@@ -1327,25 +1421,47 @@ function setupEventListeners() {
   if (btnAddCategory) {
     btnAddCategory.addEventListener('click', () => ui.dom.categoryOverlay.classList.add('active'));
   }
-  
+
   const btnSaveCategory = document.getElementById('btn-save-category');
   if (btnSaveCategory) btnSaveCategory.addEventListener('click', handleSaveCustomCategory);
-  
+
   const btnCancelCategory = document.getElementById('btn-cancel-category');
-  if (btnCancelCategory) btnCancelCategory.addEventListener('click', () => ui.dom.categoryOverlay.classList.remove('active'));
+  if (btnCancelCategory)
+    btnCancelCategory.addEventListener('click', () =>
+      ui.dom.categoryOverlay.classList.remove('active')
+    );
+
+  // Shared Ledger Event Listeners
+  const btnCreateSharedLedger = document.getElementById('btn-create-shared-ledger');
+  if (btnCreateSharedLedger)
+    btnCreateSharedLedger.addEventListener('click', openSharedLedgerCreateModal);
+
+  const btnCreateSharedLedgerEmpty = document.getElementById('btn-create-shared-ledger-empty');
+  if (btnCreateSharedLedgerEmpty)
+    btnCreateSharedLedgerEmpty.addEventListener('click', openSharedLedgerCreateModal);
+
+  const btnSaveSharedLedger = document.getElementById('btn-save-shared-ledger');
+  if (btnSaveSharedLedger) btnSaveSharedLedger.addEventListener('click', handleSaveSharedLedger);
+
+  const btnCancelSharedLedger = document.getElementById('btn-cancel-shared-ledger');
+  if (btnCancelSharedLedger)
+    btnCancelSharedLedger.addEventListener('click', closeSharedLedgerCreateModal);
+
+  const btnAddLedgerMember = document.getElementById('btn-add-ledger-member');
+  if (btnAddLedgerMember) btnAddLedgerMember.addEventListener('click', addLedgerMemberRow);
 }
 
 // ─── Actions ───────────────────────────────
 function handleTitleInput(e) {
   const val = e.target.value.trim().toLowerCase();
   if (!val) return;
-  
-  const match = [...state.expenses].reverse().find(ex => ex.title.toLowerCase() === val);
+
+  const match = [...state.expenses].reverse().find((ex) => ex.title.toLowerCase() === val);
   if (match) {
     const typeRadio = document.querySelector(`input[name="input-type"][value="${match.type}"]`);
     if (typeRadio) typeRadio.checked = true;
     ui.syncConditionalFields();
-    
+
     ui.dom.inputWallet.value = match.wallet || 'Tunai';
     if (match.type !== 'transfer') {
       ui.dom.inputCategory.value = match.category || '';
@@ -1357,9 +1473,11 @@ function handleTitleInput(e) {
 
 function handleSubmit(e) {
   e.preventDefault();
-  
+
   const type = document.querySelector('input[name="input-type"]:checked').value;
-  const existingItem = state.editingId ? state.expenses.find(item => item.id === state.editingId) : null;
+  const existingItem = state.editingId
+    ? state.expenses.find((item) => item.id === state.editingId)
+    : null;
   const formData = {
     date: ui.dom.inputDate.value,
     title: ui.dom.inputTitle.value,
@@ -1368,7 +1486,7 @@ function handleSubmit(e) {
     type: type,
     wallet: ui.dom.inputWallet.value,
     walletTo: ui.dom.inputWalletTo.value,
-    todayString: calc.getTodayString()
+    todayString: calc.getTodayString(),
   };
 
   const validationResult = validation.validateExpense(formData);
@@ -1382,20 +1500,26 @@ function handleSubmit(e) {
     id: state.editingId || calc.generateId(),
     date: validation.toIsoDate(formData.date),
     title: formData.title.trim(),
-    category: type === 'transfer' ? 'Transfer' : (normalizeCategoryName(formData.category) || OTHER_EXPENSE_CATEGORY),
+    category:
+      type === 'transfer'
+        ? 'Transfer'
+        : normalizeCategoryName(formData.category) || OTHER_EXPENSE_CATEGORY,
     amount: Number(formData.amount.replace(/,/g, '')),
     type: type,
     wallet: formData.wallet,
     walletTo: type === 'transfer' ? formData.walletTo : null,
     isRecurring: ui.dom.inputRecurring.checked,
-    recurringSourceId: existingItem && existingItem.recurringSourceId ? existingItem.recurringSourceId : null
+    recurringSourceId:
+      existingItem && existingItem.recurringSourceId ? existingItem.recurringSourceId : null,
   };
 
   pushUndo();
 
   const hadEditingId = state.editingId;
   if (hadEditingId) {
-    state.expenses = state.expenses.map(item => item.id === state.editingId ? expenseItem : item);
+    state.expenses = state.expenses.map((item) =>
+      item.id === state.editingId ? expenseItem : item
+    );
     if (syncRecurringForExpense(expenseItem)) {
       storage.saveRecurring(state.recurringExpenses);
     }
@@ -1423,14 +1547,14 @@ function handleTableAction(e) {
 
   if (editBtn) {
     const id = editBtn.dataset.id;
-    const item = state.expenses.find(ex => ex.id === id);
+    const item = state.expenses.find((ex) => ex.id === id);
     if (item) startEdit(item);
   } else if (deleteBtn) {
     const id = deleteBtn.dataset.id;
     if (id) openDeleteModal(id);
   } else if (pinBtn) {
     const id = pinBtn.dataset.id;
-    const item = state.expenses.find(ex => ex.id === id);
+    const item = state.expenses.find((ex) => ex.id === id);
     if (item) pinToTemplates(item);
   }
 }
@@ -1441,30 +1565,30 @@ function startEdit(item) {
   ui.dom.inputTitle.value = item.title;
   ui.dom.inputAmount.value = item.amount.toLocaleString('en-US');
   ui.syncAmountDisplay(ui.dom.inputAmount.value);
-  
+
   const typeRadio = document.querySelector(`input[name="input-type"][value="${item.type}"]`);
   if (typeRadio) typeRadio.checked = true;
-  
+
   ui.syncConditionalFields();
-  
+
   if (item.type !== 'transfer') {
     ui.dom.inputCategory.value = item.category;
   } else {
     ui.dom.inputWalletTo.value = item.walletTo;
   }
-  
+
   ui.dom.inputWallet.value = item.wallet;
   ui.dom.inputRecurring.checked = item.isRecurring || false;
-  
+
   ui.dom.btnSubmit.innerHTML = '<i class="ph-bold ph-check"></i> Perbarui Transaksi';
   ui.dom.btnCancel.style.display = 'inline-flex';
-  
+
   ui.setActiveView('add', true);
 }
 
 function deleteExpense(id) {
   pushUndo();
-  state.expenses = state.expenses.filter(e => e.id !== id);
+  state.expenses = state.expenses.filter((e) => e.id !== id);
   if (removeRecurringForExpenseId(id)) {
     storage.saveRecurring(state.recurringExpenses);
   }
@@ -1504,10 +1628,12 @@ function handleUndo() {
 }
 
 function pushUndo() {
-  state.undoStack.push(JSON.stringify({
-    expenses: state.expenses,
-    recurringExpenses: state.recurringExpenses,
-  }));
+  state.undoStack.push(
+    JSON.stringify({
+      expenses: state.expenses,
+      recurringExpenses: state.recurringExpenses,
+    })
+  );
   if (state.undoStack.length > MAX_UNDO) state.undoStack.shift();
   ui.updateUndoIndicator();
 }
@@ -1521,21 +1647,21 @@ function handleSaveBudget() {
 }
 
 function pinToTemplates(item) {
-  const existing = state.templates.find(t => t.title === item.title && t.amount === item.amount);
+  const existing = state.templates.find((t) => t.title === item.title && t.amount === item.amount);
   if (existing) {
     ui.showToast('Template sudah ada', 'info');
     return;
   }
-  
+
   state.templates.push({
     id: calc.generateId(),
     title: item.title,
     category: item.category,
     amount: item.amount,
     type: item.type,
-    wallet: item.wallet
+    wallet: item.wallet,
   });
-  
+
   storage.saveTemplates(state.templates);
   ui.renderTemplateStrip(handleUseTemplate, handleDeleteTemplate);
   ui.showToast('Disematkan ke Quick Add', 'success');
@@ -1547,16 +1673,18 @@ function handleUseTemplate(tpl) {
   ui.syncAmountDisplay(ui.dom.inputAmount.value);
   ui.dom.inputCategory.value = tpl.category;
   ui.dom.inputWallet.value = tpl.wallet;
-  
-  const typeRadio = document.querySelector(`input[name="input-type"][value="${tpl.type || 'expense'}"]`);
+
+  const typeRadio = document.querySelector(
+    `input[name="input-type"][value="${tpl.type || 'expense'}"]`
+  );
   if (typeRadio) typeRadio.checked = true;
-  
+
   ui.syncConditionalFields();
   ui.setActiveView('add', true);
 }
 
 function handleDeleteTemplate(id) {
-  state.templates = state.templates.filter(t => t.id !== id);
+  state.templates = state.templates.filter((t) => t.id !== id);
   storage.saveTemplates(state.templates);
   ui.renderTemplateStrip(handleUseTemplate, handleDeleteTemplate);
   ui.showToast('Template dihapus', 'info');
@@ -1567,12 +1695,12 @@ function handleSaveCustomCategory() {
   const type = ui.dom.inputCustomCatType.value;
   const icon = ui.dom.inputCustomCatIcon.value || 'ph-tag';
   if (type === 'expense') name = normalizeCategoryName(name);
-  
+
   if (!name) {
     ui.showToast('Nama kategori wajib diisi', 'error');
     return;
   }
-  
+
   state.customCategories.push({ name, type, icon });
   storage.saveCustomCategories(state.customCategories);
   ui.renderCategoryOptions();
@@ -1584,12 +1712,12 @@ function handleSaveCustomCategory() {
 function handleSaveGoal() {
   const name = ui.dom.inputGoalName.value.trim();
   const target = Number(ui.dom.inputGoalTarget.value.replace(/,/g, ''));
-  
+
   if (!name || !target) {
     ui.showToast('Lengkapi nama dan target dana', 'error');
     return;
   }
-  
+
   state.goals.push({ id: calc.generateId(), name: name, target: target });
   storage.saveGoals(state.goals);
   ui.renderGoals(handleOpenFundGoal, handleDeleteGoal);
@@ -1598,7 +1726,7 @@ function handleSaveGoal() {
 }
 
 function handleOpenFundGoal(id) {
-  const goal = state.goals.find(g => g.id === id);
+  const goal = state.goals.find((g) => g.id === id);
   if (goal) {
     ui.dom.inputGoalFundId.value = id;
     ui.dom.goalFundSubtitle.textContent = 'Menabung untuk: ' + goal.name;
@@ -1609,7 +1737,7 @@ function handleOpenFundGoal(id) {
 
 function handleDeleteGoal(id) {
   if (confirm('Hapus tabungan impian ini?')) {
-    state.goals = state.goals.filter(g => g.id !== id);
+    state.goals = state.goals.filter((g) => g.id !== id);
     storage.saveGoals(state.goals);
     ui.renderGoals(handleOpenFundGoal, handleDeleteGoal);
     ui.showToast('Tabungan impian dihapus', 'info');
@@ -1620,13 +1748,13 @@ function handleSaveGoalFund() {
   const gid = ui.dom.inputGoalFundId.value;
   const amt = Number(ui.dom.inputGoalFundAmount.value.replace(/,/g, ''));
   const src = ui.dom.inputGoalFundSource.value;
-  
+
   if (!amt || amt <= 0) {
     ui.showToast('Nominal tidak valid', 'error');
     return;
   }
-  
-  const goal = state.goals.find(g => g.id === gid);
+
+  const goal = state.goals.find((g) => g.id === gid);
   if (!goal) return;
 
   const data = {
@@ -1637,9 +1765,9 @@ function handleSaveGoalFund() {
     date: calc.getTodayString(),
     title: 'Tabungan: ' + goal.name,
     category: 'Transfer',
-    amount: amt
+    amount: amt,
   };
-  
+
   state.expenses.unshift(data);
   storage.saveExpenses(state.expenses);
   ui.renderTable();
@@ -1654,37 +1782,40 @@ function handleExportCsv() {
     ui.showToast('Tidak ada data untuk diekspor', 'error');
     return;
   }
-  
+
   const headers = ['Tanggal', 'Judul', 'Kategori', 'Tipe', 'Dompet', 'Tujuan', 'Nominal'];
-  const rows = state.expenses.map(e => [
+  const rows = state.expenses.map((e) => [
     e.date,
     e.title,
     e.category,
     e.type,
     e.wallet,
     e.walletTo || '',
-    e.amount
+    e.amount,
   ]);
-  
-  const csvContent = [headers, ...rows]
-    .map(r => r.map(escapeCsvCell).join(','))
-    .join('\n');
+
+  const csvContent = [headers, ...rows].map((r) => r.map(escapeCsvCell).join(',')).join('\n');
   downloadFile(csvContent, 'expense_tracker_export.csv', 'text/csv');
   ui.showToast('CSV Berhasil diekspor', 'success');
 }
 
 function handleExportJson() {
-  const data = JSON.stringify({
-    expenses: state.expenses,
-    wallets: state.wallets,
-    categories: state.customCategories,
-    goals: state.goals,
-    templates: state.templates,
-    recurring: state.recurringExpenses,
-    budgets: state.categoryBudgets,
-    split: state.splitLedger
-  }, null, 2);
-  
+  const data = JSON.stringify(
+    {
+      expenses: state.expenses,
+      wallets: state.wallets,
+      categories: state.customCategories,
+      goals: state.goals,
+      templates: state.templates,
+      recurring: state.recurringExpenses,
+      budgets: state.categoryBudgets,
+      split: state.splitLedger,
+      sharedLedgers: sharedLedgers.loadSharedLedgers(),
+    },
+    null,
+    2
+  );
+
   downloadFile(data, 'expense_tracker_backup.json', 'application/json');
   ui.showToast('JSON Berhasil diekspor', 'success');
 }
@@ -1692,7 +1823,7 @@ function handleExportJson() {
 function handleImportJson(e) {
   const file = e.target.files[0];
   if (!file) return;
-  
+
   const reader = new FileReader();
   reader.onload = (event) => {
     try {
@@ -1722,6 +1853,234 @@ function downloadFile(content, fileName, mimeType) {
   a.click();
 }
 
+// ─── Shared Ledger Functions ───────────────
+
+function openSharedLedgerCreateModal() {
+  const overlay = document.getElementById('shared-ledger-create-overlay');
+  if (!overlay) return;
+
+  // Reset form
+  document.getElementById('input-shared-ledger-name').value = '';
+  document.getElementById('input-shared-ledger-description').value = '';
+
+  // Reset members to one empty row
+  const membersContainer = document.getElementById('shared-ledger-members-input');
+  membersContainer.innerHTML = `
+    <div class="ledger-member-row">
+      <input type="color" class="ledger-member-color-picker" value="#6366f1" title="Pilih warna" />
+      <input type="text" class="ledger-member-name" placeholder="Nama anggota" />
+    </div>
+  `;
+
+  overlay.classList.add('active');
+}
+
+function closeSharedLedgerCreateModal() {
+  const overlay = document.getElementById('shared-ledger-create-overlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+function addLedgerMemberRow() {
+  const membersContainer = document.getElementById('shared-ledger-members-input');
+  const colors = [
+    '#6366f1',
+    '#ec4899',
+    '#f97316',
+    '#10b981',
+    '#3b82f6',
+    '#8b5cf6',
+    '#ef4444',
+    '#06b6d4',
+  ];
+  const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+  const row = document.createElement('div');
+  row.className = 'ledger-member-row';
+  row.innerHTML = `
+    <input type="color" class="ledger-member-color-picker" value="${randomColor}" title="Pilih warna" />
+    <input type="text" class="ledger-member-name" placeholder="Nama anggota" />
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()">✕</button>
+  `;
+  membersContainer.appendChild(row);
+}
+
+function handleSaveSharedLedger() {
+  const name = document.getElementById('input-shared-ledger-name').value.trim();
+  const description = document.getElementById('input-shared-ledger-description').value.trim();
+
+  if (!name) {
+    ui.showToast('Nama grup wajib diisi', 'error');
+    return;
+  }
+
+  // Collect members
+  const members = [];
+  const rows = document.querySelectorAll('#shared-ledger-members-input .ledger-member-row');
+  rows.forEach((row) => {
+    const color = row.querySelector('.ledger-member-color-picker').value;
+    const nameInput = row.querySelector('.ledger-member-name');
+    const memberName = nameInput.value.trim();
+    if (memberName) {
+      members.push({
+        id: `member-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: memberName,
+        color,
+      });
+    }
+  });
+
+  if (members.length < 2) {
+    ui.showToast('Minimal 2 anggota untuk grup patungan', 'error');
+    return;
+  }
+
+  const ledger = sharedLedgers.createSharedLedger({ name, description, members });
+
+  closeSharedLedgerCreateModal();
+  renderSharedLedgers();
+  ui.showToast('Grup patungan berhasil dibuat', 'success');
+}
+
+let currentViewingLedgerId = null;
+
+function renderSharedLedgers() {
+  const ledgers = sharedLedgers.loadSharedLedgers().filter((l) => !l.isArchived);
+
+  const listContainer = document.getElementById('shared-ledger-list');
+  const emptyState = document.getElementById('shared-ledger-empty');
+  const detailContainer = document.getElementById('shared-ledger-detail');
+
+  if (ledgers.length === 0) {
+    listContainer.style.display = 'none';
+    emptyState.style.display = 'block';
+    detailContainer.style.display = 'none';
+  } else {
+    listContainer.style.display = 'block';
+    emptyState.style.display = 'none';
+
+    ui.renderSharedLedgerList(
+      ledgers,
+      (ledger) => {
+        // onSelect
+        currentViewingLedgerId = ledger.id;
+        listContainer.style.display = 'none';
+        emptyState.style.display = 'none';
+        detailContainer.style.display = 'block';
+
+        ui.renderSharedLedgerDetail(
+          ledger,
+          () => {
+            // onBack
+            currentViewingLedgerId = null;
+            renderSharedLedgers();
+          },
+          () => {
+            // onAddBill - open split bill with ledger context
+            openSplitOverlayForLedger(ledger.id);
+          },
+          async (ledger) => {
+            // onShare
+            const success = await ui.copyLedgerSummaryToClipboard(ledger);
+            if (success) {
+              ui.showToast('Ringkasan disalin ke clipboard', 'success');
+            } else {
+              ui.showToast('Gagal menyalin, coba lagi', 'error');
+            }
+          }
+        );
+      },
+      () => {
+        // onCreate
+        openSharedLedgerCreateModal();
+      }
+    );
+  }
+}
+
+function openSplitOverlayForLedger(ledgerId) {
+  const ledger = sharedLedgers.loadSharedLedgers().find((l) => l.id === ledgerId);
+  if (!ledger) return;
+
+  // Pre-fill owner name if current user is a member
+  const ownerInput = document.getElementById('split-owner-name');
+  if (ownerInput && ledger.members.length > 0) {
+    ownerInput.value = ledger.members[0].name;
+  }
+
+  // Pre-populate participants
+  const personList = document.getElementById('split-person-list');
+  personList.innerHTML = '';
+
+  ledger.members.forEach((member) => {
+    const row = ui.addPersonRow(member.name);
+    if (row) {
+      row.dataset.personId = member.id;
+    }
+  });
+
+  ui.syncSplitPayerOptions();
+  ui.dom.splitOverlay.classList.add('active');
+
+  // Override save split to add to ledger
+  const saveBtn = document.getElementById('btn-save-split');
+  const originalSaveHandler = saveBtn.onclick;
+
+  saveBtn.onclick = function () {
+    handleSaveSplitToLedgerWithContext(ledgerId);
+  };
+}
+
+function handleSaveSplitToLedgerWithContext(ledgerId) {
+  if (!state.currentSplitResults) return;
+
+  const ledger = sharedLedgers.loadSharedLedgers().find((l) => l.id === ledgerId);
+  if (!ledger) return;
+
+  const bill = {
+    ...state.currentSplitResults,
+    id: calc.generateId(),
+    ledgerId: ledgerId,
+    addedAt: new Date().toISOString(),
+  };
+
+  sharedLedgers.addBillToLedger(ledgerId, bill);
+
+  ui.dom.splitOverlay.classList.remove('active');
+  state.currentSplitResults = null;
+  ui.updateSplitModalHeader();
+  ui.showToast('Tagihan ditambahkan ke grup patungan', 'success');
+
+  // Refresh the ledger detail view if viewing
+  if (currentViewingLedgerId === ledgerId) {
+    renderSharedLedgers();
+    const updatedLedger = sharedLedgers.loadSharedLedgers().find((l) => l.id === ledgerId);
+    if (updatedLedger) {
+      const listContainer = document.getElementById('shared-ledger-list');
+      const detailContainer = document.getElementById('shared-ledger-detail');
+      listContainer.style.display = 'none';
+      document.getElementById('shared-ledger-empty').style.display = 'none';
+      detailContainer.style.display = 'block';
+
+      ui.renderSharedLedgerDetail(
+        updatedLedger,
+        () => {
+          currentViewingLedgerId = null;
+          renderSharedLedgers();
+        },
+        () => openSplitOverlayForLedger(ledgerId),
+        async (ledger) => {
+          const success = await ui.copyLedgerSummaryToClipboard(ledger);
+          if (success) {
+            ui.showToast('Ringkasan disalin ke clipboard', 'success');
+          } else {
+            ui.showToast('Gagal menyalin, coba lagi', 'error');
+          }
+        }
+      );
+    }
+  }
+}
+
 // ─── Split Bill Logic ─────────────────────
 function handleCalculateSplit() {
   const billName = ui.dom.splitBillName.value.trim() || 'Split Bill';
@@ -1729,12 +2088,12 @@ function handleCalculateSplit() {
   const ownerName = ui.dom.splitOwnerName.value.trim();
   const payerId = ui.dom.splitPayer.value;
   const mode = ui.dom.modeEqual.classList.contains('active') ? 'equal' : 'custom';
-  
+
   if (!total || total <= 0) {
     ui.showToast('Masukkan total tagihan', 'error');
     return;
   }
-  
+
   if (!ownerName) {
     ui.showToast('Isi Nama Saya untuk tracking', 'error');
     return;
@@ -1744,7 +2103,7 @@ function handleCalculateSplit() {
   const people = [];
   rows.forEach((row, i) => {
     const id = row.dataset.personId || `p-${i}`;
-    const name = row.querySelector('.person-name-input').value.trim() || `Peserta ${i+1}`;
+    const name = row.querySelector('.person-name-input').value.trim() || `Peserta ${i + 1}`;
     let customAmt = 0;
     if (mode === 'custom') {
       customAmt = Number(row.querySelector('.custom-amount').value.replace(/,/g, '')) || 0;
@@ -1752,7 +2111,15 @@ function handleCalculateSplit() {
     people.push({ id, name, customAmount: customAmt });
   });
 
-  const results = calc.calculateSplitResults(billName, total, mode, people, payerId, ownerName, calc.getTodayString());
+  const results = calc.calculateSplitResults(
+    billName,
+    total,
+    mode,
+    people,
+    payerId,
+    ownerName,
+    calc.getTodayString()
+  );
   if (results && results.errorCode === 'CUSTOM_TOTAL_MISMATCH') {
     ui.showToast(results.errorMessage, 'error');
     return;
@@ -1771,7 +2138,7 @@ function handleSaveSplitToLedger() {
   if (!state.currentSplitResults) return;
 
   if (state.splitEditingId) {
-    const existingIndex = state.splitLedger.findIndex(item => item.id === state.splitEditingId);
+    const existingIndex = state.splitLedger.findIndex((item) => item.id === state.splitEditingId);
     if (existingIndex !== -1) {
       const previous = state.splitLedger[existingIndex];
       const updatedEntry = {
@@ -1779,7 +2146,10 @@ function handleSaveSplitToLedger() {
         ...state.currentSplitResults,
         id: previous.id,
       };
-      if (previous.syncedExpenseId && Number(previous.ownerShare) !== Number(updatedEntry.ownerShare)) {
+      if (
+        previous.syncedExpenseId &&
+        Number(previous.ownerShare) !== Number(updatedEntry.ownerShare)
+      ) {
         updatedEntry.syncedExpenseId = null;
         updatedEntry.syncedAt = null;
       }
@@ -1801,7 +2171,7 @@ function handleSaveSplitToLedger() {
     ...state.currentSplitResults,
     id: calc.generateId(),
     isDone: false,
-    syncedExpenseId: null
+    syncedExpenseId: null,
   };
 
   state.splitLedger.unshift(entry);
@@ -1817,16 +2187,16 @@ function handleSaveSplitToLedger() {
 function handleSplitLedgerAction(e) {
   const btn = e.target.closest('[data-split-action]');
   if (!btn) return;
-  
+
   const action = btn.dataset.splitAction;
   const id = btn.dataset.id;
-  const entry = state.splitLedger.find(s => s.id === id);
-  
+  const entry = state.splitLedger.find((s) => s.id === id);
+
   if (action === 'edit') {
     if (entry) openSplitEditor(entry);
   } else if (action === 'delete') {
     if (confirm('Hapus riwayat split ini?')) {
-      state.splitLedger = state.splitLedger.filter(s => s.id !== id);
+      state.splitLedger = state.splitLedger.filter((s) => s.id !== id);
       storage.saveSplitLedger(state.splitLedger);
       ui.renderSplitLedgerTable();
       ui.renderSplitHistory();
@@ -1851,7 +2221,7 @@ function handleSplitLedgerAction(e) {
         title: `Split Bill: ${entry.billName} (${entry.ownerName})`,
         category: 'Makanan',
         amount: entry.ownerShare,
-        splitLedgerId: entry.id
+        splitLedgerId: entry.id,
       };
       state.expenses.unshift(expense);
       entry.syncedExpenseId = expense.id;

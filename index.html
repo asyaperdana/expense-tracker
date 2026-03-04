@@ -19,7 +19,7 @@
     <link rel="apple-touch-icon" href="assets/icon.svg" />
     <link rel="manifest" href="assets/manifest.json" />
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <div class="brand-layer" aria-hidden="true">
@@ -49,11 +49,31 @@
       <aside class="side-nav" aria-label="Navigasi utama">
         <p class="side-nav-title">Navigasi</p>
         <ul class="side-nav-list">
-          <li><button class="nav-link" type="button" data-nav-view="dashboard"><i class="ph-bold ph-house"></i> Dashboard</button></li>
-          <li><button class="nav-link" type="button" data-nav-view="add"><i class="ph-bold ph-plus-circle"></i> Tambah Transaksi</button></li>
-          <li><button class="nav-link" type="button" data-nav-view="history"><i class="ph-bold ph-list-checks"></i> Riwayat</button></li>
-          <li><button class="nav-link" type="button" data-nav-view="report"><i class="ph-bold ph-chart-line-up"></i> Laporan</button></li>
-          <li><button class="nav-link" type="button" data-nav-view="tools"><i class="ph-bold ph-toolbox"></i> Tools</button></li>
+          <li>
+            <button class="nav-link" type="button" data-nav-view="dashboard">
+              <i class="ph-bold ph-house"></i> Dashboard
+            </button>
+          </li>
+          <li>
+            <button class="nav-link" type="button" data-nav-view="add">
+              <i class="ph-bold ph-plus-circle"></i> Tambah Transaksi
+            </button>
+          </li>
+          <li>
+            <button class="nav-link" type="button" data-nav-view="history">
+              <i class="ph-bold ph-list-checks"></i> Riwayat
+            </button>
+          </li>
+          <li>
+            <button class="nav-link" type="button" data-nav-view="report">
+              <i class="ph-bold ph-chart-line-up"></i> Laporan
+            </button>
+          </li>
+          <li>
+            <button class="nav-link" type="button" data-nav-view="tools">
+              <i class="ph-bold ph-toolbox"></i> Tools
+            </button>
+          </li>
         </ul>
       </aside>
 
@@ -65,14 +85,28 @@
             <h2 class="hero-title">Total Saldo Aktif</h2>
             <div class="hero-value" id="total-balance">Rp 0</div>
             <div class="wallet-balances" id="wallet-balances"></div>
-            <button class="btn btn-ghost btn-manage-wallet" id="btn-manage-wallet" type="button" title="Kelola Dompet">
+            <button
+              class="btn btn-ghost btn-manage-wallet"
+              id="btn-manage-wallet"
+              type="button"
+              title="Kelola Dompet"
+            >
               <i class="ph-bold ph-gear"></i> Kelola Dompet
             </button>
 
             <div class="budget-container">
               <div class="budget-header">
-                <span class="budget-header-label"><i class="ph-bold ph-target"></i> Anggaran Bulanan</span>
-                <button class="btn btn-ghost btn-budget-edit" id="btn-edit-budget" type="button" title="Atur Batasan"><i class="ph-bold ph-pencil-simple"></i> Atur</button>
+                <span class="budget-header-label"
+                  ><i class="ph-bold ph-target"></i> Anggaran Bulanan</span
+                >
+                <button
+                  class="btn btn-ghost btn-budget-edit"
+                  id="btn-edit-budget"
+                  type="button"
+                  title="Atur Batasan"
+                >
+                  <i class="ph-bold ph-pencil-simple"></i> Atur
+                </button>
               </div>
 
               <div class="budget-stats">
@@ -85,7 +119,9 @@
               </div>
 
               <div class="budget-footer">
-                <p class="hero-note budget-note" id="budget-note">Atur untuk kontrol pengeluaran.</p>
+                <p class="hero-note budget-note" id="budget-note">
+                  Atur untuk kontrol pengeluaran.
+                </p>
                 <div id="budget-pct" class="budget-pct">0%</div>
               </div>
             </div>
@@ -100,9 +136,13 @@
         <section class="card summary-card" data-view="dashboard">
           <span class="card-illus" aria-hidden="true">◉</span>
           <div class="section-head">
-            <p class="section-kicker"><i class="ph-bold ph-chart-pie-slice"></i> Snapshot Bulanan</p>
+            <p class="section-kicker">
+              <i class="ph-bold ph-chart-pie-slice"></i> Snapshot Bulanan
+            </p>
             <h3 class="card-title section-title">Ringkasan Utama</h3>
-            <p class="section-subtitle">Pantau pemasukan, pengeluaran, dan performa transaksi dalam satu panel.</p>
+            <p class="section-subtitle">
+              Pantau pemasukan, pengeluaran, dan performa transaksi dalam satu panel.
+            </p>
           </div>
           <div class="dashboard-monthly-stats">
             <article class="dashboard-stat">
@@ -157,43 +197,78 @@
           <div class="quick-add-header section-head">
             <p class="section-kicker"><i class="ph-bold ph-lightning"></i> Shortcut Template</p>
             <h3 class="card-title section-title">Quick Add</h3>
-            <p class="quick-add-subtitle section-subtitle">Tap untuk langsung input transaksi dari template.</p>
+            <p class="quick-add-subtitle section-subtitle">
+              Tap untuk langsung input transaksi dari template.
+            </p>
           </div>
           <div class="quick-add-strip" id="quick-add-strip"></div>
           <div class="quick-add-empty" id="quick-add-empty">
             <svg class="empty-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-              <rect x="18" y="20" width="84" height="80" rx="14" stroke="currentColor" stroke-width="4"></rect>
-              <path d="M36 48h48M36 64h30" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+              <rect
+                x="18"
+                y="20"
+                width="84"
+                height="80"
+                rx="14"
+                stroke="currentColor"
+                stroke-width="4"
+              ></rect>
+              <path
+                d="M36 48h48M36 64h30"
+                stroke="currentColor"
+                stroke-width="4"
+                stroke-linecap="round"
+              ></path>
               <circle cx="90" cy="86" r="10" fill="currentColor" opacity=".22"></circle>
             </svg>
             <p class="empty-title">Belum ada template Quick Add</p>
             <p class="empty-text">Pin transaksi dari riwayat agar input berikutnya lebih cepat.</p>
-            <button class="btn btn-ghost" type="button" data-nav-target="history">Buka Riwayat</button>
+            <button class="btn btn-ghost" type="button" data-nav-target="history">
+              Buka Riwayat
+            </button>
           </div>
         </section>
 
         <section class="card glass chart-card" data-view="dashboard">
           <span class="card-illus" aria-hidden="true">◔</span>
           <div class="section-head">
-            <p class="section-kicker"><i class="ph-bold ph-chart-pie-slice"></i> Komposisi Pengeluaran</p>
+            <p class="section-kicker">
+              <i class="ph-bold ph-chart-pie-slice"></i> Komposisi Pengeluaran
+            </p>
             <h3 class="card-title section-title">Grafik per Kategori</h3>
-            <p class="section-subtitle">Lihat distribusi belanja agar prioritas bulanan lebih jelas.</p>
+            <p class="section-subtitle">
+              Lihat distribusi belanja agar prioritas bulanan lebih jelas.
+            </p>
           </div>
           <div class="chart-container">
-            <canvas id="category-chart" width="280" height="280" aria-label="Grafik pengeluaran per kategori"></canvas>
+            <canvas
+              id="category-chart"
+              width="280"
+              height="280"
+              aria-label="Grafik pengeluaran per kategori"
+            ></canvas>
             <div class="chart-legend" id="chart-legend"></div>
             <div class="chart-tooltip" id="chart-tooltip"></div>
           </div>
           <div class="chart-empty" id="chart-empty">
             <svg class="empty-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
               <circle cx="60" cy="60" r="36" stroke="currentColor" stroke-width="4"></circle>
-              <path d="M60 24v36l22 18" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+              <path
+                d="M60 24v36l22 18"
+                stroke="currentColor"
+                stroke-width="4"
+                stroke-linecap="round"
+              ></path>
             </svg>
             <p class="empty-title">Belum ada data pengeluaran</p>
             <p class="empty-text">Catat transaksi pertama untuk melihat pola kategori.</p>
             <div class="empty-actions">
-              <button class="btn btn-primary" type="button" data-nav-target="add">Tambah Pengeluaran</button>
-              <button class="btn btn-ghost" type="button" data-nav-target="history">Lihat Riwayat</button>
+              <button class="btn btn-primary" type="button" data-nav-target="add">
+                Tambah Pengeluaran
+              </button>
+              <button class="btn btn-ghost" type="button" data-nav-target="history">
+                Lihat Riwayat
+              </button>
             </div>
           </div>
           <div class="card-skeleton" aria-hidden="true">
@@ -220,14 +295,29 @@
             <p class="section-subtitle">Validasi cepat sebelum edit, pin, atau hapus transaksi.</p>
           </div>
           <div class="recent-card-list" id="recent-list"></div>
-          <div class="empty-block" id="recent-empty" style="display:none;">
+          <div class="empty-block" id="recent-empty" style="display: none">
             <svg class="empty-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-              <rect x="20" y="26" width="80" height="66" rx="12" stroke="currentColor" stroke-width="4"></rect>
-              <path d="M36 54h48M36 68h34" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+              <rect
+                x="20"
+                y="26"
+                width="80"
+                height="66"
+                rx="12"
+                stroke="currentColor"
+                stroke-width="4"
+              ></rect>
+              <path
+                d="M36 54h48M36 68h34"
+                stroke="currentColor"
+                stroke-width="4"
+                stroke-linecap="round"
+              ></path>
             </svg>
             <p class="empty-title">Belum ada transaksi</p>
             <p class="empty-text">Yuk catat pengeluaran pertamamu 🎯</p>
-            <button class="btn btn-primary" type="button" data-nav-target="add">Tambah Transaksi</button>
+            <button class="btn btn-primary" type="button" data-nav-target="add">
+              Tambah Transaksi
+            </button>
           </div>
         </section>
 
@@ -268,20 +358,30 @@
                     required
                     aria-label="Nominal transaksi"
                   />
-                  <small class="help-text form-amount-help" id="amount-help" aria-live="polite"></small>
+                  <small
+                    class="help-text form-amount-help"
+                    id="amount-help"
+                    aria-live="polite"
+                  ></small>
                 </div>
 
                 <!-- Type Selector -->
                 <div class="form-section">
                   <div class="segmented-control">
                     <input type="radio" id="type-exp" name="input-type" value="expense" checked />
-                    <label for="type-exp"><i class="ph-bold ph-arrow-up-right"></i> Pengeluaran</label>
+                    <label for="type-exp"
+                      ><i class="ph-bold ph-arrow-up-right"></i> Pengeluaran</label
+                    >
 
                     <input type="radio" id="type-inc" name="input-type" value="income" />
-                    <label for="type-inc"><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</label>
+                    <label for="type-inc"
+                      ><i class="ph-bold ph-arrow-down-left"></i> Pemasukan</label
+                    >
 
                     <input type="radio" id="type-trf" name="input-type" value="transfer" />
-                    <label for="type-trf"><i class="ph-bold ph-arrows-left-right"></i> Transfer</label>
+                    <label for="type-trf"
+                      ><i class="ph-bold ph-arrows-left-right"></i> Transfer</label
+                    >
 
                     <div class="segmented-bg"></div>
                   </div>
@@ -325,7 +425,11 @@
                     <small class="help-text" id="title-help" aria-live="polite"></small>
                   </div>
 
-                  <div class="form-input-group conditional-group" id="group-category" data-collapsed="false">
+                  <div
+                    class="form-input-group conditional-group"
+                    id="group-category"
+                    data-collapsed="false"
+                  >
                     <i class="ph-bold ph-tag form-input-icon"></i>
                     <div class="form-input-body">
                       <div class="field-header">
@@ -359,7 +463,9 @@
                   <div class="form-input-group">
                     <i class="ph-bold ph-wallet form-input-icon"></i>
                     <div class="form-input-body">
-                      <label for="input-wallet" id="label-wallet" class="form-input-label">Sumber Dana</label>
+                      <label for="input-wallet" id="label-wallet" class="form-input-label"
+                        >Sumber Dana</label
+                      >
                       <select id="input-wallet" aria-describedby="wallet-help" required>
                         <option value="Tunai">Tunai</option>
                         <option value="Rekening Bank">Rekening Bank</option>
@@ -369,7 +475,11 @@
                     <small class="help-text" id="wallet-help" aria-live="polite"></small>
                   </div>
 
-                  <div class="form-input-group conditional-group" id="group-wallet-to" data-collapsed="true">
+                  <div
+                    class="form-input-group conditional-group"
+                    id="group-wallet-to"
+                    data-collapsed="true"
+                  >
                     <i class="ph-bold ph-arrow-elbow-right form-input-icon"></i>
                     <div class="form-input-body">
                       <label for="input-wallet-to" class="form-input-label">Tujuan Dana</label>
@@ -417,7 +527,7 @@
                 type="button"
                 id="btn-cancel"
                 class="btn btn-ghost btn-cancel-full"
-                style="display:none"
+                style="display: none"
               >
                 <i class="ph-bold ph-x btn-icon"></i> Batal
               </button>
@@ -429,9 +539,14 @@
           <span class="card-illus" aria-hidden="true">◳</span>
           <div class="history-card-head">
             <div class="section-head">
-              <span class="history-kicker section-kicker"><i class="ph-bold ph-funnel-simple"></i> Panel Riwayat</span>
+              <span class="history-kicker section-kicker"
+                ><i class="ph-bold ph-funnel-simple"></i> Panel Riwayat</span
+              >
               <h3 class="card-title section-title">Filter Transaksi</h3>
-              <p class="history-subtitle section-subtitle">Cari transaksi lebih cepat berdasarkan kata kunci, kategori, bulan, dan urutan nominal.</p>
+              <p class="history-subtitle section-subtitle">
+                Cari transaksi lebih cepat berdasarkan kata kunci, kategori, bulan, dan urutan
+                nominal.
+              </p>
             </div>
           </div>
           <div class="filter-layout">
@@ -513,9 +628,13 @@
           <span class="card-illus" aria-hidden="true">▦</span>
           <div class="history-table-header">
             <div class="section-head">
-              <span class="history-kicker section-kicker"><i class="ph-bold ph-list-checks"></i> Catatan Transaksi</span>
+              <span class="history-kicker section-kicker"
+                ><i class="ph-bold ph-list-checks"></i> Catatan Transaksi</span
+              >
               <h3 class="card-title section-title">Riwayat Transaksi</h3>
-              <p class="history-subtitle section-subtitle">Semua perubahan langsung tercermin di tabel setelah filter diterapkan.</p>
+              <p class="history-subtitle section-subtitle">
+                Semua perubahan langsung tercermin di tabel setelah filter diterapkan.
+              </p>
             </div>
             <p class="render-state" id="render-state" aria-live="polite"></p>
           </div>
@@ -527,7 +646,7 @@
                   <th>Tipe & Nama</th>
                   <th>Kategori & Dompet</th>
                   <th class="text-right">Nominal</th>
-                  <th class="text-center" style="min-width:140px">Aksi</th>
+                  <th class="text-center" style="min-width: 140px">Aksi</th>
                 </tr>
               </thead>
               <tbody id="expense-tbody"></tbody>
@@ -535,14 +654,40 @@
           </div>
           <div class="empty-state" id="empty-state">
             <svg class="empty-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-              <rect x="16" y="20" width="88" height="78" rx="14" stroke="currentColor" stroke-width="4"></rect>
-              <path d="M36 48h48M36 66h38" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+              <rect
+                x="16"
+                y="20"
+                width="88"
+                height="78"
+                rx="14"
+                stroke="currentColor"
+                stroke-width="4"
+              ></rect>
+              <path
+                d="M36 48h48M36 66h38"
+                stroke="currentColor"
+                stroke-width="4"
+                stroke-linecap="round"
+              ></path>
             </svg>
             <p class="empty-title" id="history-empty-title">Belum ada transaksi</p>
             <p class="empty-text" id="history-empty-text">Yuk catat pengeluaran pertamamu 🎯</p>
             <div class="empty-actions">
-              <button class="btn btn-primary" id="btn-history-empty-primary" type="button" data-nav-target="add">Tambah Transaksi</button>
-              <button class="btn btn-ghost is-hidden" id="btn-history-empty-secondary" type="button">Reset Filter</button>
+              <button
+                class="btn btn-primary"
+                id="btn-history-empty-primary"
+                type="button"
+                data-nav-target="add"
+              >
+                Tambah Transaksi
+              </button>
+              <button
+                class="btn btn-ghost is-hidden"
+                id="btn-history-empty-secondary"
+                type="button"
+              >
+                Reset Filter
+              </button>
             </div>
           </div>
           <div class="card-skeleton card-skeleton-history" aria-hidden="true">
@@ -582,33 +727,61 @@
           </div>
         </section>
 
-        <section class="card glass calendar-card history-calendar-card" id="calendar-section" data-view="history">
+        <section
+          class="card glass calendar-card history-calendar-card"
+          id="calendar-section"
+          data-view="history"
+        >
           <span class="card-illus" aria-hidden="true">◫</span>
           <div class="history-card-head history-card-head-tight">
             <div class="section-head">
-              <span class="history-kicker section-kicker"><i class="ph-bold ph-calendar-dots"></i> Timeline Harian</span>
+              <span class="history-kicker section-kicker"
+                ><i class="ph-bold ph-calendar-dots"></i> Timeline Harian</span
+              >
               <h3 class="card-title section-title">Kalender Pengeluaran</h3>
-              <p class="history-subtitle section-subtitle">Klik tanggal untuk membuka detail pemasukan dan pengeluaran pada hari tersebut.</p>
+              <p class="history-subtitle section-subtitle">
+                Klik tanggal untuk membuka detail pemasukan dan pengeluaran pada hari tersebut.
+              </p>
             </div>
           </div>
           <div class="calendar-header">
-            <p class="calendar-helper"><i class="ph-bold ph-wave-sine"></i> Ringkasan aktivitas per hari</p>
+            <p class="calendar-helper">
+              <i class="ph-bold ph-wave-sine"></i> Ringkasan aktivitas per hari
+            </p>
             <div class="calendar-nav">
-              <button class="btn btn-ghost btn-sm btn-cal-nav" id="btn-cal-prev" type="button" title="Bulan sebelumnya">
+              <button
+                class="btn btn-ghost btn-sm btn-cal-nav"
+                id="btn-cal-prev"
+                type="button"
+                title="Bulan sebelumnya"
+              >
                 <i class="ph-bold ph-caret-left"></i>
               </button>
               <span class="calendar-month-label" id="calendar-month-label">Februari 2026</span>
-              <button class="btn btn-ghost btn-sm btn-cal-nav" id="btn-cal-next" type="button" title="Bulan berikutnya">
+              <button
+                class="btn btn-ghost btn-sm btn-cal-nav"
+                id="btn-cal-next"
+                type="button"
+                title="Bulan berikutnya"
+              >
                 <i class="ph-bold ph-caret-right"></i>
               </button>
             </div>
           </div>
           <div class="calendar-insights" id="calendar-insights"></div>
           <div class="calendar-legend">
-            <span class="calendar-legend-item"><span class="calendar-legend-dot expense"></span> Pengeluaran</span>
-            <span class="calendar-legend-item"><span class="calendar-legend-dot income"></span> Pemasukan</span>
-            <span class="calendar-legend-item"><span class="calendar-legend-dot transfer"></span> Transfer</span>
-            <span class="calendar-legend-note">Semakin pekat warna tanggal, semakin tinggi nominal pengeluaran harian.</span>
+            <span class="calendar-legend-item"
+              ><span class="calendar-legend-dot expense"></span> Pengeluaran</span
+            >
+            <span class="calendar-legend-item"
+              ><span class="calendar-legend-dot income"></span> Pemasukan</span
+            >
+            <span class="calendar-legend-item"
+              ><span class="calendar-legend-dot transfer"></span> Transfer</span
+            >
+            <span class="calendar-legend-note"
+              >Semakin pekat warna tanggal, semakin tinggi nominal pengeluaran harian.</span
+            >
           </div>
           <div class="calendar-grid" id="calendar-grid">
             <div class="cal-day-header">Sen</div>
@@ -619,10 +792,12 @@
             <div class="cal-day-header">Sab</div>
             <div class="cal-day-header">Min</div>
           </div>
-          <div class="calendar-day-detail" id="calendar-day-detail" style="display:none">
+          <div class="calendar-day-detail" id="calendar-day-detail" style="display: none">
             <div class="cal-detail-header">
               <strong id="cal-detail-date"></strong>
-              <button class="btn btn-ghost btn-sm" id="btn-cal-detail-close" type="button"><i class="ph-bold ph-x"></i></button>
+              <button class="btn btn-ghost btn-sm" id="btn-cal-detail-close" type="button">
+                <i class="ph-bold ph-x"></i>
+              </button>
             </div>
             <div class="cal-detail-summary" id="cal-detail-summary"></div>
             <div class="cal-detail-list" id="cal-detail-list"></div>
@@ -635,11 +810,13 @@
             <div class="section-head section-copy">
               <p class="section-kicker"><i class="ph-bold ph-chart-line-up"></i> Laporan Bulanan</p>
               <h3 class="card-title section-title">Ringkasan Finansial</h3>
-              <p class="section-subtitle">Bandingkan pemasukan dan pengeluaran untuk periode yang sedang aktif.</p>
+              <p class="section-subtitle">
+                Bandingkan pemasukan dan pengeluaran untuk periode yang sedang aktif.
+              </p>
             </div>
             <span class="report-month" id="report-month-label">Bulan Ini</span>
           </div>
-          
+
           <div class="report-main-stats">
             <div class="report-stat-group income">
               <div class="report-stat-icon"><i class="ph-bold ph-trend-up"></i></div>
@@ -722,29 +899,75 @@
             <div class="section-head section-copy">
               <p class="section-kicker"><i class="ph-bold ph-chart-bar"></i> Tren Historis</p>
               <h3 class="card-title section-title">Tren 6 Bulan</h3>
-              <p class="section-subtitle">Amati pola naik-turun cashflow untuk evaluasi kebiasaan belanja.</p>
+              <p class="section-subtitle">
+                Amati pola naik-turun cashflow untuk evaluasi kebiasaan belanja.
+              </p>
             </div>
             <div class="trend-legend">
-              <span class="trend-legend-item trend-legend-income"><span class="trend-dot"></span> Pemasukan <strong id="trend-legend-income-value">Rp 0</strong></span>
-              <span class="trend-legend-item trend-legend-expense"><span class="trend-dot"></span> Pengeluaran <strong id="trend-legend-expense-value">Rp 0</strong></span>
+              <span class="trend-legend-item trend-legend-income"
+                ><span class="trend-dot"></span> Pemasukan
+                <strong id="trend-legend-income-value">Rp 0</strong></span
+              >
+              <span class="trend-legend-item trend-legend-expense"
+                ><span class="trend-dot"></span> Pengeluaran
+                <strong id="trend-legend-expense-value">Rp 0</strong></span
+              >
             </div>
           </div>
           <div class="trend-chart-wrapper">
-            <canvas id="trend-chart" width="600" height="260" aria-label="Grafik tren pemasukan dan pengeluaran 6 bulan"></canvas>
+            <canvas
+              id="trend-chart"
+              width="600"
+              height="260"
+              aria-label="Grafik tren pemasukan dan pengeluaran 6 bulan"
+            ></canvas>
             <div class="trend-tooltip" id="trend-tooltip"></div>
           </div>
           <div class="trend-empty" id="trend-empty">
             <svg class="empty-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-              <path d="M16 88h88" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
-              <rect x="24" y="62" width="14" height="26" rx="3" fill="currentColor" opacity=".22"></rect>
-              <rect x="50" y="48" width="14" height="40" rx="3" fill="currentColor" opacity=".32"></rect>
-              <rect x="76" y="34" width="14" height="54" rx="3" fill="currentColor" opacity=".45"></rect>
+              <path
+                d="M16 88h88"
+                stroke="currentColor"
+                stroke-width="4"
+                stroke-linecap="round"
+              ></path>
+              <rect
+                x="24"
+                y="62"
+                width="14"
+                height="26"
+                rx="3"
+                fill="currentColor"
+                opacity=".22"
+              ></rect>
+              <rect
+                x="50"
+                y="48"
+                width="14"
+                height="40"
+                rx="3"
+                fill="currentColor"
+                opacity=".32"
+              ></rect>
+              <rect
+                x="76"
+                y="34"
+                width="14"
+                height="54"
+                rx="3"
+                fill="currentColor"
+                opacity=".45"
+              ></rect>
             </svg>
             <p class="empty-title">Belum cukup data tren</p>
             <p class="empty-text">Tambahkan transaksi rutin supaya tren 6 bulan lebih akurat.</p>
             <div class="empty-actions">
-              <button class="btn btn-primary" type="button" data-nav-target="add">Tambah Transaksi</button>
-              <button class="btn btn-ghost" type="button" data-nav-target="history">Lihat Riwayat</button>
+              <button class="btn btn-primary" type="button" data-nav-target="add">
+                Tambah Transaksi
+              </button>
+              <button class="btn btn-ghost" type="button" data-nav-target="history">
+                Lihat Riwayat
+              </button>
             </div>
           </div>
           <div class="card-skeleton" aria-hidden="true">
@@ -766,17 +989,31 @@
           </div>
         </section>
 
-        <section class="card glass tools-overview-card" id="tools-overview-section" data-view="tools">
+        <section
+          class="card glass tools-overview-card"
+          id="tools-overview-section"
+          data-view="tools"
+        >
           <div class="tools-overview-head">
             <div class="section-head section-copy">
-              <span class="section-kicker"><i class="ph-bold ph-toolbox"></i> Toolkit Finansial</span>
+              <span class="section-kicker"
+                ><i class="ph-bold ph-toolbox"></i> Toolkit Finansial</span
+              >
               <h3 class="card-title tools-overview-title section-title">Pusat Kendali Tools</h3>
-              <p class="tools-overview-subtitle section-subtitle">Satu panel untuk atur tabungan impian, budget kategori, dan kontrol split bill.</p>
+              <p class="tools-overview-subtitle section-subtitle">
+                Satu panel untuk atur tabungan impian, budget kategori, dan kontrol split bill.
+              </p>
             </div>
             <div class="tools-overview-actions">
-              <button class="btn btn-primary btn-sm" id="btn-tools-open-goal" type="button"><i class="ph-bold ph-plus"></i> Goal Baru</button>
-              <button class="btn btn-ghost btn-sm" id="btn-tools-open-budget" type="button"><i class="ph-bold ph-sliders-horizontal"></i> Atur Budget</button>
-              <button class="btn btn-split btn-sm" id="btn-tools-open-split" type="button"><i class="ph-bold ph-receipt"></i> Split Bill</button>
+              <button class="btn btn-primary btn-sm" id="btn-tools-open-goal" type="button">
+                <i class="ph-bold ph-plus"></i> Goal Baru
+              </button>
+              <button class="btn btn-ghost btn-sm" id="btn-tools-open-budget" type="button">
+                <i class="ph-bold ph-sliders-horizontal"></i> Atur Budget
+              </button>
+              <button class="btn btn-split btn-sm" id="btn-tools-open-split" type="button">
+                <i class="ph-bold ph-receipt"></i> Split Bill
+              </button>
             </div>
           </div>
           <div class="tools-metrics-grid">
@@ -786,19 +1023,29 @@
               <span class="tools-metric-meta" id="tools-goal-meta">Belum ada target tabungan.</span>
             </article>
             <article class="tools-metric">
-              <span class="tools-metric-label"><i class="ph-bold ph-sliders-horizontal"></i> Budget Kategori</span>
+              <span class="tools-metric-label"
+                ><i class="ph-bold ph-sliders-horizontal"></i> Budget Kategori</span
+              >
               <strong class="tools-metric-value" id="tools-budget-count">0</strong>
               <span class="tools-metric-meta" id="tools-budget-meta">Belum ada budget aktif.</span>
             </article>
             <article class="tools-metric">
-              <span class="tools-metric-label"><i class="ph-bold ph-handshake"></i> Split Berjalan</span>
+              <span class="tools-metric-label"
+                ><i class="ph-bold ph-handshake"></i> Split Berjalan</span
+              >
               <strong class="tools-metric-value" id="tools-split-open-count">0</strong>
-              <span class="tools-metric-meta" id="tools-split-open-meta">Tidak ada split terbuka.</span>
+              <span class="tools-metric-meta" id="tools-split-open-meta"
+                >Tidak ada split terbuka.</span
+              >
             </article>
             <article class="tools-metric">
-              <span class="tools-metric-label"><i class="ph-bold ph-arrows-clockwise"></i> Menunggu Sync</span>
+              <span class="tools-metric-label"
+                ><i class="ph-bold ph-arrows-clockwise"></i> Menunggu Sync</span
+              >
               <strong class="tools-metric-value" id="tools-split-sync-count">0</strong>
-              <span class="tools-metric-meta" id="tools-split-sync-meta">Semua split sudah sinkron.</span>
+              <span class="tools-metric-meta" id="tools-split-sync-meta"
+                >Semua split sudah sinkron.</span
+              >
             </article>
           </div>
         </section>
@@ -809,7 +1056,9 @@
             <div class="tools-card-copy section-head">
               <span class="section-kicker"><i class="ph-bold ph-target"></i> Goal Keuangan</span>
               <h3 class="card-title goal-title section-title">Tabungan Impian</h3>
-              <p class="tools-card-subtitle section-subtitle">Pisahkan dana berdasarkan target supaya progres menabung lebih terukur.</p>
+              <p class="tools-card-subtitle section-subtitle">
+                Pisahkan dana berdasarkan target supaya progres menabung lebih terukur.
+              </p>
             </div>
             <button class="btn btn-sm btn-ghost btn-add-goal" id="btn-add-goal" type="button">
               <i class="ph-bold ph-plus"></i> <span class="goal-btn-label">Goal Baru</span>
@@ -818,40 +1067,107 @@
           <div class="goal-list" id="goal-list"></div>
         </section>
 
-        <section class="card glass category-budget-card tools-card" id="category-budget-section" data-view="tools">
+        <section
+          class="card glass category-budget-card tools-card"
+          id="category-budget-section"
+          data-view="tools"
+        >
           <span class="card-illus" aria-hidden="true">◎</span>
           <div class="category-budget-header tools-card-header">
             <div class="tools-card-copy section-head">
-              <span class="section-kicker"><i class="ph-bold ph-sliders-horizontal"></i> Kontrol Kategori</span>
+              <span class="section-kicker"
+                ><i class="ph-bold ph-sliders-horizontal"></i> Kontrol Kategori</span
+              >
               <h3 class="card-title section-title">Budget per Kategori</h3>
-              <p class="tools-card-subtitle section-subtitle">Pantau batas pengeluaran tiap kategori untuk bulan yang sedang dipilih.</p>
+              <p class="tools-card-subtitle section-subtitle">
+                Pantau batas pengeluaran tiap kategori untuk bulan yang sedang dipilih.
+              </p>
             </div>
             <button class="btn btn-ghost btn-sm" id="btn-edit-category-budget" type="button">
               <i class="ph-bold ph-sliders-horizontal"></i> Atur
             </button>
           </div>
-          <p class="category-budget-meta" id="category-budget-meta">Belum ada budget kategori aktif.</p>
+          <p class="category-budget-meta" id="category-budget-meta">
+            Belum ada budget kategori aktif.
+          </p>
           <div class="category-budget-list" id="category-budget-list"></div>
           <div class="category-budget-empty" id="category-budget-empty">
             <svg class="empty-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
               <circle cx="60" cy="60" r="34" stroke="currentColor" stroke-width="4"></circle>
-              <path d="M60 42v20M60 72h.01" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+              <path
+                d="M60 42v20M60 72h.01"
+                stroke="currentColor"
+                stroke-width="4"
+                stroke-linecap="round"
+              ></path>
             </svg>
             <p class="empty-title">Belum ada budget kategori</p>
-            <p class="empty-text">Tambahkan batas per kategori agar pengeluaran lebih terkontrol.</p>
-            <button class="btn btn-ghost" id="btn-edit-category-budget-empty" type="button">Atur Budget</button>
+            <p class="empty-text">
+              Tambahkan batas per kategori agar pengeluaran lebih terkontrol.
+            </p>
+            <button class="btn btn-ghost" id="btn-edit-category-budget-empty" type="button">
+              Atur Budget
+            </button>
           </div>
         </section>
 
-        <section class="card glass split-ledger-card tools-card" id="split-ledger-section" data-view="tools">
+        <section
+          class="card glass shared-ledger-card tools-card"
+          id="shared-ledger-section"
+          data-view="tools"
+        >
+          <span class="card-illus" aria-hidden="true">👥</span>
+          <div class="shared-ledger-header tools-card-header">
+            <div class="tools-card-copy section-head">
+              <span class="section-kicker"
+                ><i class="ph-bold ph-users"></i> Patungan Bareng Teman</span
+              >
+              <h3 class="card-title section-title">Grup Patungan</h3>
+              <p class="shared-ledger-subtitle tools-card-subtitle section-subtitle">
+                Catat dan hitung utang piutang dengan teman dalam satu grup.
+              </p>
+            </div>
+            <button class="btn btn-split btn-sm" id="btn-create-shared-ledger" type="button">
+              <i class="ph-bold ph-plus"></i> Grup Baru
+            </button>
+          </div>
+
+          <div id="shared-ledger-list" class="ledger-list"></div>
+          <div id="shared-ledger-detail" style="display: none"></div>
+
+          <div class="empty-state shared-ledger-empty" id="shared-ledger-empty">
+            <svg class="empty-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+              <circle cx="60" cy="50" r="24" stroke="currentColor" stroke-width="4"></circle>
+              <circle cx="40" cy="80" r="20" stroke="currentColor" stroke-width="4"></circle>
+              <circle cx="80" cy="80" r="20" stroke="currentColor" stroke-width="4"></circle>
+            </svg>
+            <p class="empty-title">Belum ada grup patungan</p>
+            <p class="empty-text">Buat grup untuk mencatat patungan dengan teman.</p>
+            <button class="btn btn-primary" id="btn-create-shared-ledger-empty" type="button">
+              Buat Grup
+            </button>
+          </div>
+        </section>
+
+        <section
+          class="card glass split-ledger-card tools-card"
+          id="split-ledger-section"
+          data-view="tools"
+        >
           <span class="card-illus" aria-hidden="true">◫</span>
           <div class="split-ledger-header tools-card-header">
             <div class="tools-card-copy section-head">
-              <span class="section-kicker"><i class="ph-bold ph-handshake"></i> Kolaborasi Tagihan</span>
+              <span class="section-kicker"
+                ><i class="ph-bold ph-handshake"></i> Kolaborasi Tagihan</span
+              >
               <h3 class="card-title section-title">Ledger Split Bill</h3>
-              <p class="split-ledger-subtitle tools-card-subtitle section-subtitle">Tracking split bill terpisah dari pengeluaran utama agar piutang lebih rapi.</p>
+              <p class="split-ledger-subtitle tools-card-subtitle section-subtitle">
+                Tracking split bill terpisah dari pengeluaran utama agar piutang lebih rapi.
+              </p>
             </div>
-            <button class="btn btn-split btn-sm" id="btn-open-split-tools" type="button"><i class="ph-bold ph-plus"></i> Tambah Bill</button>
+            <button class="btn btn-split btn-sm" id="btn-open-split-tools" type="button">
+              <i class="ph-bold ph-plus"></i> Tambah Bill
+            </button>
           </div>
           <div class="table-wrapper split-ledger-wrapper">
             <table id="split-ledger-table">
@@ -871,23 +1187,48 @@
           </div>
           <div class="empty-state split-ledger-empty" id="split-ledger-empty">
             <svg class="empty-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-              <rect x="20" y="24" width="80" height="74" rx="12" stroke="currentColor" stroke-width="4"></rect>
-              <path d="M36 48h48M36 66h42" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+              <rect
+                x="20"
+                y="24"
+                width="80"
+                height="74"
+                rx="12"
+                stroke="currentColor"
+                stroke-width="4"
+              ></rect>
+              <path
+                d="M36 48h48M36 66h42"
+                stroke="currentColor"
+                stroke-width="4"
+                stroke-linecap="round"
+              ></path>
             </svg>
             <p class="empty-title">Belum ada data split bill</p>
             <p class="empty-text">Hitung siapa hutang/piutang lalu simpan ke ledger split.</p>
-            <button class="btn btn-primary" id="btn-open-split-empty" type="button">Mulai Split Bill</button>
+            <button class="btn btn-primary" id="btn-open-split-empty" type="button">
+              Mulai Split Bill
+            </button>
           </div>
         </section>
       </main>
     </div>
 
     <nav class="bottom-nav" aria-label="Navigasi mobile">
-      <button class="bottom-link" type="button" data-nav-view="dashboard"><i class="ph-bold ph-house"></i><span>Dashboard</span></button>
-      <button class="bottom-link" type="button" data-nav-view="add"><i class="ph-bold ph-plus-circle"></i><span>Tambah</span></button>
-      <button class="bottom-link" type="button" data-nav-view="history"><i class="ph-bold ph-list-checks"></i><span>Riwayat</span></button>
-      <button class="bottom-link" type="button" data-nav-view="report"><i class="ph-bold ph-chart-line-up"></i><span>Laporan</span></button>
-      <button class="bottom-link" type="button" data-nav-view="tools"><i class="ph-bold ph-toolbox"></i><span>Lainnya</span></button>
+      <button class="bottom-link" type="button" data-nav-view="dashboard">
+        <i class="ph-bold ph-house"></i><span>Dashboard</span>
+      </button>
+      <button class="bottom-link" type="button" data-nav-view="add">
+        <i class="ph-bold ph-plus-circle"></i><span>Tambah</span>
+      </button>
+      <button class="bottom-link" type="button" data-nav-view="history">
+        <i class="ph-bold ph-list-checks"></i><span>Riwayat</span>
+      </button>
+      <button class="bottom-link" type="button" data-nav-view="report">
+        <i class="ph-bold ph-chart-line-up"></i><span>Laporan</span>
+      </button>
+      <button class="bottom-link" type="button" data-nav-view="tools">
+        <i class="ph-bold ph-toolbox"></i><span>Lainnya</span>
+      </button>
     </nav>
     <button class="fab-add" id="fab-add" type="button" aria-label="Tambah transaksi">
       <i class="ph-bold ph-plus"></i>
@@ -895,7 +1236,9 @@
 
     <div class="modal-overlay modal-overlay-destructive" id="modal-overlay">
       <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
-        <div class="modal-icon"><i class="ph-fill ph-warning-circle" style="color: var(--clr-warning);"></i></div>
+        <div class="modal-icon">
+          <i class="ph-fill ph-warning-circle" style="color: var(--clr-warning)"></i>
+        </div>
         <p class="modal-text" id="modal-delete-title">Yakin ingin menghapus pengeluaran ini?</p>
         <div class="modal-actions">
           <button class="btn btn-danger" id="btn-confirm-delete" type="button">Hapus</button>
@@ -906,11 +1249,21 @@
 
     <div class="modal-overlay modal-overlay-informative" id="budget-overlay">
       <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-budget-title">
-        <div class="modal-icon"><i class="ph-fill ph-target" style="color: var(--clr-primary);"></i></div>
+        <div class="modal-icon">
+          <i class="ph-fill ph-target" style="color: var(--clr-primary)"></i>
+        </div>
         <h2 class="modal-text" id="modal-budget-title">Atur Batas Bulanan</h2>
-        <p class="modal-subtext">Peringatan akan muncul jika Pengeluaran bulan ini melebihi nominal ini. Ketik 0 untuk menonaktifkan.</p>
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <input type="text" id="input-budget-limit" placeholder="cth: 3,000,000" inputmode="numeric" />
+        <p class="modal-subtext">
+          Peringatan akan muncul jika Pengeluaran bulan ini melebihi nominal ini. Ketik 0 untuk
+          menonaktifkan.
+        </p>
+        <div class="form-group" style="margin-bottom: 1.5rem">
+          <input
+            type="text"
+            id="input-budget-limit"
+            placeholder="cth: 3,000,000"
+            inputmode="numeric"
+          />
         </div>
         <div class="modal-actions">
           <button class="btn btn-primary" id="btn-save-budget" type="button">Simpan Batas</button>
@@ -920,23 +1273,41 @@
     </div>
 
     <div class="modal-overlay modal-overlay-informative" id="category-budget-overlay">
-      <div class="modal glass category-budget-modal" role="dialog" aria-modal="true" aria-labelledby="modal-category-budget-title">
-        <div class="modal-icon"><i class="ph-fill ph-target" style="color: var(--clr-accent);"></i></div>
+      <div
+        class="modal glass category-budget-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-category-budget-title"
+      >
+        <div class="modal-icon">
+          <i class="ph-fill ph-target" style="color: var(--clr-accent)"></i>
+        </div>
         <h2 class="modal-text" id="modal-category-budget-title">Atur Budget per Kategori</h2>
-        <p class="modal-subtext">Isi nominal untuk kategori yang ingin dibatasi. Isi 0 untuk menonaktifkan.</p>
+        <p class="modal-subtext">
+          Isi nominal untuk kategori yang ingin dibatasi. Isi 0 untuk menonaktifkan.
+        </p>
         <div class="category-budget-editor" id="category-budget-editor"></div>
         <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-save-category-budget" type="button">Simpan Budget</button>
+          <button class="btn btn-primary" id="btn-save-category-budget" type="button">
+            Simpan Budget
+          </button>
           <button class="btn btn-ghost" id="btn-cancel-category-budget" type="button">Batal</button>
         </div>
       </div>
     </div>
 
     <div class="modal-overlay modal-overlay-informative" id="split-overlay">
-      <div class="modal glass split-modal" role="dialog" aria-modal="true" aria-labelledby="split-title">
+      <div
+        class="modal glass split-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="split-title"
+      >
         <div class="split-header">
           <h2 id="split-title"><i class="ph-bold ph-receipt"></i> Split Bill</h2>
-          <button class="btn-close" id="btn-close-split" aria-label="Close" type="button">&times;</button>
+          <button class="btn-close" id="btn-close-split" aria-label="Close" type="button">
+            &times;
+          </button>
         </div>
 
         <div class="split-body" id="split-form-view">
@@ -954,18 +1325,26 @@
           <div class="form-group split-owner-group">
             <label for="split-owner-name">Nama Saya (untuk tracking)</label>
             <input type="text" id="split-owner-name" placeholder="cth: Asya" />
-            <small class="help-text">Nama ini harus ada di daftar peserta agar status piutang/hutang bisa dihitung.</small>
+            <small class="help-text"
+              >Nama ini harus ada di daftar peserta agar status piutang/hutang bisa dihitung.</small
+            >
           </div>
 
           <div class="split-mode-toggle">
-            <button class="split-mode-btn active" data-mode="equal" id="mode-equal" type="button"><i class="ph-bold ph-scales"></i> Bagi Rata</button>
-            <button class="split-mode-btn" data-mode="custom" id="mode-custom" type="button"><i class="ph-bold ph-pencil-simple"></i> Custom</button>
+            <button class="split-mode-btn active" data-mode="equal" id="mode-equal" type="button">
+              <i class="ph-bold ph-scales"></i> Bagi Rata
+            </button>
+            <button class="split-mode-btn" data-mode="custom" id="mode-custom" type="button">
+              <i class="ph-bold ph-pencil-simple"></i> Custom
+            </button>
           </div>
 
           <div class="split-participants">
             <div class="split-participants-header">
               <label>Peserta</label>
-              <button class="btn btn-sm btn-primary" id="btn-add-person" type="button"><i class="ph-bold ph-plus-circle"></i> Tambah</button>
+              <button class="btn btn-sm btn-primary" id="btn-add-person" type="button">
+                <i class="ph-bold ph-plus-circle"></i> Tambah
+              </button>
             </div>
             <div class="split-person-list" id="split-person-list"></div>
           </div>
@@ -973,41 +1352,58 @@
           <div class="form-group split-payer-group">
             <label for="split-payer">Dibayar oleh</label>
             <select id="split-payer"></select>
-            <small class="help-text">Dipakai untuk hitung siapa harus bayar dan siapa harus terima.</small>
+            <small class="help-text"
+              >Dipakai untuk hitung siapa harus bayar dan siapa harus terima.</small
+            >
           </div>
 
           <div class="split-form-actions">
-            <button class="btn btn-primary" id="btn-calculate-split" type="button"><i class="ph-bold ph-calculator"></i> Hitung Split</button>
+            <button class="btn btn-primary" id="btn-calculate-split" type="button">
+              <i class="ph-bold ph-calculator"></i> Hitung Split
+            </button>
           </div>
         </div>
 
-        <div class="split-body split-results" id="split-results-view" style="display:none">
+        <div class="split-body split-results" id="split-results-view" style="display: none">
           <div class="split-result-summary" id="split-result-summary"></div>
           <div class="split-result-list" id="split-result-list"></div>
           <div class="split-form-actions">
-            <button class="btn btn-primary" id="btn-save-split" type="button"><i class="ph-bold ph-floppy-disk"></i> Simpan ke Ledger Split</button>
-            <button class="btn btn-ghost" id="btn-back-split" type="button"><i class="ph-bold ph-arrow-left"></i> Kembali</button>
+            <button class="btn btn-primary" id="btn-save-split" type="button">
+              <i class="ph-bold ph-floppy-disk"></i> Simpan ke Ledger Split
+            </button>
+            <button class="btn btn-ghost" id="btn-back-split" type="button">
+              <i class="ph-bold ph-arrow-left"></i> Kembali
+            </button>
           </div>
         </div>
 
         <div class="split-history" id="split-history">
-          <h3 class="split-history-title"><i class="ph-bold ph-clipboard-text"></i> Riwayat Split</h3>
+          <h3 class="split-history-title">
+            <i class="ph-bold ph-clipboard-text"></i> Riwayat Split
+          </h3>
           <div id="split-history-list" class="split-history-list"></div>
         </div>
       </div>
     </div>
 
     <div class="modal-overlay modal-overlay-informative" id="category-overlay">
-      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-category-title">
-        <div class="modal-icon"><i class="ph-fill ph-circles-four" style="color: var(--clr-primary);"></i></div>
+      <div
+        class="modal glass"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-category-title"
+      >
+        <div class="modal-icon">
+          <i class="ph-fill ph-circles-four" style="color: var(--clr-primary)"></i>
+        </div>
         <h2 class="modal-text" id="modal-category-title">Tambah Kategori Custom</h2>
 
-        <div class="form-group" style="margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 1rem">
           <label for="input-custom-cat-name">Nama Kategori</label>
           <input type="text" id="input-custom-cat-name" placeholder="cth: Kucing, Investasi..." />
         </div>
 
-        <div class="form-group" style="margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 1rem">
           <label for="input-custom-cat-type">Jenis</label>
           <select id="input-custom-cat-type">
             <option value="expense">Pengeluaran</option>
@@ -1015,50 +1411,80 @@
           </select>
         </div>
 
-        <div class="form-group" style="margin-bottom: 1.5rem;">
+        <div class="form-group" style="margin-bottom: 1.5rem">
           <label>Pilih Ikon</label>
           <div class="icon-selector" id="icon-selector"></div>
           <input type="hidden" id="input-custom-cat-icon" />
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-save-category" type="button">Tambah Kategori</button>
+          <button class="btn btn-primary" id="btn-save-category" type="button">
+            Tambah Kategori
+          </button>
           <button class="btn btn-ghost" id="btn-cancel-category" type="button">Batal</button>
         </div>
       </div>
     </div>
 
     <div class="modal-overlay modal-overlay-informative" id="goal-add-overlay">
-      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-goal-add-title">
-        <div class="modal-icon"><i class="ph-fill ph-star" style="color: var(--clr-accent);"></i></div>
+      <div
+        class="modal glass"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-goal-add-title"
+      >
+        <div class="modal-icon">
+          <i class="ph-fill ph-star" style="color: var(--clr-accent)"></i>
+        </div>
         <h2 class="modal-text" id="modal-goal-add-title">Tambah Tabungan Impian</h2>
 
-        <div class="form-group" style="margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 1rem">
           <label for="input-goal-name">Nama Tabungan</label>
           <input type="text" id="input-goal-name" placeholder="cth: Beli Laptop Baru" />
         </div>
 
-        <div class="form-group" style="margin-bottom: 1.5rem;">
+        <div class="form-group" style="margin-bottom: 1.5rem">
           <label for="input-goal-target">Target Dana (Rp)</label>
-          <input type="text" id="input-goal-target" placeholder="cth: 15,000,000" inputmode="numeric" />
+          <input
+            type="text"
+            id="input-goal-target"
+            placeholder="cth: 15,000,000"
+            inputmode="numeric"
+          />
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-save-goal" type="button" style="background:var(--clr-accent)">Simpan Goal</button>
+          <button
+            class="btn btn-primary"
+            id="btn-save-goal"
+            type="button"
+            style="background: var(--clr-accent)"
+          >
+            Simpan Goal
+          </button>
           <button class="btn btn-ghost" id="btn-cancel-goal" type="button">Batal</button>
         </div>
       </div>
     </div>
 
     <div class="modal-overlay modal-overlay-informative" id="goal-fund-overlay">
-      <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-goal-fund-title">
-        <div class="modal-icon"><i class="ph-fill ph-piggy-bank" style="color: var(--clr-success);"></i></div>
-        <h2 class="modal-text" id="modal-goal-fund-title" style="margin-bottom:0.2rem;">Alokasi Dana Tabungan</h2>
+      <div
+        class="modal glass"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-goal-fund-title"
+      >
+        <div class="modal-icon">
+          <i class="ph-fill ph-piggy-bank" style="color: var(--clr-success)"></i>
+        </div>
+        <h2 class="modal-text" id="modal-goal-fund-title" style="margin-bottom: 0.2rem">
+          Alokasi Dana Tabungan
+        </h2>
         <p class="goal-fund-subtitle" id="goal-fund-subtitle"></p>
 
         <input type="hidden" id="input-goal-fund-id" />
 
-        <div class="form-group" style="margin-bottom: 1rem;">
+        <div class="form-group" style="margin-bottom: 1rem">
           <label for="input-goal-fund-source">Sumber Dana (Dompet)</label>
           <select id="input-goal-fund-source">
             <option value="Tunai">Tunai</option>
@@ -1067,28 +1493,49 @@
           </select>
         </div>
 
-        <div class="form-group" style="margin-bottom: 1.5rem;">
+        <div class="form-group" style="margin-bottom: 1.5rem">
           <label for="input-goal-fund-amount">Nominal Masuk (Rp)</label>
-          <input type="text" id="input-goal-fund-amount" placeholder="cth: 500,000" inputmode="numeric" />
+          <input
+            type="text"
+            id="input-goal-fund-amount"
+            placeholder="cth: 500,000"
+            inputmode="numeric"
+          />
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-save-goal-fund" type="button" style="background:var(--clr-success)">Simpan Dana</button>
+          <button
+            class="btn btn-primary"
+            id="btn-save-goal-fund"
+            type="button"
+            style="background: var(--clr-success)"
+          >
+            Simpan Dana
+          </button>
           <button class="btn btn-ghost" id="btn-cancel-goal-fund" type="button">Batal</button>
         </div>
       </div>
     </div>
 
     <div class="modal-overlay modal-overlay-informative" id="import-overlay">
-      <div class="modal glass import-modal" role="dialog" aria-modal="true" aria-labelledby="import-title">
-        <div class="modal-icon"><i class="ph-fill ph-upload-simple" style="color: var(--clr-primary);"></i></div>
+      <div
+        class="modal glass import-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="import-title"
+      >
+        <div class="modal-icon">
+          <i class="ph-fill ph-upload-simple" style="color: var(--clr-primary)"></i>
+        </div>
         <h2 class="modal-text" id="import-title">Impor JSON</h2>
         <p class="modal-subtext">Pilih mode impor untuk data JSON.</p>
         <div class="import-options">
           <label class="radio-option">
             <input type="radio" name="import-mode" value="replace" checked />
             <span class="radio-label">Ganti semua data</span>
-            <span class="radio-desc">Timpa semua section. Section yang tidak ada di file akan dikosongkan.</span>
+            <span class="radio-desc"
+              >Timpa semua section. Section yang tidak ada di file akan dikosongkan.</span
+            >
           </label>
           <label class="radio-option">
             <input type="radio" name="import-mode" value="merge-id" />
@@ -1098,7 +1545,9 @@
           <label class="radio-option">
             <input type="radio" name="import-mode" value="merge-content" />
             <span class="radio-label">Gabung (berdasarkan konten)</span>
-            <span class="radio-desc">Cegah duplikat berdasarkan tanggal+judul+kategori+nominal.</span>
+            <span class="radio-desc"
+              >Cegah duplikat berdasarkan tanggal+judul+kategori+nominal.</span
+            >
           </label>
         </div>
         <div class="modal-actions">
@@ -1109,8 +1558,15 @@
     </div>
 
     <div class="modal-overlay modal-overlay-informative" id="import-summary-overlay">
-      <div class="modal glass import-summary-modal" role="dialog" aria-modal="true" aria-labelledby="import-summary-title">
-        <div class="modal-icon"><i class="ph-fill ph-check-circle" style="color: var(--clr-success);"></i></div>
+      <div
+        class="modal glass import-summary-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="import-summary-title"
+      >
+        <div class="modal-icon">
+          <i class="ph-fill ph-check-circle" style="color: var(--clr-success)"></i>
+        </div>
         <h2 class="modal-text" id="import-summary-title">Ringkasan Impor</h2>
         <div class="import-summary">
           <div class="import-summary-row">
@@ -1134,20 +1590,33 @@
 
     <div class="modal-overlay modal-overlay-informative" id="recurring-overlay">
       <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="recurring-title">
-        <div class="modal-icon"><i class="ph-fill ph-calendar-check" style="color: var(--clr-primary);"></i></div>
+        <div class="modal-icon">
+          <i class="ph-fill ph-calendar-check" style="color: var(--clr-primary)"></i>
+        </div>
         <h2 class="modal-text" id="recurring-title">Tagihan Berulang</h2>
-        <p class="modal-subtext" id="recurring-desc">Ada tagihan rutin yang sudah jatuh tempo. Tambahkan ke pengeluaran bulan ini?</p>
+        <p class="modal-subtext" id="recurring-desc">
+          Ada tagihan rutin yang sudah jatuh tempo. Tambahkan ke pengeluaran bulan ini?
+        </p>
         <div id="recurring-list"></div>
         <div class="modal-actions">
-          <button class="btn btn-primary" id="btn-confirm-recurring" type="button">Catat Semua</button>
+          <button class="btn btn-primary" id="btn-confirm-recurring" type="button">
+            Catat Semua
+          </button>
           <button class="btn btn-ghost" id="btn-cancel-recurring" type="button">Lewati</button>
         </div>
       </div>
     </div>
 
     <div class="modal-overlay modal-overlay-informative" id="wallet-overlay">
-      <div class="modal glass wallet-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
-        <div class="modal-icon"><i class="ph-fill ph-wallet" style="color: var(--clr-primary);"></i></div>
+      <div
+        class="modal glass wallet-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="wallet-modal-title"
+      >
+        <div class="modal-icon">
+          <i class="ph-fill ph-wallet" style="color: var(--clr-primary)"></i>
+        </div>
         <h2 class="modal-text" id="wallet-modal-title">Kelola Dompet</h2>
         <p class="modal-subtext">Tambahkan dompet custom atau hapus yang tidak digunakan.</p>
         <div class="wallet-add-row">
@@ -1162,11 +1631,76 @@
             <option value="ph-piggy-bank">🐷 Celengan</option>
             <option value="ph-storefront">🏪 Toko</option>
           </select>
-          <button class="btn btn-primary btn-sm" id="btn-add-wallet" type="button"><i class="ph-bold ph-plus"></i> Tambah</button>
+          <button class="btn btn-primary btn-sm" id="btn-add-wallet" type="button">
+            <i class="ph-bold ph-plus"></i> Tambah
+          </button>
         </div>
         <div class="wallet-list" id="wallet-list"></div>
         <div class="modal-actions">
           <button class="btn btn-ghost" id="btn-close-wallet" type="button">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay modal-overlay-informative" id="shared-ledger-create-overlay">
+      <div
+        class="modal glass shared-ledger-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shared-ledger-create-title"
+      >
+        <div class="modal-icon">
+          <i class="ph-fill ph-users" style="color: var(--clr-primary)"></i>
+        </div>
+        <h2 class="modal-text" id="shared-ledger-create-title">Buat Grup Patungan</h2>
+        <p class="modal-subtext">Buat grup untuk mencatat patungan bersama teman.</p>
+
+        <div class="form-group" style="margin-bottom: 1rem">
+          <label for="input-shared-ledger-name">Nama Grup</label>
+          <input
+            type="text"
+            id="input-shared-ledger-name"
+            placeholder="cth: Trip Bali, Kost Bareng"
+          />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem">
+          <label for="input-shared-ledger-description">Deskripsi (opsional)</label>
+          <input
+            type="text"
+            id="input-shared-ledger-description"
+            placeholder="cth: Trip 4D3N ke Bali"
+          />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem">
+          <label>Anggota Grup</label>
+          <div id="shared-ledger-members-input" class="ledger-members-input">
+            <div class="ledger-member-row">
+              <input
+                type="color"
+                class="ledger-member-color-picker"
+                value="#6366f1"
+                title="Pilih warna"
+              />
+              <input type="text" class="ledger-member-name" placeholder="Nama anggota" />
+            </div>
+          </div>
+          <button
+            class="btn btn-ghost btn-sm"
+            id="btn-add-ledger-member"
+            type="button"
+            style="margin-top: var(--space-2)"
+          >
+            <i class="ph-bold ph-plus"></i> Tambah Anggota
+          </button>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="btn-save-shared-ledger" type="button">
+            Buat Grup
+          </button>
+          <button class="btn btn-ghost" id="btn-cancel-shared-ledger" type="button">Batal</button>
         </div>
       </div>
     </div>
@@ -1176,7 +1710,6 @@
     <footer class="footer">
       <p>&copy; 2026 Expense Tracker — Data disimpan di browser (localStorage)</p>
     </footer>
-
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>

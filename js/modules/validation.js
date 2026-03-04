@@ -11,7 +11,7 @@ export function isValidIsoDate(value) {
   const day = Number(parts[2]);
   if (!year || month < 1 || month > 12 || day < 1 || day > 31) return false;
   const d = new Date(value + 'T00:00:00');
-  return d.getFullYear() === year && (d.getMonth() + 1) === month && d.getDate() === day;
+  return d.getFullYear() === year && d.getMonth() + 1 === month && d.getDate() === day;
 }
 
 export function toDisplayDate(isoDate) {
@@ -101,6 +101,6 @@ export function validateExpense(data) {
 
   return {
     valid: errors.length === 0,
-    errors: errors
+    errors: errors,
   };
 }

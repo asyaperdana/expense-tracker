@@ -1,0 +1,295 @@
+/* ===========================
+   Utility Classes
+   =========================== */
+
+/* --- Text utilities --- */
+.text-right {
+  text-align: right !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-left {
+  text-align: left !important;
+}
+
+.text-success {
+  color: var(--clr-success) !important;
+}
+
+.text-danger {
+  color: var(--clr-danger) !important;
+}
+
+.text-accent {
+  color: var(--clr-accent) !important;
+}
+
+.text-muted {
+  color: var(--clr-text-muted) !important;
+}
+
+.text-secondary {
+  color: var(--clr-text-secondary) !important;
+}
+
+/* --- Display utilities --- */
+.hidden {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Spacing utilities --- */
+.m-0 {
+  margin: 0 !important;
+}
+
+.mt-0 {
+  margin-top: 0 !important;
+}
+
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+
+.ml-0 {
+  margin-left: 0 !important;
+}
+
+.mr-0 {
+  margin-right: 0 !important;
+}
+
+.p-0 {
+  padding: 0 !important;
+}
+
+/* --- Animation utilities --- */
+.animate-fade {
+  animation: fadeIn 0.3s ease;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease;
+}
+
+.animate-pulse {
+  animation: pulse 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Staggered List Animations --- */
+.stagger-item {
+  animation: fadeInUp 0.4s var(--ease-emph) backwards;
+}
+
+.stagger-item:nth-child(1) {
+  animation-delay: 0.04s;
+}
+
+.stagger-item:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.stagger-item:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.stagger-item:nth-child(4) {
+  animation-delay: 0.16s;
+}
+
+.stagger-item:nth-child(5) {
+  animation-delay: 0.2s;
+}
+
+.stagger-item:nth-child(6) {
+  animation-delay: 0.24s;
+}
+
+.stagger-item:nth-child(7) {
+  animation-delay: 0.28s;
+}
+
+.stagger-item:nth-child(8) {
+  animation-delay: 0.32s;
+}
+
+.stagger-item:nth-child(9) {
+  animation-delay: 0.36s;
+}
+
+.stagger-item:nth-child(10) {
+  animation-delay: 0.4s;
+}
+
+/* Continue pattern for larger lists */
+.stagger-item:nth-child(n + 11) {
+  animation-delay: 0.44s;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reduced motion for staggered animations */
+@media (prefers-reduced-motion: reduce) {
+  .stagger-item {
+    animation: none;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+/* --- Visual utilities --- */
+.rounded-sm {
+  border-radius: var(--radius-sm) !important;
+}
+
+.rounded-md {
+  border-radius: var(--radius-md) !important;
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg) !important;
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md) !important;
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* --- Flex utilities --- */
+.flex {
+  display: flex !important;
+}
+
+.flex-col {
+  flex-direction: column !important;
+}
+
+.items-center {
+  align-items: center !important;
+}
+
+.justify-center {
+  justify-content: center !important;
+}
+
+.justify-between {
+  justify-content: space-between !important;
+}
+
+.gap-1 {
+  gap: var(--space-1) !important;
+}
+
+.gap-2 {
+  gap: var(--space-2) !important;
+}
+
+.gap-3 {
+  gap: var(--space-3) !important;
+}
+
+.gap-4 {
+  gap: var(--space-4) !important;
+}
+
+/* --- Width/Height utilities --- */
+.w-full {
+  width: 100% !important;
+}
+
+.h-full {
+  height: 100% !important;
+}
+
+.min-w-0 {
+  min-width: 0 !important;
+}
+
+/* --- Cursor utilities --- */
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed !important;
+}
+
+/* --- Overflow utilities --- */
+.overflow-hidden {
+  overflow: hidden !important;
+}
+
+.overflow-auto {
+  overflow: auto !important;
+}
+
+/* --- Position utilities --- */
+.relative {
+  position: relative !important;
+}
+
+.absolute {
+  position: absolute !important;
+}
+
+.fixed {
+  position: fixed !important;
+}
+
+.sticky {
+  position: sticky !important;
+}

@@ -1,0 +1,352 @@
+/* ===========================
+   Card Components
+   =========================== */
+
+.card {
+  --mx: 50%;
+  --my: 50%;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-rhythm-card-lg);
+  box-shadow: var(--shadow-inset), var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transform: translateY(0);
+  transition:
+    border-color var(--dur-normal) var(--ease),
+    box-shadow var(--dur-normal) var(--ease),
+    transform var(--dur-fast) var(--ease-snappy),
+    filter var(--dur-normal) var(--ease);
+}
+
+[data-theme='dark'] .card {
+  border-color: color-mix(in srgb, var(--clr-border) 88%, #6d88ad 12%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    var(--shadow-sm);
+}
+
+/* Card top accent line */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--clr-primary), var(--clr-accent));
+  opacity: 0.56;
+}
+
+/* Card hover glow effect */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    280px circle at var(--mx) var(--my),
+    color-mix(in srgb, var(--clr-primary) 16%, transparent),
+    transparent 70%
+  );
+  transition: opacity var(--dur-normal) var(--ease-emph);
+}
+
+.card:hover {
+  border-color: var(--clr-border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  filter: saturate(1.03);
+}
+
+[data-theme='dark'] .card:hover {
+  border-color: color-mix(in srgb, var(--clr-border-strong) 84%, var(--clr-primary) 16%);
+}
+
+.card:hover::after,
+.card.card-glow::after,
+.card:focus-within::after {
+  opacity: 1;
+}
+
+.card:focus-within {
+  border-color: color-mix(in srgb, var(--clr-primary) 42%, var(--clr-border));
+  box-shadow: var(--focus-ring), var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Card illustration (decorative) */
+.card-illus {
+  display: none !important;
+}
+
+/* Card title */
+.card-title {
+  font-size: var(--type-title-size);
+  font-weight: var(--type-title-weight);
+  line-height: var(--type-title-line);
+  letter-spacing: var(--type-title-spacing);
+  margin-bottom: var(--space-6);
+  color: var(--clr-text);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-heading);
+}
+
+.card-title::before {
+  content: '';
+  width: 3px;
+  height: 1rem;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, var(--clr-primary), var(--clr-accent));
+  border-radius: 2px;
+}
+
+/* Section head within cards */
+.section-head {
+  display: grid;
+  gap: 0.34rem;
+  min-width: 0;
+  margin-bottom: var(--space-rhythm-grid);
+}
+
+.section-copy {
+  min-width: 0;
+}
+
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  border: 1px solid color-mix(in srgb, var(--clr-primary) 28%, var(--clr-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--clr-primary) 9%, transparent);
+  padding: 0.16rem 0.56rem;
+  font-size: var(--type-kicker-size);
+  font-weight: var(--type-kicker-weight);
+  letter-spacing: var(--type-kicker-spacing);
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--clr-primary) 80%, var(--clr-text));
+}
+
+.section-title {
+  margin: 0;
+}
+
+.section-head .card-title {
+  margin: 0;
+}
+
+.section-head .card-title::before {
+  content: none;
+}
+
+.section-subtitle {
+  margin: 0;
+  max-width: var(--type-subtitle-max);
+  font-size: var(--type-subtitle-size);
+  line-height: var(--type-subtitle-line);
+  font-weight: var(--type-subtitle-weight);
+  color: var(--clr-text-2);
+}
+
+/* Glass card variant */
+.glass {
+  background: var(--clr-surface);
+}
+
+/* --- Hero Card --- */
+.hero-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.85rem;
+  padding: clamp(1rem, 2.2vw, 1.5rem);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--clr-primary) 10%, var(--clr-surface)),
+    var(--clr-surface) 55%
+  );
+  border-color: color-mix(in srgb, var(--clr-primary) 22%, var(--clr-border));
+  color: var(--clr-text);
+}
+
+.hero-card::before,
+.hero-card::after {
+  content: none !important;
+}
+
+.hero-content {
+  max-width: 100%;
+  display: grid;
+  gap: 8px;
+}
+
+.hero-kicker {
+  color: var(--clr-text-2);
+  font-size: var(--type-kicker-size);
+  font-weight: var(--type-kicker-weight);
+  letter-spacing: var(--type-kicker-spacing);
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-size: var(--type-title-size);
+  font-weight: var(--type-title-weight);
+  line-height: var(--type-title-line);
+  letter-spacing: var(--type-title-spacing);
+  margin: 0;
+}
+
+.hero-value {
+  font-family: var(--num-font-display);
+  color: var(--clr-primary);
+  font-size: var(--num-size-hero);
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: var(--num-tracking-tight);
+  margin: 0;
+}
+
+.hero-note,
+.budget-note,
+.quick-add-subtitle,
+.split-ledger-subtitle {
+  color: var(--clr-text-2);
+  font-size: var(--type-subtitle-size);
+  line-height: var(--type-subtitle-line);
+  font-weight: var(--type-subtitle-weight);
+}
+
+/* Decorative elements (hidden by default) */
+.hero-graphic,
+.hero-orb,
+.hero-orb-2,
+.hero-lines {
+  display: none !important;
+}
+
+/* --- Summary Card --- */
+.summary-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card:hover {
+  transform: translateY(-1px);
+}
+
+/* --- Filter Card --- */
+.filter-card {
+  padding: var(--space-5);
+  background: var(--clr-surface-alt);
+}
+
+.filter-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Table Card --- */
+.table-card {
+  padding: var(--space-5);
+}
+
+.table-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Chart Card --- */
+.chart-card {
+  padding: var(--space-5);
+}
+
+.chart-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Calendar Card --- */
+.calendar-card {
+  padding: var(--space-5);
+}
+
+.calendar-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Report Card --- */
+.report-card {
+  padding: var(--space-5);
+}
+
+.report-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Trend Card --- */
+.trend-card {
+  padding: var(--space-5);
+}
+
+.trend-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Goal Card --- */
+.goal-card {
+  padding: var(--space-5);
+}
+
+.goal-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Quick Add Card --- */
+.quick-add-card {
+  padding: var(--space-5);
+}
+
+.quick-add-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Recent Card --- */
+.recent-card {
+  padding: var(--space-5);
+}
+
+.recent-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Form Card --- */
+.form-card {
+  padding: var(--space-5);
+}
+
+.form-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Split Ledger Card --- */
+.split-ledger-card {
+  padding: var(--space-5);
+}
+
+.split-ledger-card .card-title {
+  margin-bottom: var(--space-5);
+}
+
+/* --- Category Budget Card --- */
+.category-budget-card {
+  padding: var(--space-5);
+}
+
+.category-budget-card .card-title {
+  margin-bottom: var(--space-5);
+}

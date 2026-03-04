@@ -17,6 +17,10 @@ const TEMPLATES_KEY = 'expense_tracker_templates';
 const VIEW_KEY = 'expense_tracker_active_view';
 
 // ─── Expenses ─────────────────────────────
+/**
+ * Loads expenses from localStorage.
+ * @returns {Array} Array of expense objects
+ */
 export function loadExpenses() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -26,11 +30,19 @@ export function loadExpenses() {
   }
 }
 
+/**
+ * Saves expenses to localStorage.
+ * @param {Array} data - Array of expense objects to save
+ */
 export function saveExpenses(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
 // ─── Recurring ────────────────────────────
+/**
+ * Loads recurring expenses from localStorage.
+ * @returns {Array} Array of recurring expense objects
+ */
 export function loadRecurring() {
   try {
     const raw = localStorage.getItem(RECURRING_KEY);
@@ -40,6 +52,10 @@ export function loadRecurring() {
   }
 }
 
+/**
+ * Saves recurring expenses to localStorage.
+ * @param {Array} data - Array of recurring expense objects
+ */
 export function saveRecurring(data) {
   localStorage.setItem(RECURRING_KEY, JSON.stringify(data));
 }
@@ -59,6 +75,10 @@ export function saveCustomCategories(data) {
 }
 
 // ─── Goals ────────────────────────────────
+/**
+ * Loads goals from localStorage.
+ * @returns {Array} Array of goal objects
+ */
 export function loadGoals() {
   try {
     const raw = localStorage.getItem(GOALS_KEY);
@@ -68,6 +88,10 @@ export function loadGoals() {
   }
 }
 
+/**
+ * Saves goals to localStorage.
+ * @param {Array} data - Array of goal objects
+ */
 export function saveGoals(data) {
   localStorage.setItem(GOALS_KEY, JSON.stringify(data));
 }
@@ -87,9 +111,12 @@ export function loadProfile() {
 }
 
 export function saveProfile(data) {
-  localStorage.setItem(PROFILE_KEY, JSON.stringify({
-    name: (data.name || '').trim(),
-  }));
+  localStorage.setItem(
+    PROFILE_KEY,
+    JSON.stringify({
+      name: (data.name || '').trim(),
+    })
+  );
 }
 
 // ─── Wallets ──────────────────────────────

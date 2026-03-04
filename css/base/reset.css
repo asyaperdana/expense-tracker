@@ -1,0 +1,229 @@
+/* ===========================
+   CSS Reset & Base Styles
+   =========================== */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+h1 {
+  font-size: var(--fs-700);
+}
+
+h2 {
+  font-size: var(--fs-600);
+}
+
+h3 {
+  font-size: var(--fs-500);
+}
+
+h4 {
+  font-size: var(--fs-400);
+}
+
+p {
+  line-height: var(--lh-normal);
+}
+
+body {
+  font-family: var(--font-body);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--clr-bg) 94%, #f8fbff),
+    var(--clr-bg)
+  );
+  color: var(--clr-text);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  letter-spacing: -0.005em;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  isolation: isolate;
+  transition:
+    background var(--ease),
+    color var(--ease);
+}
+
+[data-theme='dark'] body {
+  background:
+    radial-gradient(
+      ellipse 1180px 540px at 12% -12%,
+      color-mix(in srgb, var(--clr-primary) 14%, transparent),
+      transparent 64%
+    ),
+    radial-gradient(
+      ellipse 920px 420px at 108% -18%,
+      color-mix(in srgb, var(--clr-accent) 13%, transparent),
+      transparent 68%
+    ),
+    linear-gradient(160deg, color-mix(in srgb, var(--clr-bg) 92%, #040a16), var(--clr-bg));
+}
+
+/* Brand decorative layer */
+.brand-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.brand-layer::before {
+  content: '';
+  position: absolute;
+  inset: -18% -10%;
+  background:
+    radial-gradient(circle at 12% 14%, var(--clr-brand-glow-1), transparent 56%),
+    radial-gradient(circle at 84% 16%, var(--clr-brand-glow-2), transparent 52%),
+    radial-gradient(circle at 48% 88%, var(--clr-brand-glow-3), transparent 58%);
+}
+
+.brand-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(160deg, transparent 0%, var(--clr-brand-vignette) 100%),
+    linear-gradient(var(--clr-brand-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--clr-brand-grid) 1px, transparent 1px);
+  background-size:
+    auto,
+    72px 72px,
+    72px 72px;
+  background-position:
+    0 0,
+    -6px -10px,
+    -6px -10px;
+  opacity: 0.46;
+}
+
+.brand-glow {
+  position: absolute;
+  width: min(38vw, 520px);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  filter: blur(58px);
+  opacity: 0.42;
+}
+
+.brand-glow-1 {
+  top: -16vh;
+  left: -8vw;
+  background: var(--clr-brand-glow-1);
+}
+
+.brand-glow-2 {
+  top: 14vh;
+  right: -10vw;
+  background: var(--clr-brand-glow-2);
+}
+
+.brand-glow-3 {
+  bottom: -24vh;
+  left: 30vw;
+  background: var(--clr-brand-glow-3);
+}
+
+/* Icon Language System:
+   - Use `ph-bold` for navigation, data, and interactive controls.
+   - Reserve `ph-fill` for status feedback surfaces (modal, toast, render-state). */
+i[class^='ph-'],
+i[class*=' ph-'] {
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: -0.12em;
+}
+
+:where(
+    .btn,
+    .nav-link,
+    .card-title,
+    .tx-type,
+    .tx-wallet,
+    .split-mode-btn,
+    .calendar-helper,
+    .tools-metric-label
+  )
+  i[class^='ph-'],
+:where(
+    .btn,
+    .nav-link,
+    .card-title,
+    .tx-type,
+    .tx-wallet,
+    .split-mode-btn,
+    .calendar-helper,
+    .tools-metric-label
+  )
+  i[class*=' ph-'] {
+  font-size: var(--icon-size-md);
+}
+
+:where(
+    .section-kicker,
+    .legend-label,
+    .wallet-pill-label,
+    .category-budget-name,
+    .history-kicker,
+    .report-label
+  )
+  i[class^='ph-'],
+:where(
+    .section-kicker,
+    .legend-label,
+    .wallet-pill-label,
+    .category-budget-name,
+    .history-kicker,
+    .report-label
+  )
+  i[class*=' ph-'] {
+  font-size: var(--icon-size-sm);
+}
+
+:where(.modal-icon, .toast-icon, .render-state-icon) i[class^='ph-'],
+:where(.modal-icon, .toast-icon, .render-state-icon) i[class*=' ph-'] {
+  font-size: var(--icon-size-lg);
+}
+
+/* Focus styles */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Selection styles */
+::selection {
+  background: var(--clr-primary-soft);
+  color: var(--clr-primary);
+}
