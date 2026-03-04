@@ -22,9 +22,14 @@
     <link rel="stylesheet" href="css/style.css">
   </head>
   <body>
+    <div class="brand-layer" aria-hidden="true">
+      <span class="brand-glow brand-glow-1"></span>
+      <span class="brand-glow brand-glow-2"></span>
+      <span class="brand-glow brand-glow-3"></span>
+    </div>
     <header class="header">
       <div class="header-inner">
-        <span class="header-icon"><i class="ph-fill ph-wallet"></i></span>
+        <span class="header-icon"><i class="ph-bold ph-wallet"></i></span>
         <div>
           <h1>Expense Tracker</h1>
           <p class="header-subtitle">Kelola pengeluaran harianmu dengan lebih fokus</p>
@@ -35,7 +40,7 @@
           title="Toggle dark mode"
           aria-label="Toggle dark mode"
         >
-          <span class="theme-icon" id="theme-icon"><i class="ph-fill ph-moon"></i></span>
+          <span class="theme-icon" id="theme-icon"><i class="ph-bold ph-moon"></i></span>
         </button>
       </div>
     </header>
@@ -94,6 +99,11 @@
 
         <section class="card summary-card" data-view="dashboard">
           <span class="card-illus" aria-hidden="true">◉</span>
+          <div class="section-head">
+            <p class="section-kicker"><i class="ph-bold ph-chart-pie-slice"></i> Snapshot Bulanan</p>
+            <h3 class="card-title section-title">Ringkasan Utama</h3>
+            <p class="section-subtitle">Pantau pemasukan, pengeluaran, dan performa transaksi dalam satu panel.</p>
+          </div>
           <div class="dashboard-monthly-stats">
             <article class="dashboard-stat">
               <p class="dashboard-stat-label">Pemasukan Bulan Ini</p>
@@ -130,9 +140,10 @@
 
         <section class="card glass quick-add-card" id="quick-add-section" data-view="dashboard">
           <span class="card-illus" aria-hidden="true">⚡</span>
-          <div class="quick-add-header">
-            <h3 class="card-title"><i class="ph-bold ph-lightning"></i> Quick Add</h3>
-            <p class="quick-add-subtitle">Tap untuk langsung input transaksi dari template</p>
+          <div class="quick-add-header section-head">
+            <p class="section-kicker"><i class="ph-bold ph-lightning"></i> Shortcut Template</p>
+            <h3 class="card-title section-title">Quick Add</h3>
+            <p class="quick-add-subtitle section-subtitle">Tap untuk langsung input transaksi dari template.</p>
           </div>
           <div class="quick-add-strip" id="quick-add-strip"></div>
           <div class="quick-add-empty" id="quick-add-empty">
@@ -149,7 +160,11 @@
 
         <section class="card glass chart-card" data-view="dashboard">
           <span class="card-illus" aria-hidden="true">◔</span>
-          <h3 class="card-title">Grafik Pengeluaran per Kategori</h3>
+          <div class="section-head">
+            <p class="section-kicker"><i class="ph-bold ph-chart-pie-slice"></i> Komposisi Pengeluaran</p>
+            <h3 class="card-title section-title">Grafik per Kategori</h3>
+            <p class="section-subtitle">Lihat distribusi belanja agar prioritas bulanan lebih jelas.</p>
+          </div>
           <div class="chart-container">
             <canvas id="category-chart" width="280" height="280" aria-label="Grafik pengeluaran per kategori"></canvas>
             <div class="chart-legend" id="chart-legend"></div>
@@ -168,7 +183,11 @@
 
         <section class="card glass recent-card" id="recent-card" data-view="dashboard">
           <span class="card-illus" aria-hidden="true">◌</span>
-          <h3 class="card-title">5 Transaksi Terakhir</h3>
+          <div class="section-head">
+            <p class="section-kicker"><i class="ph-bold ph-list-checks"></i> Aktivitas Terbaru</p>
+            <h3 class="card-title section-title">5 Transaksi Terakhir</h3>
+            <p class="section-subtitle">Validasi cepat sebelum edit, pin, atau hapus transaksi.</p>
+          </div>
           <div class="recent-card-list" id="recent-list"></div>
           <div class="empty-block" id="recent-empty" style="display:none;">
             <svg class="empty-svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
@@ -378,10 +397,10 @@
         <section class="card glass filter-card history-filter-card" data-view="history">
           <span class="card-illus" aria-hidden="true">◳</span>
           <div class="history-card-head">
-            <div>
-              <span class="history-kicker"><i class="ph-bold ph-funnel-simple"></i> Panel Riwayat</span>
-              <h3 class="card-title">Filter Transaksi</h3>
-              <p class="history-subtitle">Cari transaksi lebih cepat berdasarkan kata kunci, kategori, bulan, dan urutan nominal.</p>
+            <div class="section-head">
+              <span class="history-kicker section-kicker"><i class="ph-bold ph-funnel-simple"></i> Panel Riwayat</span>
+              <h3 class="card-title section-title">Filter Transaksi</h3>
+              <p class="history-subtitle section-subtitle">Cari transaksi lebih cepat berdasarkan kata kunci, kategori, bulan, dan urutan nominal.</p>
             </div>
           </div>
           <div class="filter-layout">
@@ -462,10 +481,10 @@
         <section class="card glass table-card history-table-card" data-view="history">
           <span class="card-illus" aria-hidden="true">▦</span>
           <div class="history-table-header">
-            <div>
-              <span class="history-kicker"><i class="ph-bold ph-list-checks"></i> Catatan Transaksi</span>
-              <h3 class="card-title">Riwayat Transaksi</h3>
-              <p class="history-subtitle">Semua perubahan langsung tercermin di tabel setelah filter diterapkan.</p>
+            <div class="section-head">
+              <span class="history-kicker section-kicker"><i class="ph-bold ph-list-checks"></i> Catatan Transaksi</span>
+              <h3 class="card-title section-title">Riwayat Transaksi</h3>
+              <p class="history-subtitle section-subtitle">Semua perubahan langsung tercermin di tabel setelah filter diterapkan.</p>
             </div>
             <p class="render-state" id="render-state" aria-live="polite"></p>
           </div>
@@ -497,10 +516,10 @@
         <section class="card glass calendar-card history-calendar-card" id="calendar-section" data-view="history">
           <span class="card-illus" aria-hidden="true">◫</span>
           <div class="history-card-head history-card-head-tight">
-            <div>
-              <span class="history-kicker"><i class="ph-bold ph-calendar-dots"></i> Timeline Harian</span>
-              <h3 class="card-title">Kalender Pengeluaran</h3>
-              <p class="history-subtitle">Klik tanggal untuk membuka detail pemasukan dan pengeluaran pada hari tersebut.</p>
+            <div class="section-head">
+              <span class="history-kicker section-kicker"><i class="ph-bold ph-calendar-dots"></i> Timeline Harian</span>
+              <h3 class="card-title section-title">Kalender Pengeluaran</h3>
+              <p class="history-subtitle section-subtitle">Klik tanggal untuk membuka detail pemasukan dan pengeluaran pada hari tersebut.</p>
             </div>
           </div>
           <div class="calendar-header">
@@ -544,7 +563,11 @@
         <section class="card glass report-card" id="report-section" data-view="report">
           <span class="card-illus" aria-hidden="true">◍</span>
           <div class="report-header">
-            <h3 class="card-title"><i class="ph-bold ph-chart-line-up"></i> Ringkasan Laporan Bulanan</h3>
+            <div class="section-head section-copy">
+              <p class="section-kicker"><i class="ph-bold ph-chart-line-up"></i> Laporan Bulanan</p>
+              <h3 class="card-title section-title">Ringkasan Finansial</h3>
+              <p class="section-subtitle">Bandingkan pemasukan dan pengeluaran untuk periode yang sedang aktif.</p>
+            </div>
             <span class="report-month" id="report-month-label">Bulan Ini</span>
           </div>
           
@@ -608,10 +631,14 @@
         <section class="card glass trend-card" id="trend-section" data-view="report">
           <span class="card-illus" aria-hidden="true">◈</span>
           <div class="trend-header">
-            <h3 class="card-title"><i class="ph-bold ph-chart-bar"></i> Tren 6 Bulan</h3>
+            <div class="section-head section-copy">
+              <p class="section-kicker"><i class="ph-bold ph-chart-bar"></i> Tren Historis</p>
+              <h3 class="card-title section-title">Tren 6 Bulan</h3>
+              <p class="section-subtitle">Amati pola naik-turun cashflow untuk evaluasi kebiasaan belanja.</p>
+            </div>
             <div class="trend-legend">
-              <span class="trend-legend-item trend-legend-income"><span class="trend-dot"></span> Pemasukan</span>
-              <span class="trend-legend-item trend-legend-expense"><span class="trend-dot"></span> Pengeluaran</span>
+              <span class="trend-legend-item trend-legend-income"><span class="trend-dot"></span> Pemasukan <strong id="trend-legend-income-value">Rp 0</strong></span>
+              <span class="trend-legend-item trend-legend-expense"><span class="trend-dot"></span> Pengeluaran <strong id="trend-legend-expense-value">Rp 0</strong></span>
             </div>
           </div>
           <div class="trend-chart-wrapper">
@@ -633,10 +660,10 @@
 
         <section class="card glass tools-overview-card" id="tools-overview-section" data-view="tools">
           <div class="tools-overview-head">
-            <div>
-              <span class="tools-kicker">Toolkit Finansial</span>
-              <h3 class="card-title tools-overview-title"><i class="ph-bold ph-toolbox"></i> Pusat Kendali Tools</h3>
-              <p class="tools-overview-subtitle">Satu panel untuk atur tabungan impian, budget kategori, dan kontrol split bill.</p>
+            <div class="section-head section-copy">
+              <span class="section-kicker"><i class="ph-bold ph-toolbox"></i> Toolkit Finansial</span>
+              <h3 class="card-title tools-overview-title section-title">Pusat Kendali Tools</h3>
+              <p class="tools-overview-subtitle section-subtitle">Satu panel untuk atur tabungan impian, budget kategori, dan kontrol split bill.</p>
             </div>
             <div class="tools-overview-actions">
               <button class="btn btn-primary btn-sm" id="btn-tools-open-goal" type="button"><i class="ph-bold ph-plus"></i> Goal Baru</button>
@@ -671,9 +698,10 @@
         <section class="card glass goal-card tools-card" id="goal-section" data-view="tools">
           <span class="card-illus goal-illus" aria-hidden="true">★</span>
           <div class="goal-header tools-card-header">
-            <div class="tools-card-copy">
-              <h3 class="card-title goal-title"><i class="ph-bold ph-target"></i> Tabungan Impian</h3>
-              <p class="tools-card-subtitle">Pisahkan dana berdasarkan target supaya progres menabung lebih terukur.</p>
+            <div class="tools-card-copy section-head">
+              <span class="section-kicker"><i class="ph-bold ph-target"></i> Goal Keuangan</span>
+              <h3 class="card-title goal-title section-title">Tabungan Impian</h3>
+              <p class="tools-card-subtitle section-subtitle">Pisahkan dana berdasarkan target supaya progres menabung lebih terukur.</p>
             </div>
             <button class="btn btn-sm btn-ghost btn-add-goal" id="btn-add-goal" type="button">
               <i class="ph-bold ph-plus"></i> <span class="goal-btn-label">Goal Baru</span>
@@ -685,9 +713,10 @@
         <section class="card glass category-budget-card tools-card" id="category-budget-section" data-view="tools">
           <span class="card-illus" aria-hidden="true">◎</span>
           <div class="category-budget-header tools-card-header">
-            <div class="tools-card-copy">
-              <h3 class="card-title"><i class="ph-bold ph-sliders-horizontal"></i> Budget per Kategori</h3>
-              <p class="tools-card-subtitle">Pantau batas pengeluaran tiap kategori untuk bulan yang sedang dipilih.</p>
+            <div class="tools-card-copy section-head">
+              <span class="section-kicker"><i class="ph-bold ph-sliders-horizontal"></i> Kontrol Kategori</span>
+              <h3 class="card-title section-title">Budget per Kategori</h3>
+              <p class="tools-card-subtitle section-subtitle">Pantau batas pengeluaran tiap kategori untuk bulan yang sedang dipilih.</p>
             </div>
             <button class="btn btn-ghost btn-sm" id="btn-edit-category-budget" type="button">
               <i class="ph-bold ph-sliders-horizontal"></i> Atur
@@ -709,9 +738,10 @@
         <section class="card glass split-ledger-card tools-card" id="split-ledger-section" data-view="tools">
           <span class="card-illus" aria-hidden="true">◫</span>
           <div class="split-ledger-header tools-card-header">
-            <div class="tools-card-copy">
-              <h3 class="card-title"><i class="ph-bold ph-handshake"></i> Ledger Split Bill</h3>
-              <p class="split-ledger-subtitle tools-card-subtitle">Tracking split bill terpisah dari pengeluaran utama agar piutang lebih rapi.</p>
+            <div class="tools-card-copy section-head">
+              <span class="section-kicker"><i class="ph-bold ph-handshake"></i> Kolaborasi Tagihan</span>
+              <h3 class="card-title section-title">Ledger Split Bill</h3>
+              <p class="split-ledger-subtitle tools-card-subtitle section-subtitle">Tracking split bill terpisah dari pengeluaran utama agar piutang lebih rapi.</p>
             </div>
             <button class="btn btn-split btn-sm" id="btn-open-split-tools" type="button"><i class="ph-bold ph-plus"></i> Tambah Bill</button>
           </div>
@@ -755,7 +785,7 @@
       <i class="ph-bold ph-plus"></i>
     </button>
 
-    <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-overlay modal-overlay-destructive" id="modal-overlay">
       <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
         <div class="modal-icon"><i class="ph-fill ph-warning-circle" style="color: var(--clr-warning);"></i></div>
         <p class="modal-text" id="modal-delete-title">Yakin ingin menghapus pengeluaran ini?</p>
@@ -766,7 +796,7 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="budget-overlay">
+    <div class="modal-overlay modal-overlay-informative" id="budget-overlay">
       <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-budget-title">
         <div class="modal-icon"><i class="ph-fill ph-target" style="color: var(--clr-primary);"></i></div>
         <h2 class="modal-text" id="modal-budget-title">Atur Batas Bulanan</h2>
@@ -781,7 +811,7 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="category-budget-overlay">
+    <div class="modal-overlay modal-overlay-informative" id="category-budget-overlay">
       <div class="modal glass category-budget-modal" role="dialog" aria-modal="true" aria-labelledby="modal-category-budget-title">
         <div class="modal-icon"><i class="ph-fill ph-target" style="color: var(--clr-accent);"></i></div>
         <h2 class="modal-text" id="modal-category-budget-title">Atur Budget per Kategori</h2>
@@ -794,7 +824,7 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="split-overlay">
+    <div class="modal-overlay modal-overlay-informative" id="split-overlay">
       <div class="modal glass split-modal" role="dialog" aria-modal="true" aria-labelledby="split-title">
         <div class="split-header">
           <h2 id="split-title"><i class="ph-bold ph-receipt"></i> Split Bill</h2>
@@ -859,7 +889,7 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="category-overlay">
+    <div class="modal-overlay modal-overlay-informative" id="category-overlay">
       <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-category-title">
         <div class="modal-icon"><i class="ph-fill ph-circles-four" style="color: var(--clr-primary);"></i></div>
         <h2 class="modal-text" id="modal-category-title">Tambah Kategori Custom</h2>
@@ -890,7 +920,7 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="goal-add-overlay">
+    <div class="modal-overlay modal-overlay-informative" id="goal-add-overlay">
       <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-goal-add-title">
         <div class="modal-icon"><i class="ph-fill ph-star" style="color: var(--clr-accent);"></i></div>
         <h2 class="modal-text" id="modal-goal-add-title">Tambah Tabungan Impian</h2>
@@ -912,7 +942,7 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="goal-fund-overlay">
+    <div class="modal-overlay modal-overlay-informative" id="goal-fund-overlay">
       <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modal-goal-fund-title">
         <div class="modal-icon"><i class="ph-fill ph-piggy-bank" style="color: var(--clr-success);"></i></div>
         <h2 class="modal-text" id="modal-goal-fund-title" style="margin-bottom:0.2rem;">Alokasi Dana Tabungan</h2>
@@ -941,7 +971,7 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="import-overlay">
+    <div class="modal-overlay modal-overlay-informative" id="import-overlay">
       <div class="modal glass import-modal" role="dialog" aria-modal="true" aria-labelledby="import-title">
         <div class="modal-icon"><i class="ph-fill ph-upload-simple" style="color: var(--clr-primary);"></i></div>
         <h2 class="modal-text" id="import-title">Impor JSON</h2>
@@ -970,7 +1000,7 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="import-summary-overlay">
+    <div class="modal-overlay modal-overlay-informative" id="import-summary-overlay">
       <div class="modal glass import-summary-modal" role="dialog" aria-modal="true" aria-labelledby="import-summary-title">
         <div class="modal-icon"><i class="ph-fill ph-check-circle" style="color: var(--clr-success);"></i></div>
         <h2 class="modal-text" id="import-summary-title">Ringkasan Impor</h2>
@@ -994,7 +1024,7 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="recurring-overlay">
+    <div class="modal-overlay modal-overlay-informative" id="recurring-overlay">
       <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="recurring-title">
         <div class="modal-icon"><i class="ph-fill ph-calendar-check" style="color: var(--clr-primary);"></i></div>
         <h2 class="modal-text" id="recurring-title">Tagihan Berulang</h2>
@@ -1007,7 +1037,7 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="wallet-overlay">
+    <div class="modal-overlay modal-overlay-informative" id="wallet-overlay">
       <div class="modal glass wallet-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
         <div class="modal-icon"><i class="ph-fill ph-wallet" style="color: var(--clr-primary);"></i></div>
         <h2 class="modal-text" id="wallet-modal-title">Kelola Dompet</h2>

@@ -159,6 +159,15 @@ const RENDER_STATE_ICONS = {
   error: 'ph-fill ph-x-circle',
   info: 'ph-fill ph-info',
 };
+const TREND_MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+let trendBars = [];
+let trendTooltipBound = false;
+const VIEW_INDEX = VALID_VIEWS.reduce(function (map, key, idx) {
+  map[key] = idx;
+  return map;
+}, {});
+let activeViewKey = null;
+let viewTransitionTimer = null;
 
 // ─── Toast Notifications ─────────────────
 export function showToast(message, type) {
@@ -206,7 +215,7 @@ export function updateUndoIndicator() {
 export function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   storage.setThemeStorage(theme);
-  dom.themeIcon.innerHTML = theme === 'dark' ? '<i class="ph-fill ph-sun"></i>' : '<i class="ph-fill ph-moon"></i>';
+  dom.themeIcon.innerHTML = theme === 'dark' ? '<i class="ph-bold ph-sun"></i>' : '<i class="ph-bold ph-moon"></i>';
 }
 
 // ─── Render State ─────────────────────────
@@ -383,7 +392,7 @@ export function renderWalletList(onDelete) {
     let deleteDisabled = usageCount > 0 || state.wallets.length <= 1;
     let deleteTitle = usageCount > 0 ? 'Tidak dapat dihapus karena masih digunakan dalam transaksi' : (state.wallets.length <= 1 ? 'Setidaknya harus ada satu dompet aktif' : 'Hapus dompet');
     item.innerHTML =
-      '<div class="wallet-item-icon"><i class="ph-fill ' + normalizeWalletIcon(wallet.icon) + '"></i></div>' +
+      '<div class="wallet-item-icon"><i class="ph-bold ' + normalizeWalletIcon(wallet.icon) + '"></i></div>' +
       '<div class="wallet-item-meta"><div class="wallet-item-name">' + calc.escapeHtml(wallet.name) + '</div><div class="wallet-item-usage">Dipakai di ' + usageCount + ' transaksi</div></div>' +
       '<button class="btn btn-ghost btn-sm btn-del-wallet" data-id="' + wallet.id + '" title="' + deleteTitle + '" ' + (deleteDisabled ? 'disabled aria-disabled="true"' : '') + '><i class="ph-bold ph-trash"></i></button>';
     let btnDel = item.querySelector('.btn-del-wallet');
@@ -411,7 +420,7 @@ export function renderTemplateStrip(onUseTemplate, onDeleteTemplate) {
   state.templates.forEach(function (tpl) {
     let card = document.createElement('div');
     card.className = 'template-card';
-    let iconHtml = CATEGORY_ICONS[tpl.category] || '<i class="ph-fill ph-tag"></i>';
+    let iconHtml = CATEGORY_ICONS[tpl.category] || '<i class="ph-bold ph-tag"></i>';
     card.innerHTML =
       '<div class="template-icon">' + iconHtml + '</div>' +
       '<div class="template-name">' + calc.escapeHtml(tpl.title) + '</div>' +
@@ -452,17 +461,124 @@ export function renderMonthlyReport() {
 }
 
 // ─── Trend Chart ──────────────────────────
+function formatTrendMonthShort(monthKey) {
+  let parts = String(monthKey || '').split('-');
+  if (parts.length !== 2) return String(monthKey || '—');
+  let monthNum = Number(parts[1]);
+  if (!Number.isFinite(monthNum) || monthNum < 1 || monthNum > 12) return String(monthKey || '—');
+  return TREND_MONTH_SHORT[monthNum - 1] + ' ' + String(parts[0]).slice(-2);
+}
+
+function formatTrendAxisValue(value) {
+  let num = Number(value) || 0;
+  if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' jt';
+  return Math.round(num / 1000) + ' rb';
+}
+
+function setTrendLegendTotals(data) {
+  let incomeTotal = 0;
+  let expenseTotal = 0;
+  data.forEach(function (entry) {
+    incomeTotal += Number(entry.income || 0);
+    expenseTotal += Number(entry.expense || 0);
+  });
+  let incomeEl = document.getElementById('trend-legend-income-value');
+  let expenseEl = document.getElementById('trend-legend-expense-value');
+  if (incomeEl) incomeEl.textContent = calc.formatRupiah(incomeTotal);
+  if (expenseEl) expenseEl.textContent = calc.formatRupiah(expenseTotal);
+}
+
+function hideTrendTooltip() {
+  if (!dom.trendTooltip) return;
+  dom.trendTooltip.classList.remove('visible');
+}
+
+function pointInRect(x, y, rect) {
+  if (!rect) return false;
+  return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+}
+
+function showTrendTooltip(bar, clientX, clientY) {
+  if (!dom.trendTooltip || !bar || !dom.trendChartCanvas || !dom.trendChartCanvas.parentElement) return;
+  let net = bar.income - bar.expense;
+  let netClass = net >= 0 ? 'is-positive' : 'is-negative';
+  let netLabel = (net >= 0 ? '+' : '') + calc.formatRupiah(net);
+  dom.trendTooltip.innerHTML =
+    '<div class="trend-tooltip-head">' + calc.escapeHtml(bar.monthLabel) + '</div>' +
+    '<div class="trend-tooltip-row"><span>Pemasukan</span><strong class="text-success">' + calc.formatRupiah(bar.income) + '</strong></div>' +
+    '<div class="trend-tooltip-row"><span>Pengeluaran</span><strong class="text-danger">' + calc.formatRupiah(bar.expense) + '</strong></div>' +
+    '<div class="trend-tooltip-row trend-tooltip-row-net ' + netClass + '"><span>Selisih</span><strong>' + netLabel + '</strong></div>';
+
+  let containerRect = dom.trendChartCanvas.parentElement.getBoundingClientRect();
+  let left = clientX - containerRect.left + 14;
+  let top = clientY - containerRect.top + 14;
+  dom.trendTooltip.style.left = left + 'px';
+  dom.trendTooltip.style.top = top + 'px';
+  dom.trendTooltip.classList.add('visible');
+
+  let tipRect = dom.trendTooltip.getBoundingClientRect();
+  if (tipRect.right > containerRect.right - 8) {
+    left = left - tipRect.width - 22;
+  }
+  if (tipRect.bottom > containerRect.bottom - 8) {
+    top = top - tipRect.height - 22;
+  }
+  dom.trendTooltip.style.left = Math.max(8, left) + 'px';
+  dom.trendTooltip.style.top = Math.max(8, top) + 'px';
+}
+
+function handleTrendHover(e) {
+  if (state.isPerfLite || !trendBars.length) {
+    hideTrendTooltip();
+    return;
+  }
+  let rect = dom.trendChartCanvas.getBoundingClientRect();
+  let x = e.clientX - rect.left;
+  let y = e.clientY - rect.top;
+  let match = null;
+  trendBars.forEach(function (bar) {
+    if (match) return;
+    if (pointInRect(x, y, bar.incomeRect) || pointInRect(x, y, bar.expenseRect) || pointInRect(x, y, bar.groupRect)) {
+      match = bar;
+    }
+  });
+  if (!match) {
+    hideTrendTooltip();
+    return;
+  }
+  showTrendTooltip(match, e.clientX, e.clientY);
+}
+
+function bindTrendTooltipEvents() {
+  if (trendTooltipBound || !dom.trendChartCanvas) return;
+  dom.trendChartCanvas.addEventListener('mousemove', handleTrendHover);
+  dom.trendChartCanvas.addEventListener('mouseleave', hideTrendTooltip);
+  dom.trendChartCanvas.addEventListener('pointerleave', hideTrendTooltip);
+  trendTooltipBound = true;
+}
+
 export function renderTrendChart() {
   if (!dom.trendChartCanvas) return;
+  bindTrendTooltipEvents();
+  hideTrendTooltip();
+  trendBars = [];
+
   let ctx = dom.trendChartCanvas.getContext('2d');
   let dpr = window.devicePixelRatio || 1;
   let parentW = dom.trendChartCanvas.parentElement ? dom.trendChartCanvas.parentElement.clientWidth : 580;
-  let canvasWidth = Math.max(parentW, 400);
+  let viewportW = window.innerWidth || parentW || 580;
+  let minCanvasWidth = viewportW <= 480 ? 280 : (viewportW <= 768 ? 320 : 400);
+  let canvasWidth = Math.max(parentW - 2, minCanvasWidth);
+  if (parentW > 0) canvasWidth = Math.min(canvasWidth, parentW);
+  canvasWidth = Math.max(240, canvasWidth);
   let canvasHeight = 260;
   dom.trendChartCanvas.width = canvasWidth * dpr;
   dom.trendChartCanvas.height = canvasHeight * dpr;
   dom.trendChartCanvas.style.width = canvasWidth + 'px';
   dom.trendChartCanvas.style.height = canvasHeight + 'px';
+  dom.trendChartCanvas.style.maxWidth = '100%';
+  dom.trendChartCanvas.style.display = 'block';
+  dom.trendChartCanvas.style.margin = '0 auto';
   ctx.scale(dpr, dpr);
 
   let months = [];
@@ -473,6 +589,8 @@ export function renderTrendChart() {
     state.expenses.forEach(function (e) { if (e.date.startsWith(m)) { if (e.type === 'income') inc += e.amount; else if (e.type === 'expense') exp += e.amount; } });
     return { month: m, income: inc, expense: exp };
   });
+  setTrendLegendTotals(data);
+
   let maxVal = Math.max.apply(Math, data.map(function (d) { return Math.max(d.income, d.expense); })) || 100000;
   if (maxVal >= 1000000) maxVal = Math.ceil(maxVal / 1000000) * 1000000;
   else if (maxVal >= 100000) maxVal = Math.ceil(maxVal / 100000) * 100000;
@@ -485,31 +603,84 @@ export function renderTrendChart() {
   }
   if (dom.trendEmpty) dom.trendEmpty.style.display = 'none';
   dom.trendChartCanvas.style.display = 'block';
-  let padding = { top: 20, right: 20, bottom: 40, left: 60 };
+  let compact = canvasWidth < 360;
+  let padding = compact
+    ? { top: 18, right: 10, bottom: 36, left: 46 }
+    : { top: 20, right: 16, bottom: 40, left: 60 };
   let chartW = canvasWidth - padding.left - padding.right;
   let chartH = canvasHeight - padding.top - padding.bottom;
-  let barGap = 20; let barWidth = (chartW / 6) - barGap;
+  let groupWidth = chartW / data.length;
+  let barWidth = Math.max(22, Math.min(58, groupWidth * 0.7));
+  let pairGap = Math.max(4, Math.min(8, barWidth * 0.1));
+  let singleBarWidth = (barWidth - pairGap) / 2;
   let axisColor = getCssColor('--clr-chart-axis', storage.getTheme() === 'dark' ? '#94a3b8' : '#64748b');
   let gridColor = getCssColor('--clr-chart-grid', storage.getTheme() === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)');
   let incomeColor = getCssColor('--clr-chart-income', '#10b981');
   let expenseColor = getCssColor('--clr-chart-expense', '#f43f5e');
+  let borderColor = getCssColor('--clr-border', storage.getTheme() === 'dark' ? '#253550' : '#dce3ed');
+
+  ctx.fillStyle = getCssColor('--clr-surface-alt', '#f7f9fc');
+  ctx.fillRect(padding.left, padding.top, chartW, chartH);
+  ctx.strokeStyle = borderColor;
+  ctx.strokeRect(padding.left + 0.5, padding.top + 0.5, chartW - 1, chartH - 1);
+
   ctx.fillStyle = axisColor;
-  ctx.font = '600 10px "Manrope", "Plus Jakarta Sans", sans-serif'; ctx.textAlign = 'right';
+  ctx.font = (compact ? '600 9px ' : '600 10px ') + '"Manrope", "Plus Jakarta Sans", sans-serif';
+  ctx.textAlign = 'right';
   for (let j = 0; j <= 4; j++) {
     let y = padding.top + chartH - (j * (chartH / 4));
     let labelVal = (maxVal / 4) * j;
-    ctx.fillText(labelVal >= 1000000 ? (labelVal / 1000000).toFixed(1) + 'M' : (labelVal / 1000).toFixed(0) + 'K', padding.left - 10, y + 4);
-    ctx.beginPath(); ctx.strokeStyle = gridColor;
-    ctx.moveTo(padding.left, y); ctx.lineTo(padding.left + chartW, y); ctx.stroke();
+    ctx.fillText(formatTrendAxisValue(labelVal), padding.left - 10, y + 4);
+    ctx.beginPath();
+    ctx.strokeStyle = gridColor;
+    if (j === 0) ctx.setLineDash([]);
+    else ctx.setLineDash([5, 4]);
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(padding.left + chartW, y);
+    ctx.stroke();
   }
+  ctx.setLineDash([]);
+
   data.forEach(function (d, idx) {
-    let xBase = padding.left + (idx * (chartW / 6)) + (barGap / 2);
+    let xBase = padding.left + (idx * groupWidth) + ((groupWidth - barWidth) / 2);
     let incH = (d.income / maxVal) * chartH; let expH = (d.expense / maxVal) * chartH;
-    ctx.fillStyle = incomeColor; ctx.beginPath(); ctx.roundRect(xBase, padding.top + chartH - incH, barWidth / 2 - 2, incH, [4, 4, 0, 0]); ctx.fill();
-    ctx.fillStyle = expenseColor; ctx.beginPath(); ctx.roundRect(xBase + barWidth / 2 + 2, padding.top + chartH - expH, barWidth / 2 - 2, expH, [4, 4, 0, 0]); ctx.fill();
-    let label = d.month.split('-')[1] + '/' + d.month.split('-')[0].substring(2);
+    let incomeDrawH = Math.max(incH, d.income > 0 ? 2 : 0);
+    let expenseDrawH = Math.max(expH, d.expense > 0 ? 2 : 0);
+    let incomeX = xBase;
+    let expenseX = xBase + singleBarWidth + pairGap;
+    let incomeY = padding.top + chartH - incomeDrawH;
+    let expenseY = padding.top + chartH - expenseDrawH;
+
+    ctx.fillStyle = incomeColor;
+    if (incomeDrawH > 0) {
+      ctx.beginPath();
+      ctx.roundRect(incomeX, incomeY, singleBarWidth, incomeDrawH, [5, 5, 0, 0]);
+      ctx.fill();
+    }
+    ctx.fillStyle = expenseColor;
+    if (expenseDrawH > 0) {
+      ctx.beginPath();
+      ctx.roundRect(expenseX, expenseY, singleBarWidth, expenseDrawH, [5, 5, 0, 0]);
+      ctx.fill();
+    }
+
+    let label = formatTrendMonthShort(d.month);
     ctx.fillStyle = axisColor;
-    ctx.textAlign = 'center'; ctx.fillText(label, xBase + barWidth / 2, padding.top + chartH + 20);
+    ctx.textAlign = 'center';
+    ctx.fillText(label, xBase + (barWidth / 2), padding.top + chartH + 20);
+
+    let groupTop = Math.min(
+      incomeDrawH > 0 ? incomeY : padding.top + chartH,
+      expenseDrawH > 0 ? expenseY : padding.top + chartH
+    );
+    trendBars.push({
+      monthLabel: calc.getMonthLabel(d.month),
+      income: d.income,
+      expense: d.expense,
+      incomeRect: { x: incomeX, y: incomeY, w: singleBarWidth, h: Math.max(incomeDrawH, 6) },
+      expenseRect: { x: expenseX, y: expenseY, w: singleBarWidth, h: Math.max(expenseDrawH, 6) },
+      groupRect: { x: xBase, y: groupTop, w: barWidth, h: Math.max((padding.top + chartH) - groupTop, 10) },
+    });
   });
 }
 
@@ -557,7 +728,7 @@ function renderCalendarInsights(insights) {
   let netClass = insights.net >= 0 ? 'is-positive' : 'is-negative';
   let topCategoryLabel = insights.topCategory === '—'
     ? '—'
-    : ((CATEGORY_ICONS[insights.topCategory] || '<i class="ph-fill ph-tag"></i>') + ' ' + calc.escapeHtml(insights.topCategory));
+    : ((CATEGORY_ICONS[insights.topCategory] || '<i class="ph-bold ph-tag"></i>') + ' ' + calc.escapeHtml(insights.topCategory));
   let peakDateLabel = insights.peakExpenseDate ? calc.formatDate(insights.peakExpenseDate) : '—';
   let peakAmountLabel = insights.peakExpense > 0 ? calc.formatRupiah(insights.peakExpense) : '—';
   let dailyAvg = insights.daysInMonth > 0 ? Math.round(insights.monthExpense / insights.daysInMonth) : 0;
@@ -683,7 +854,7 @@ export function renderCalendar() {
       innerHtml += '</div></div>';
     }
     if (peakExpenseDate && dateKey === peakExpenseDate) {
-      innerHtml += '<span class="cal-peak-tag" title="Puncak pengeluaran"><i class="ph-fill ph-fire"></i></span>';
+      innerHtml += '<span class="cal-peak-tag" title="Puncak pengeluaran"><i class="ph-bold ph-fire"></i></span>';
     }
     cell.innerHTML = innerHtml;
     cell.addEventListener('click', function () { renderDayDetail(this.dataset.date); });
@@ -712,7 +883,7 @@ export function renderDayDetail(dateStr) {
     let itemDiv = document.createElement('div'); itemDiv.className = 'cal-item';
     let isInc = item.type === 'income';
     let isTransfer = item.type === 'transfer';
-    let iconHtml = isTransfer ? '<i class="ph-fill ph-arrows-left-right"></i>' : (CATEGORY_ICONS[item.category] || '<i class="ph-fill ph-tag"></i>');
+    let iconHtml = isTransfer ? '<i class="ph-bold ph-arrows-left-right"></i>' : (CATEGORY_ICONS[item.category] || '<i class="ph-bold ph-tag"></i>');
     let walletInfo = isTransfer
       ? (calc.escapeHtml(item.wallet || 'Tunai') + ' → ' + calc.escapeHtml(item.walletTo || 'Tunai'))
       : calc.escapeHtml(item.wallet || 'Tunai');
@@ -760,7 +931,7 @@ export function renderCategoryBudgetSummary() {
     let statusClass = pct >= 100 ? 'is-over' : (pct >= 75 ? 'is-warn' : 'is-safe');
     let item = document.createElement('div'); item.className = 'category-budget-item';
     item.innerHTML =
-      '<div class="category-budget-row"><div class="category-budget-name">' + (CATEGORY_ICONS[cat] || '<i class="ph-fill ph-tag"></i>') + ' ' + calc.escapeHtml(cat) + '</div>' +
+      '<div class="category-budget-row"><div class="category-budget-name">' + (CATEGORY_ICONS[cat] || '<i class="ph-bold ph-tag"></i>') + ' ' + calc.escapeHtml(cat) + '</div>' +
       '<div class="category-budget-amount">' + calc.formatRupiah(spent) + ' / ' + calc.formatRupiah(limit) + ' (' + Math.round(pct) + '%)</div></div>' +
       '<div class="category-budget-track"><div class="category-budget-fill ' + statusClass + '" style="width:' + pct.toFixed(2) + '%;"></div></div>';
     dom.categoryBudgetList.appendChild(item);
@@ -835,7 +1006,7 @@ export function renderCategoryBudgetEditor(formatInputCurrency) {
     let val = Number(state.categoryBudgets[cat]) || 0;
     let row = document.createElement('div'); row.className = 'category-budget-edit-row';
     let label = document.createElement('label'); label.className = 'category-budget-edit-label';
-    label.innerHTML = (CATEGORY_ICONS[cat] || '<i class="ph-fill ph-tag"></i>') + ' ' + calc.escapeHtml(cat);
+    label.innerHTML = (CATEGORY_ICONS[cat] || '<i class="ph-bold ph-tag"></i>') + ' ' + calc.escapeHtml(cat);
     let input = document.createElement('input');
     input.type = 'text'; input.className = 'category-budget-input';
     input.setAttribute('inputmode', 'numeric'); input.setAttribute('placeholder', '0 = nonaktif');
@@ -849,11 +1020,27 @@ export function renderCategoryBudgetEditor(formatInputCurrency) {
 }
 
 // ─── Doughnut Chart ───────────────────────
+function renderCategoryLegendItems(categories, catTotals, total, fallbackSliceColor) {
+  dom.chartLegend.innerHTML = '';
+  categories.forEach(function (cat, idx) {
+    let pct = total > 0 ? ((catTotals[cat] / total) * 100) : 0;
+    let legendItem = document.createElement('div');
+    legendItem.className = 'legend-item';
+    legendItem.innerHTML =
+      '<span class="legend-rank">' + String(idx + 1).padStart(2, '0') + '</span>' +
+      '<span class="legend-color" style="background:' + (CATEGORY_COLORS[cat] || fallbackSliceColor) + '"></span>' +
+      '<span class="legend-label">' + (CATEGORY_ICONS[cat] || '<i class="ph-bold ph-tag"></i>') + ' ' + calc.escapeHtml(cat) + '</span>' +
+      '<span class="legend-value">' + calc.formatRupiah(catTotals[cat]) + '</span>' +
+      '<span class="legend-share">' + pct.toFixed(1) + '%</span>';
+    dom.chartLegend.appendChild(legendItem);
+  });
+}
+
 export function renderChart(data) {
   dom.chartLegend.innerHTML = '';
   state.chartSlices = [];
   state.chartGeom = null;
-  dom.chartTooltip.classList.remove('visible');
+  hideChartTooltip();
   let hasExpense = data && data.some(function (item) { return item.type === 'expense'; });
   if (!hasExpense) {
     if (state.categoryChartInstance) { state.categoryChartInstance.destroy(); state.categoryChartInstance = null; }
@@ -871,12 +1058,7 @@ export function renderChart(data) {
 
   if (hasChartJs()) {
     dom.chartEmpty.classList.remove('visible'); dom.chartCanvas.style.display = 'block'; dom.chartLegend.style.display = 'flex';
-    categories.forEach((cat) => {
-      let pct = ((catTotals[cat] / total) * 100).toFixed(1);
-      let legendItem = document.createElement('div'); legendItem.className = 'legend-item';
-      legendItem.innerHTML = '<span class="legend-color" style="background:' + (CATEGORY_COLORS[cat] || fallbackSliceColor) + '"></span><span class="legend-label">' + (CATEGORY_ICONS[cat] || '') + ' ' + calc.escapeHtml(cat) + '</span><span class="legend-value">' + pct + '%</span>';
-      dom.chartLegend.appendChild(legendItem);
-    });
+    renderCategoryLegendItems(categories, catTotals, total, fallbackSliceColor);
     if (state.categoryChartInstance) {
       state.categoryChartInstance.data.labels = categories;
       state.categoryChartInstance.data.datasets[0].data = values;
@@ -887,7 +1069,38 @@ export function renderChart(data) {
     state.categoryChartInstance = new window.Chart(dom.chartCanvas, {
       type: 'doughnut',
       data: { labels: categories, datasets: [{ data: values, backgroundColor: colors, borderColor: chartRingBorder, borderWidth: 1.5 }] },
-      options: { responsive: true, maintainAspectRatio: true, cutout: '58%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (ctx) { let amount = Number(ctx.raw || 0); let pct = total > 0 ? ((amount / total) * 100).toFixed(1) : '0.0'; return (ctx.label || '-') + ': ' + calc.formatRupiah(amount) + ' (' + pct + '%)'; } } } } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '58%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: false,
+            external: function (ctx) {
+              let tooltip = ctx && ctx.tooltip;
+              if (!tooltip || tooltip.opacity === 0) {
+                hideChartTooltip();
+                return;
+              }
+              let point = tooltip.dataPoints && tooltip.dataPoints[0];
+              if (!point) {
+                hideChartTooltip();
+                return;
+              }
+              let category = String(point.label || '');
+              let amount = Number(point.raw || 0);
+              let dataset = ctx.chart && ctx.chart.data && ctx.chart.data.datasets && ctx.chart.data.datasets[0];
+              let datasetTotal = (dataset && Array.isArray(dataset.data))
+                ? dataset.data.reduce(function (sum, value) { return sum + (Number(value) || 0); }, 0)
+                : 0;
+              let percent = datasetTotal > 0 ? ((amount / datasetTotal) * 100) : 0;
+              let canvasRect = ctx.chart.canvas.getBoundingClientRect();
+              showCategoryTooltip(category, amount, percent, canvasRect.left + tooltip.caretX, canvasRect.top + tooltip.caretY);
+            }
+          }
+        }
+      }
     });
     return;
   }
@@ -900,6 +1113,7 @@ export function renderChart(data) {
   ctx.clearRect(0, 0, size, size);
   state.chartGeom = { center: size / 2, innerRadius: innerRadius, outerRadius: outerRadius };
   dom.chartEmpty.classList.remove('visible'); dom.chartCanvas.style.display = 'block'; dom.chartLegend.style.display = 'flex';
+  renderCategoryLegendItems(categories, catTotals, total, fallbackSliceColor);
 
   let startAngle = -Math.PI / 2; let normalizedStart = 0; let gapAngle = 0.03;
   categories.forEach(function (cat) {
@@ -911,10 +1125,6 @@ export function renderChart(data) {
     startAngle += sliceAngle;
     state.chartSlices.push({ category: cat, amount: catTotals[cat], percent: ((catTotals[cat] / total) * 100), start: normalizedStart, end: normalizedStart + sliceAngle });
     normalizedStart += sliceAngle;
-    let pct = ((catTotals[cat] / total) * 100).toFixed(1);
-    let legendItem = document.createElement('div'); legendItem.className = 'legend-item';
-    legendItem.innerHTML = '<span class="legend-color" style="background:' + color + '"></span><span class="legend-label">' + (CATEGORY_ICONS[cat] || '') + ' ' + calc.escapeHtml(cat) + '</span><span class="legend-value">' + pct + '%</span>';
-    dom.chartLegend.appendChild(legendItem);
   });
   ctx.fillStyle = getCssColor('--clr-text', '#0f172a');
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -925,9 +1135,39 @@ export function renderChart(data) {
   ctx.fillText('Total', center, center + 14);
 }
 
-export function hideChartTooltip() { dom.chartTooltip.classList.remove('visible'); }
+export function hideChartTooltip() {
+  if (!dom.chartTooltip) return;
+  dom.chartTooltip.classList.remove('visible');
+}
+
+function showCategoryTooltip(category, amount, percent, clientX, clientY) {
+  if (!dom.chartTooltip || !dom.chartCanvas || !dom.chartCanvas.parentElement) return;
+  let icon = CATEGORY_ICONS[category] || '<i class="ph-bold ph-tag"></i>';
+  dom.chartTooltip.innerHTML =
+    '<div class="chart-tooltip-head">' + icon + '<span>' + calc.escapeHtml(category) + '</span></div>' +
+    '<div class="chart-tooltip-row"><span>Nominal</span><strong>' + calc.formatRupiah(amount) + '</strong></div>' +
+    '<div class="chart-tooltip-row"><span>Porsi</span><strong>' + percent.toFixed(1) + '%</strong></div>';
+
+  let containerRect = dom.chartCanvas.parentElement.getBoundingClientRect();
+  let left = clientX - containerRect.left + 12;
+  let top = clientY - containerRect.top + 12;
+  dom.chartTooltip.style.left = left + 'px';
+  dom.chartTooltip.style.top = top + 'px';
+  dom.chartTooltip.classList.add('visible');
+
+  let tipRect = dom.chartTooltip.getBoundingClientRect();
+  if (tipRect.right > containerRect.right - 8) {
+    left = left - tipRect.width - 20;
+  }
+  if (tipRect.bottom > containerRect.bottom - 8) {
+    top = top - tipRect.height - 20;
+  }
+  dom.chartTooltip.style.left = Math.max(8, left) + 'px';
+  dom.chartTooltip.style.top = Math.max(8, top) + 'px';
+}
 
 export function handleChartHoverQueued(e) {
+  if (hasChartJs() && state.categoryChartInstance) return;
   if (state.isPerfLite) { hideChartTooltip(); return; }
   state.chartHoverEvent = e;
   if (state.chartHoverRaf) return;
@@ -951,12 +1191,7 @@ function handleChartHover(e) {
   let match = null;
   state.chartSlices.forEach(function (slice) { if (normalized >= slice.start && normalized < slice.end) match = slice; });
   if (!match) { hideChartTooltip(); return; }
-  let icon = CATEGORY_ICONS[match.category] || '';
-  dom.chartTooltip.innerHTML = icon + ' ' + calc.escapeHtml(match.category) + ' — ' + calc.formatRupiah(match.amount) + ' (' + match.percent.toFixed(1) + '%)';
-  let containerRect = dom.chartCanvas.parentElement.getBoundingClientRect();
-  dom.chartTooltip.style.left = (e.clientX - containerRect.left + 12) + 'px';
-  dom.chartTooltip.style.top = (e.clientY - containerRect.top + 12) + 'px';
-  dom.chartTooltip.classList.add('visible');
+  showCategoryTooltip(match.category, match.amount, match.percent, e.clientX, e.clientY);
 }
 
 // ─── Goals ────────────────────────────────
@@ -1170,6 +1405,12 @@ export function renderIconSelector() {
 
 // ─── Canvas Setup ─────────────────────────
 export function setupCanvas() {
+  if (!dom.chartCanvas.dataset.hoverBound) {
+    dom.chartCanvas.addEventListener('mousemove', handleChartHoverQueued);
+    dom.chartCanvas.addEventListener('mouseleave', hideChartTooltip);
+    dom.chartCanvas.addEventListener('pointerleave', hideChartTooltip);
+    dom.chartCanvas.dataset.hoverBound = '1';
+  }
   const displaySize = state.isPerfLite ? 260 : 320;
   dom.chartCanvas.style.width = displaySize + 'px';
   dom.chartCanvas.style.height = displaySize + 'px';
@@ -1351,13 +1592,13 @@ export function renderTableNow(renderTableCallback) {
     let typeIcon = isIncome ? 'ph-arrow-down-left' : (isTransfer ? 'ph-arrows-left-right' : 'ph-arrow-up-right');
     let typeClass = isIncome ? 'tx-type-income' : (isTransfer ? 'tx-type-transfer' : 'tx-type-expense');
     let walletText = isTransfer ? (calc.escapeHtml(item.wallet || 'Tunai') + ' <i class="ph-bold ph-arrow-right"></i> ' + calc.escapeHtml(item.walletTo || 'Tunai')) : calc.escapeHtml(item.wallet || 'Tunai');
-    let categoryContent = isTransfer ? '<i class="ph-fill ph-arrows-left-right"></i> Transfer Dompet' : ((CATEGORY_ICONS[item.category] || '<i class="ph-fill ph-tag"></i>') + ' ' + calc.escapeHtml(item.category));
+    let categoryContent = isTransfer ? '<i class="ph-bold ph-arrows-left-right"></i> Transfer Dompet' : ((CATEGORY_ICONS[item.category] || '<i class="ph-bold ph-tag"></i>') + ' ' + calc.escapeHtml(item.category));
     let amountPrefix = isIncome ? '+' : (isTransfer ? '' : '-');
     let amountClass = isIncome ? 'tx-amount-income' : (isTransfer ? 'tx-amount-transfer' : 'tx-amount-expense');
     tr.innerHTML =
       '<td data-label="Tanggal"><div class="tx-date">' + calc.formatDate(item.date) + '</div></td>' +
       '<td data-label="Tipe & Nama"><div class="tx-title">' + calc.escapeHtml(item.title) + '</div><div class="tx-type ' + typeClass + '"><i class="ph-bold ' + typeIcon + '"></i> ' + typeLabel + '</div></td>' +
-      '<td data-label="Kategori & Dompet"><span class="tx-category-chip">' + categoryContent + '</span><div class="tx-wallet"><i class="ph-fill ph-wallet"></i> ' + walletText + '</div></td>' +
+      '<td data-label="Kategori & Dompet"><span class="tx-category-chip">' + categoryContent + '</span><div class="tx-wallet"><i class="ph-bold ph-wallet"></i> ' + walletText + '</div></td>' +
       '<td class="text-right" data-label="Nominal"><span class="tx-amount ' + amountClass + '">' + amountPrefix + calc.formatRupiah(item.amount) + '</span></td>' +
       '<td class="text-center" data-label="Aksi"><div class="action-group history-action-group">' +
         '<button class="btn btn-sm btn-pin" data-action="pin" data-id="' + item.id + '" title="Pin ke Quick Add" aria-label="Pin ke Quick Add"><i class="ph-bold ph-push-pin"></i><span class="btn-pin-label">Pin</span></button>' +
@@ -1399,23 +1640,104 @@ export function syncAmountDisplay(value) {
 }
 
 // ─── View Management (from secondary IIFE) ──
+function getViewIndex(view) {
+  return Object.prototype.hasOwnProperty.call(VIEW_INDEX, view) ? VIEW_INDEX[view] : -1;
+}
+
+function getViewStaggerMs() {
+  let raw = getComputedStyle(document.documentElement).getPropertyValue('--view-motion-stagger').trim();
+  if (!raw) return 34;
+  let parsed = Number.parseFloat(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) return 34;
+  if (raw.endsWith('s') && !raw.endsWith('ms')) return parsed * 1000;
+  return parsed;
+}
+
+function getViewMotionDurationMs() {
+  let raw = getComputedStyle(document.documentElement).getPropertyValue('--view-motion-duration').trim();
+  if (!raw) return 360;
+  let parsed = Number.parseFloat(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) return 360;
+  if (raw.endsWith('s') && !raw.endsWith('ms')) return parsed * 1000;
+  return parsed;
+}
+
+function resolveCurrentView(sections) {
+  if (activeViewKey && VALID_VIEWS.indexOf(activeViewKey) !== -1) return activeViewKey;
+  let activeSection = sections.find(function (section) { return section.classList.contains('is-active'); });
+  if (activeSection) {
+    let activeValue = activeSection.getAttribute('data-view');
+    if (VALID_VIEWS.indexOf(activeValue) !== -1) return activeValue;
+  }
+  let storedView = storage.getActiveView();
+  return VALID_VIEWS.indexOf(storedView) !== -1 ? storedView : 'dashboard';
+}
+
+function clearViewTransitionState(sections) {
+  sections.forEach(function (section) {
+    section.classList.remove('is-view-entering', 'is-enter-forward', 'is-enter-backward');
+    section.style.removeProperty('--view-stagger');
+  });
+}
+
 export function setActiveView(view, shouldFocus) {
   if (VALID_VIEWS.indexOf(view) === -1) view = 'dashboard';
   const sections = Array.from(document.querySelectorAll('.container > section[data-view]'));
   const navButtons = Array.from(document.querySelectorAll('[data-nav-view]'));
+  const container = document.querySelector('.container');
+  const currentView = resolveCurrentView(sections);
+  const hasActiveSection = sections.some(function (section) { return section.classList.contains('is-active'); });
+  const isInitialMount = !hasActiveSection && !activeViewKey;
+  const isSameView = currentView === view;
+  const prefersReducedMotion = state.isPerfLite || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const shouldAnimate = !isInitialMount && !isSameView && !prefersReducedMotion;
+  const direction = getViewIndex(view) >= getViewIndex(currentView) ? 'forward' : 'backward';
+  const staggerStep = getViewStaggerMs();
+  const motionDuration = getViewMotionDurationMs();
+
+  if (viewTransitionTimer) {
+    clearTimeout(viewTransitionTimer);
+    viewTransitionTimer = null;
+  }
+  if (container) {
+    container.classList.remove('view-forward', 'view-backward');
+  }
+  clearViewTransitionState(sections);
+
+  let staggerIndex = 0;
+  let enteringCount = 0;
   sections.forEach((section) => {
     const active = section.getAttribute('data-view') === view;
     section.classList.toggle('is-active', active);
     section.setAttribute('aria-hidden', active ? 'false' : 'true');
+    if (!active || !shouldAnimate) return;
+    section.classList.add('is-view-entering', direction === 'forward' ? 'is-enter-forward' : 'is-enter-backward');
+    section.style.setProperty('--view-stagger', (Math.min(staggerIndex, 5) * staggerStep) + 'ms');
+    staggerIndex += 1;
+    enteringCount += 1;
   });
+
+  if (shouldAnimate) {
+    if (container) container.classList.add(direction === 'forward' ? 'view-forward' : 'view-backward');
+    const maxStagger = Math.min(Math.max(enteringCount - 1, 0), 5) * staggerStep;
+    const cleanupDelay = motionDuration + maxStagger + 48;
+    viewTransitionTimer = setTimeout(function () {
+      clearViewTransitionState(sections);
+      if (container) container.classList.remove('view-forward', 'view-backward');
+      viewTransitionTimer = null;
+    }, cleanupDelay);
+  }
+
   navButtons.forEach((btn) => {
     const activeBtn = btn.getAttribute('data-nav-view') === view;
     btn.classList.toggle('is-active', activeBtn);
     btn.setAttribute('aria-selected', activeBtn ? 'true' : 'false');
   });
+
+  activeViewKey = view;
   storage.saveActiveView(view);
   if (shouldFocus && view === 'add' && dom.inputTitle) {
-    setTimeout(function () { dom.inputTitle.focus(); }, 120);
+    setTimeout(function () { dom.inputTitle.focus(); }, shouldAnimate ? 180 : 120);
   }
 }
 

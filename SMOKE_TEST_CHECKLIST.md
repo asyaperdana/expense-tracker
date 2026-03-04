@@ -8,6 +8,7 @@ Dokumen ini adalah checklist manual untuk validasi flow kritikal setelah perubah
 - Import JSON (replace, merge-id, merge-content)
 - Split bill mode custom
 - Wallet CRUD
+- Visual QA dark mode + transisi antar view
 
 ## Prasyarat
 - Buka aplikasi di browser dengan data lokal baru (atau clear localStorage).
@@ -58,6 +59,20 @@ Dokumen ini adalah checklist manual untuk validasi flow kritikal setelah perubah
 4. Hapus wallet yang masih dipakai transaksi.
    Ekspektasi: ditolak.
 
+## 6) Visual QA (Dark Mode + Motion)
+1. Uji layout di desktop (`1440x980`) dan mobile (`390x844`) untuk view `Dashboard`, `Tambah`, `Riwayat`, `Laporan`, dan `Tools`.
+   Ekspektasi: tidak ada horizontal overflow; kartu/section tidak terpotong; bottom nav tampil normal di mobile.
+2. Toggle tema `Light` dan `Dark` di semua view utama.
+   Ekspektasi: kontras teks tetap terbaca, border komponen tetap jelas, shadow tetap memisahkan layer.
+3. Cek view `Laporan` pada mobile, khususnya kartu trend.
+   Ekspektasi: canvas trend mengikuti lebar container (tidak keluar layar), axis label masih terbaca.
+4. Navigasi view berurutan `Dashboard -> Tambah -> Riwayat -> Laporan -> Tools`, lalu balik lagi.
+   Ekspektasi: transisi antar view konsisten (arah + stagger), tanpa flicker/ghosting.
+5. Buka modal informatif (mis. `Atur Batas Bulanan`) dan modal destruktif (hapus transaksi).
+   Ekspektasi: modal destruktif terlihat lebih tegas (tone danger), modal informatif tetap netral/primary.
+6. Aktifkan `prefers-reduced-motion` (atau mode perf-lite) lalu ulangi perpindahan view.
+   Ekspektasi: animasi/transisi diminimalkan, interaksi tetap normal.
+
 ## Catatan Eksekusi Cepat
-- Lakukan smoke test ini setiap ada perubahan di `js/app.js`, `js/calculations.js`, `js/ui.js`, atau fitur import/recurring/split/wallet.
+- Lakukan smoke test ini setiap ada perubahan di `index.html`, `css/style.css`, `js/app.js`, `js/calculations.js`, `js/ui.js`, atau fitur import/recurring/split/wallet.
 - Simpan hasil uji dalam format sederhana: `tanggal - branch/commit - pass/fail - catatan`.

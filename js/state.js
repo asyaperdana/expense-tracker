@@ -32,16 +32,16 @@ export const CATEGORY_COLORS = {
 };
 
 export const CATEGORY_ICONS = {
-  Makanan: '<i class="ph-fill ph-hamburger"></i>',
-  Transport: '<i class="ph-fill ph-car-profile"></i>',
-  Belanja: '<i class="ph-fill ph-shopping-cart"></i>',
-  Hiburan: '<i class="ph-fill ph-popcorn"></i>',
-  Kesehatan: '<i class="ph-fill ph-pill"></i>',
-  Pendidikan: '<i class="ph-fill ph-book-open"></i>',
-  Tagihan: '<i class="ph-fill ph-receipt"></i>',
-  [OTHER_EXPENSE_CATEGORY]: '<i class="ph-fill ph-package"></i>',
-  Gaji: '<i class="ph-fill ph-money"></i>',
-  'Pemasukan Lain': '<i class="ph-fill ph-piggy-bank"></i>',
+  Makanan: '<i class="ph-bold ph-hamburger"></i>',
+  Transport: '<i class="ph-bold ph-car-profile"></i>',
+  Belanja: '<i class="ph-bold ph-shopping-cart"></i>',
+  Hiburan: '<i class="ph-bold ph-popcorn"></i>',
+  Kesehatan: '<i class="ph-bold ph-pill"></i>',
+  Pendidikan: '<i class="ph-bold ph-book-open"></i>',
+  Tagihan: '<i class="ph-bold ph-receipt"></i>',
+  [OTHER_EXPENSE_CATEGORY]: '<i class="ph-bold ph-package"></i>',
+  Gaji: '<i class="ph-bold ph-money"></i>',
+  'Pemasukan Lain': '<i class="ph-bold ph-piggy-bank"></i>',
 };
 
 export const DEFAULT_WALLETS = [

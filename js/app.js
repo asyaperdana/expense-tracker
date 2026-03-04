@@ -808,7 +808,7 @@ function renderRecurringPrompt() {
     const item = document.createElement('div');
     item.className = 'wallet-item';
     item.innerHTML =
-      '<div class="wallet-item-icon"><i class="ph-fill ph-arrows-clockwise"></i></div>' +
+      '<div class="wallet-item-icon"><i class="ph-bold ph-arrows-clockwise"></i></div>' +
       '<div class="wallet-item-meta">' +
       '<div class="wallet-item-name">' + calc.escapeHtml(entry.template.title || 'Tagihan Berulang') + '</div>' +
       '<div class="wallet-item-usage">' +
