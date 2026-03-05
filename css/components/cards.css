@@ -161,43 +161,73 @@
   background: var(--clr-surface);
 }
 
-/* --- Hero Card — GoPay Balance Card Style --- */
+/* --- Hero Card — Emerald Oasis Premium Style --- */
 .hero-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.85rem;
   padding: clamp(1.25rem, 2.4vw, 1.75rem);
   background: linear-gradient(
-    145deg,
-    #00AA13 0%,
-    #009910 40%,
-    #007A0D 100%
+    135deg,
+    #059669 0%,
+    #047857 50%,
+    #0f766e 100%
   );
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-xl);
   color: #fff;
-  box-shadow: 0 8px 32px rgba(0, 170, 19, 0.25);
+  box-shadow: 0 10px 40px -10px rgba(5, 150, 105, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
 }
 
 [data-theme='dark'] .hero-card {
   background: linear-gradient(
-    145deg,
-    #00AA13 0%,
-    #008C10 40%,
-    #006B0C 100%
+    135deg,
+    #065f46 0%,
+    #064e3b 50%,
+    #115e59 100%
   );
-  box-shadow: 0 8px 36px rgba(0, 170, 19, 0.2);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .hero-card::before,
 .hero-card::after {
-  content: none !important;
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(40px);
+  z-index: 0;
+  opacity: 0.4;
+}
+
+.hero-card::before {
+  top: -20%;
+  left: -10%;
+  width: 50%;
+  height: 80%;
+  background: rgba(52, 211, 153, 0.3); /* Soft emerald glow */
+}
+
+.hero-card::after {
+  bottom: -30%;
+  right: -10%;
+  width: 60%;
+  height: 90%;
+  background: rgba(45, 212, 191, 0.25); /* Soft teal glow */
+}
+
+.hero-card > * {
+  z-index: 1;
+  position: relative;
 }
 
 .hero-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 170, 19, 0.3);
-  border-color: transparent;
+  box-shadow: 0 16px 48px -12px rgba(5, 150, 105, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .hero-content {
