@@ -164,3 +164,66 @@
   color: var(--clr-text-2);
   margin-bottom: 0.5rem;
 }
+
+/* --- Transaction Table Typography Variants --- */
+.tx-date {
+  font-weight: 700;
+  color: var(--clr-text-2);
+  font-size: 0.82rem;
+}
+
+.tx-title {
+  font-weight: 800;
+  color: var(--clr-text);
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+  font-size: 0.95rem;
+}
+
+.tx-type {
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tx-type-income { color: var(--clr-success); }
+.tx-type-expense { color: var(--clr-danger); }
+.tx-type-transfer { color: var(--clr-accent); }
+
+.tx-category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.3rem;
+  color: var(--clr-text-2);
+}
+
+.tx-wallet {
+  font-size: 0.7rem;
+  color: var(--clr-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.tx-amount {
+  font-family: var(--num-font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.tx-amount-income { color: var(--clr-success); }
+.tx-amount-expense { color: var(--clr-danger); }
+.tx-amount-transfer { color: var(--clr-accent); }
