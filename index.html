@@ -1378,6 +1378,50 @@
         </div>
 
         <div class="split-body" id="split-form-view">
+          <!-- OCR Scan Section -->
+          <div class="ocr-scan-section" id="ocr-scan-section">
+            <button class="btn ocr-scan-btn" id="btn-ocr-scan" type="button">
+              <i class="ph-bold ph-camera"></i> Scan Nota
+            </button>
+            <input
+              type="file"
+              id="ocr-file-input"
+              accept="image/*"
+              capture="environment"
+              style="display: none"
+            />
+            <p class="ocr-hint">Upload foto struk untuk baca total otomatis</p>
+          </div>
+
+          <!-- OCR Preview Panel -->
+          <div class="ocr-preview-panel" id="ocr-preview-panel" style="display: none">
+            <div class="ocr-preview-header">
+              <img id="ocr-preview-img" class="ocr-preview-img" alt="Preview nota" />
+              <div class="ocr-preview-info">
+                <span class="ocr-status" id="ocr-status">Memproses...</span>
+                <div class="ocr-progress-track">
+                  <div class="ocr-progress-fill" id="ocr-progress-fill" style="width: 0%"></div>
+                </div>
+              </div>
+              <button class="btn-close ocr-close-btn" id="btn-ocr-close" type="button" aria-label="Tutup OCR">&times;</button>
+            </div>
+            <div class="ocr-results" id="ocr-results" style="display: none">
+              <div class="ocr-total-row">
+                <span class="ocr-total-label"><i class="ph-bold ph-receipt"></i> Total Terbaca</span>
+                <strong class="ocr-total-value" id="ocr-total-value">Rp 0</strong>
+              </div>
+              <div class="ocr-item-list" id="ocr-item-list"></div>
+              <div class="ocr-actions">
+                <button class="btn btn-primary btn-sm" id="btn-ocr-use-total" type="button">
+                  <i class="ph-bold ph-check"></i> Gunakan Total
+                </button>
+                <button class="btn btn-ghost btn-sm" id="btn-ocr-use-items" type="button">
+                  <i class="ph-bold ph-users"></i> Isi Items sebagai Peserta
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="split-form-grid">
             <div class="form-group">
               <label for="split-bill-name">Nama Bill</label>
@@ -1778,6 +1822,7 @@
       <p>&copy; 2026 Expense Tracker — Data disimpan di browser (localStorage)</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
     <script>
       try {

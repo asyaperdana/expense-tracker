@@ -17,6 +17,7 @@ import * as storage from './modules/storage.js';
 import * as calc from './modules/calculations.js';
 import * as validation from './modules/validation.js';
 import * as sharedLedgers from './modules/shared-ledgers.js';
+import * as ocr from './modules/ocr.js';
 import * as ui from './ui.js';
 
 const VALID_TRANSACTION_TYPES = ['expense', 'income', 'transfer'];
@@ -1012,6 +1013,9 @@ function resetSplitForm() {
   ui.applySplitMode('equal');
   ui.addPersonRow('');
   ui.addPersonRow('');
+  ui.resetOcrPanel();
+  state.ocrParsedItems = null;
+  state.ocrParsedTotal = 0;
 }
 
 function openSplitEditor(entry) {
@@ -1376,6 +1380,38 @@ function setupEventListeners() {
       state.splitEditingId = null;
       state.currentSplitResults = null;
       ui.updateSplitModalHeader();
+      ocr.terminateWorker();
+    });
+  }
+
+  // OCR Scan handlers
+  const btnOcrScan = document.getElementById('btn-ocr-scan');
+  if (btnOcrScan) {
+    btnOcrScan.addEventListener('click', () => {
+      ui.dom.ocrFileInput.click();
+    });
+  }
+
+  if (ui.dom.ocrFileInput) {
+    ui.dom.ocrFileInput.addEventListener('change', handleOcrFileSelect);
+  }
+
+  const btnOcrUseTotal = document.getElementById('btn-ocr-use-total');
+  if (btnOcrUseTotal) {
+    btnOcrUseTotal.addEventListener('click', handleOcrUseTotal);
+  }
+
+  const btnOcrUseItems = document.getElementById('btn-ocr-use-items');
+  if (btnOcrUseItems) {
+    btnOcrUseItems.addEventListener('click', handleOcrUseItems);
+  }
+
+  const btnOcrClose = document.getElementById('btn-ocr-close');
+  if (btnOcrClose) {
+    btnOcrClose.addEventListener('click', () => {
+      ui.resetOcrPanel();
+      state.ocrParsedItems = null;
+      state.ocrParsedTotal = 0;
     });
   }
 
@@ -2079,6 +2115,106 @@ function handleSaveSplitToLedgerWithContext(ledgerId) {
       );
     }
   }
+}
+
+// ─── OCR Handlers ─────────────────────────
+async function handleOcrFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Show preview panel
+  ui.dom.ocrPreviewPanel.style.display = 'block';
+  ui.dom.ocrResults.style.display = 'none';
+  ui.setOcrProgress(0);
+  ui.setOcrStatus('Memproses gambar...');
+
+  // Show thumbnail
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    ui.dom.ocrPreviewImg.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  try {
+    ui.setOcrStatus('Menginisialisasi OCR engine...');
+    ui.setOcrProgress(10);
+
+    const rawText = await ocr.recognizeReceipt(file, (pct) => {
+      ui.setOcrProgress(pct);
+      if (pct < 30) ui.setOcrStatus('Menginisialisasi OCR engine...');
+      else if (pct < 90) ui.setOcrStatus('Membaca teks dari nota...');
+      else ui.setOcrStatus('Menganalisis hasil...');
+    });
+
+    const parsed = ocr.parseReceiptText(rawText);
+    state.ocrParsedItems = parsed.items;
+    state.ocrParsedTotal = parsed.total;
+
+    ui.renderOcrResults(parsed.items, parsed.total);
+
+    if (parsed.total > 0) {
+      ui.showToast('Nota berhasil dibaca!', 'success');
+    } else {
+      ui.showToast('Nota terbaca tapi total tidak ditemukan', 'warning');
+    }
+  } catch (err) {
+    ui.setOcrStatus('Gagal memproses nota');
+    ui.setOcrProgress(0);
+    ui.dom.ocrResults.style.display = 'block';
+    ui.dom.ocrItemList.innerHTML =
+      '<div class="ocr-error"><i class="ph-bold ph-warning-circle"></i> ' +
+      (err.message || 'Gagal memproses gambar. Pastikan koneksi internet aktif.') +
+      '</div>';
+    ui.showToast('Gagal scan nota', 'error');
+  }
+
+  // Reset file input so same file can be re-selected
+  e.target.value = '';
+}
+
+function handleOcrUseTotal() {
+  if (!state.ocrParsedTotal || state.ocrParsedTotal <= 0) {
+    ui.showToast('Total tidak ditemukan dari nota', 'error');
+    return;
+  }
+  ui.dom.splitTotal.value = state.ocrParsedTotal.toLocaleString('en-US');
+  ui.showToast('Total tagihan terisi dari nota', 'success');
+}
+
+function handleOcrUseItems() {
+  if (!state.ocrParsedItems || state.ocrParsedItems.length === 0) {
+    ui.showToast('Tidak ada item dari nota', 'error');
+    return;
+  }
+
+  // Clear existing participants
+  ui.dom.splitPersonList.innerHTML = '';
+
+  // Add each item as a participant row (useful for per-item split)
+  state.ocrParsedItems.forEach((item) => {
+    ui.addPersonRow(item.name);
+  });
+
+  // Switch to custom mode and set amounts
+  ui.applySplitMode('custom');
+  const rows = ui.dom.splitPersonList.querySelectorAll('.split-person-row');
+  state.ocrParsedItems.forEach((item, i) => {
+    if (rows[i]) {
+      const amountInput = rows[i].querySelector('.custom-amount');
+      if (amountInput) {
+        amountInput.value = item.price.toLocaleString('en-US');
+      }
+    }
+  });
+
+  // Also fill total if not already filled
+  if (!ui.dom.splitTotal.value || ui.dom.splitTotal.value === '0') {
+    const total = state.ocrParsedItems.reduce((sum, item) => sum + item.price, 0);
+    ui.dom.splitTotal.value = total.toLocaleString('en-US');
+  }
+
+  ui.syncSplitPayerOptions();
+  ui.showToast('Items nota diisi ke peserta', 'success');
 }
 
 // ─── Split Bill Logic ─────────────────────

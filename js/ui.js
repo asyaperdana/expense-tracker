@@ -140,6 +140,15 @@ export function cacheDom() {
   dom.splitResultList = document.getElementById('split-result-list');
   dom.btnSaveSplit = document.getElementById('btn-save-split');
   dom.splitHistoryList = document.getElementById('split-history-list');
+  // OCR DOM
+  dom.ocrFileInput = document.getElementById('ocr-file-input');
+  dom.ocrPreviewPanel = document.getElementById('ocr-preview-panel');
+  dom.ocrPreviewImg = document.getElementById('ocr-preview-img');
+  dom.ocrStatus = document.getElementById('ocr-status');
+  dom.ocrProgressFill = document.getElementById('ocr-progress-fill');
+  dom.ocrResults = document.getElementById('ocr-results');
+  dom.ocrTotalValue = document.getElementById('ocr-total-value');
+  dom.ocrItemList = document.getElementById('ocr-item-list');
 
   // Additional required references
   dom.inputImportJson = document.getElementById('input-import-json');
@@ -2034,6 +2043,55 @@ export function syncSplitPayerOptions() {
   });
   if (!firstId) return;
   dom.splitPayer.value = hasPrev ? prevPayerId : firstId;
+}
+
+// ─── OCR UI Helpers ───────────────────────
+export function setOcrProgress(percent) {
+  if (!dom.ocrProgressFill) return;
+  dom.ocrProgressFill.style.width = Math.min(100, Math.max(0, percent)) + '%';
+}
+
+export function setOcrStatus(text) {
+  if (dom.ocrStatus) dom.ocrStatus.textContent = text;
+}
+
+export function renderOcrResults(items, total) {
+  if (!dom.ocrResults || !dom.ocrTotalValue || !dom.ocrItemList) return;
+
+  dom.ocrTotalValue.textContent = calc.formatRupiah(total);
+
+  dom.ocrItemList.innerHTML = '';
+  if (items.length === 0) {
+    dom.ocrItemList.innerHTML =
+      '<div class="ocr-error"><i class="ph-bold ph-warning-circle"></i> Tidak ada item terdeteksi dari nota</div>';
+  } else {
+    items.forEach(function (item) {
+      let row = document.createElement('div');
+      row.className = 'ocr-item-row';
+      row.innerHTML =
+        '<span class="ocr-item-name">' +
+        calc.escapeHtml(item.name) +
+        '</span>' +
+        '<span class="ocr-item-price">' +
+        calc.formatRupiah(item.price) +
+        '</span>';
+      dom.ocrItemList.appendChild(row);
+    });
+  }
+
+  dom.ocrResults.style.display = 'block';
+  setOcrStatus('Selesai — ' + items.length + ' item ditemukan');
+  setOcrProgress(100);
+}
+
+export function resetOcrPanel() {
+  if (dom.ocrPreviewPanel) dom.ocrPreviewPanel.style.display = 'none';
+  if (dom.ocrResults) dom.ocrResults.style.display = 'none';
+  if (dom.ocrItemList) dom.ocrItemList.innerHTML = '';
+  if (dom.ocrTotalValue) dom.ocrTotalValue.textContent = 'Rp 0';
+  setOcrProgress(0);
+  setOcrStatus('Memproses...');
+  if (dom.ocrFileInput) dom.ocrFileInput.value = '';
 }
 
 // ─── Icon Selector ────────────────────────
