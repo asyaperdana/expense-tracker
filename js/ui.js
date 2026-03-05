@@ -665,6 +665,10 @@ export function renderMonthlyReport() {
   dom.reportTrendEl.textContent = 'Tren vs bulan lalu: ' + summary.trendText;
   dom.reportAdviceEl.textContent = summary.advice;
   renderTrendChart();
+
+  // Explicit fix for skeletons
+  if (dom.reportCard) dom.reportCard.classList.remove('is-loading');
+  if (dom.trendCard) dom.trendCard.classList.remove('is-loading');
 }
 
 // ─── Trend Chart ──────────────────────────
@@ -2344,6 +2348,12 @@ export function renderTableNow(renderTableCallback) {
   dom.tbody.appendChild(fragment);
   updateSummary(data);
   renderChart(data);
+  
+  // Definitive skeleton release
+  if (dom.summaryCard) dom.summaryCard.classList.remove('is-loading');
+  if (dom.chartCard) dom.chartCard.classList.remove('is-loading');
+  if (dom.historyTableCard) dom.historyTableCard.classList.remove('is-loading');
+  
   if (renderTableCallback) renderTableCallback();
 }
 

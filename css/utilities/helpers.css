@@ -293,3 +293,10 @@
 .sticky {
   position: sticky !important;
 }
+
+/* Fix oversized empty state icons */
+.empty-svg {
+  width: 64px !important;
+  height: 64px !important;
+  margin-bottom: 1rem;
+}

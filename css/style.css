@@ -4,36 +4,62 @@
    =========================== */
 
 /* --- Base Layer --- */
-@import url('base/tokens.css');
-@import url('base/reset.css');
+@import url('base/tokens.css?v=2');
+@import url('base/reset.css?v=2');
 
 /* --- Layouts --- */
-@import url('layouts/header.css');
-@import url('layouts/navigation.css');
+@import url('layouts/header.css?v=2');
+@import url('layouts/navigation.css?v=2');
 
 /* --- Components --- */
-@import url('components/buttons.css');
-@import url('components/cards.css');
-@import url('components/forms.css');
-@import url('components/tables.css');
-@import url('components/skeleton.css');
-@import url('components/toast.css');
-@import url('components/modal.css');
+@import url('components/buttons.css?v=2');
+@import url('components/cards.css?v=2');
+@import url('components/forms.css?v=2');
+@import url('components/tables.css?v=2');
+@import url('components/skeleton.css?v=2');
+@import url('components/toast.css?v=2');
+@import url('components/modal.css?v=2');
 
 /* --- Utilities --- */
-@import url('utilities/helpers.css');
+@import url('utilities/helpers.css?v=2');
 
 /* --- Views (page-specific) --- */
-@import url('views/dashboard.css');
-@import url('views/history.css');
-@import url('views/reports.css');
-@import url('views/tools.css');
-@import url('views/shared-ledgers.css');
+@import url('views/dashboard.css?v=2');
+@import url('views/history.css?v=2');
+@import url('views/reports.css?v=2');
+@import url('views/tools.css?v=2');
+@import url('views/shared-ledgers.css?v=2');
 
 /* --- Responsive Breakpoints (must be last) --- */
-@import url('utilities/responsive.css');
+@import url('utilities/responsive.css?v=3');
 
 /* --- Shared Patterns (keep minimal shared styles here) --- */
+
+/* CRITICAL FIXES: Loading & Icons */
+.card-skeleton {
+  display: none !important;
+}
+
+.card.is-loading .card-skeleton {
+  display: flex !important;
+}
+
+.card.is-loading > *:not(.card-skeleton) {
+  display: none !important;
+}
+
+.empty-svg {
+  width: 64px !important;
+  height: 64px !important;
+  max-width: 64px !important;
+  max-height: 64px !important;
+  margin-bottom: 1rem !important;
+}
+
+.goal-header, .category-budget-header, .tools-overview-head {
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+}
 
 /* Print Styles */
 @media print {
