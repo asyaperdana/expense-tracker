@@ -25,13 +25,13 @@
   --clr-text-muted: #6e7f95;
   --clr-text-inverse: #ffffff;
 
-  /* Action colors (GoPay Palette) */
-  --clr-action-primary: #00aa13; /* GoPay Green */
-  --clr-action-primary-hover: #00880c;
-  --clr-action-primary-soft: rgba(0, 170, 19, 0.1);
-  --clr-action-secondary: #00aed6; /* GoPay Blue */
-  --clr-action-secondary-hover: #0098ba;
-  --clr-action-secondary-soft: rgba(0, 174, 214, 0.1);
+  /* Action colors (Midnight Violet Palette) */
+  --clr-action-primary: #7c3aed; /* Violet 600 */
+  --clr-action-primary-hover: #6d28d9; /* Violet 700 */
+  --clr-action-primary-soft: rgba(124, 58, 237, 0.12);
+  --clr-action-secondary: #0ea5e9; /* Sky 500 */
+  --clr-action-secondary-hover: #0284c7; /* Sky 600 */
+  --clr-action-secondary-soft: rgba(14, 165, 233, 0.12);
 
   /* Status colors */
   --clr-status-success: #00AA13;
@@ -58,10 +58,10 @@
   --clr-chart-ring-border: rgba(255, 255, 255, 0.2);
   --clr-chart-slice-fallback: #94a3b8;
 
-  /* Brand/Decorative — GoPay Green glow */
-  --clr-brand-glow-1: color-mix(in srgb, #00AA13 14%, transparent);
-  --clr-brand-glow-2: color-mix(in srgb, #00AED6 12%, transparent);
-  --clr-brand-glow-3: color-mix(in srgb, #00AA13 10%, transparent);
+  /* Brand/Decorative — Midnight Violet glow */
+  --clr-brand-glow-1: color-mix(in srgb, #7c3aed 14%, transparent);
+  --clr-brand-glow-2: color-mix(in srgb, #0ea5e9 12%, transparent);
+  --clr-brand-glow-3: color-mix(in srgb, #f43f5e 10%, transparent);
   --clr-brand-grid: color-mix(in srgb, var(--clr-primary) 6%, transparent);
   --clr-brand-vignette: rgba(5, 12, 28, 0.08);
 
@@ -223,13 +223,13 @@
   --clr-text-secondary: #8fa3bc;
   --clr-text-muted: #6b829d;
 
-  /* Action colors (GoPay Dark) */
-  --clr-action-primary: #00D817; /* Brighter green for dark */
-  --clr-action-primary-hover: #00BC14;
-  --clr-action-primary-soft: rgba(0, 216, 23, 0.12);
-  --clr-action-secondary: #00C8E6; /* Brighter GoPay cyan */
-  --clr-action-secondary-hover: #00AED6;
-  --clr-action-secondary-soft: rgba(0, 200, 230, 0.12);
+  /* Action colors (Midnight Violet Dark) */
+  --clr-action-primary: #a78bfa; /* Violet 400 */
+  --clr-action-primary-hover: #8b5cf6; /* Violet 500 */
+  --clr-action-primary-soft: rgba(167, 139, 250, 0.16);
+  --clr-action-secondary: #38bdf8; /* Sky 400 */
+  --clr-action-secondary-hover: #0ea5e9; /* Sky 500 */
+  --clr-action-secondary-soft: rgba(56, 189, 248, 0.16);
 
   /* Status colors */
   --clr-status-success: #34d399;
@@ -253,10 +253,10 @@
   --clr-chart-ring-border: rgba(148, 163, 184, 0.18);
   --clr-chart-slice-fallback: #64748b;
 
-  /* Brand/Decorative — GoPay Dark Glow */
-  --clr-brand-glow-1: color-mix(in srgb, #00D817 20%, transparent);
-  --clr-brand-glow-2: color-mix(in srgb, #00C8E6 16%, transparent);
-  --clr-brand-glow-3: color-mix(in srgb, #34d399 12%, transparent);
+  /* Brand/Decorative — Midnight Violet Dark Glow */
+  --clr-brand-glow-1: color-mix(in srgb, #a78bfa 20%, transparent);
+  --clr-brand-glow-2: color-mix(in srgb, #38bdf8 16%, transparent);
+  --clr-brand-glow-3: color-mix(in srgb, #fb7185 14%, transparent);
   --clr-brand-grid: rgba(100, 130, 170, 0.08);
   --clr-brand-vignette: rgba(1, 4, 12, 0.6);
 
