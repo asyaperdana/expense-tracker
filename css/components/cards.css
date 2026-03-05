@@ -1,15 +1,15 @@
 /* ===========================
-   Card Components
+   Card Components — GoPay Style
    =========================== */
 
 .card {
   --mx: 50%;
   --my: 50%;
-  background: var(--card-bg);
+  background: var(--clr-surface);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
   padding: var(--space-rhythm-card-lg);
-  box-shadow: var(--shadow-inset), var(--shadow-sm);
+  box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -17,18 +17,15 @@
   transition:
     border-color var(--dur-normal) var(--ease),
     box-shadow var(--dur-normal) var(--ease),
-    transform var(--dur-fast) var(--ease-snappy),
-    filter var(--dur-normal) var(--ease);
+    transform var(--dur-fast) var(--ease-snappy);
 }
 
 [data-theme='dark'] .card {
-  border-color: color-mix(in srgb, var(--clr-border) 88%, #6d88ad 12%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--clr-border) 80%, transparent);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Card top accent line */
+/* Card top accent — thin GoPay green line */
 .card::before {
   content: '';
   position: absolute;
@@ -37,10 +34,15 @@
   right: 0;
   height: 2px;
   background: linear-gradient(90deg, var(--clr-primary), var(--clr-accent));
-  opacity: 0.56;
+  opacity: 0;
+  transition: opacity var(--dur-normal) var(--ease);
 }
 
-/* Card hover glow effect */
+.card:hover::before {
+  opacity: 0.6;
+}
+
+/* Card subtle hover glow */
 .card::after {
   content: '';
   position: absolute;
@@ -48,22 +50,21 @@
   pointer-events: none;
   opacity: 0;
   background: radial-gradient(
-    280px circle at var(--mx) var(--my),
-    color-mix(in srgb, var(--clr-primary) 16%, transparent),
+    320px circle at var(--mx) var(--my),
+    color-mix(in srgb, var(--clr-primary) 8%, transparent),
     transparent 70%
   );
   transition: opacity var(--dur-normal) var(--ease-emph);
 }
 
 .card:hover {
-  border-color: var(--clr-border-strong);
+  border-color: color-mix(in srgb, var(--clr-primary) 20%, var(--clr-border));
   box-shadow: var(--shadow-md);
-  transform: translateY(-3px);
-  filter: saturate(1.03);
+  transform: translateY(-2px);
 }
 
 [data-theme='dark'] .card:hover {
-  border-color: color-mix(in srgb, var(--clr-border-strong) 84%, var(--clr-primary) 16%);
+  border-color: color-mix(in srgb, var(--clr-primary) 24%, var(--clr-border));
 }
 
 .card:hover::after,
@@ -73,7 +74,7 @@
 }
 
 .card:focus-within {
-  border-color: color-mix(in srgb, var(--clr-primary) 42%, var(--clr-border));
+  border-color: color-mix(in srgb, var(--clr-primary) 35%, var(--clr-border));
   box-shadow: var(--focus-ring), var(--shadow-md);
   transform: translateY(-1px);
 }
@@ -102,7 +103,7 @@
   width: 3px;
   height: 1rem;
   flex-shrink: 0;
-  background: linear-gradient(180deg, var(--clr-primary), var(--clr-accent));
+  background: var(--clr-primary);
   border-radius: 2px;
 }
 
@@ -123,15 +124,15 @@
   align-items: center;
   gap: 0.35rem;
   width: fit-content;
-  border: 1px solid color-mix(in srgb, var(--clr-primary) 28%, var(--clr-border));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--clr-primary) 9%, transparent);
-  padding: 0.16rem 0.56rem;
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--clr-primary-soft);
+  padding: 0.2rem 0.65rem;
   font-size: var(--type-kicker-size);
   font-weight: var(--type-kicker-weight);
   letter-spacing: var(--type-kicker-spacing);
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--clr-primary) 80%, var(--clr-text));
+  color: var(--clr-primary);
 }
 
 .section-title {
@@ -160,24 +161,43 @@
   background: var(--clr-surface);
 }
 
-/* --- Hero Card --- */
+/* --- Hero Card — GoPay Balance Card Style --- */
 .hero-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.85rem;
-  padding: clamp(1rem, 2.2vw, 1.5rem);
+  padding: clamp(1.25rem, 2.4vw, 1.75rem);
   background: linear-gradient(
-    150deg,
-    color-mix(in srgb, var(--clr-primary) 10%, var(--clr-surface)),
-    var(--clr-surface) 55%
+    145deg,
+    #00AA13 0%,
+    #009910 40%,
+    #007A0D 100%
   );
-  border-color: color-mix(in srgb, var(--clr-primary) 22%, var(--clr-border));
-  color: var(--clr-text);
+  border: none;
+  border-radius: var(--radius-xl);
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(0, 170, 19, 0.25);
+}
+
+[data-theme='dark'] .hero-card {
+  background: linear-gradient(
+    145deg,
+    #00AA13 0%,
+    #008C10 40%,
+    #006B0C 100%
+  );
+  box-shadow: 0 8px 36px rgba(0, 170, 19, 0.2);
 }
 
 .hero-card::before,
 .hero-card::after {
   content: none !important;
+}
+
+.hero-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 170, 19, 0.3);
+  border-color: transparent;
 }
 
 .hero-content {
@@ -187,7 +207,7 @@
 }
 
 .hero-kicker {
-  color: var(--clr-text-2);
+  color: rgba(255, 255, 255, 0.7);
   font-size: var(--type-kicker-size);
   font-weight: var(--type-kicker-weight);
   letter-spacing: var(--type-kicker-spacing);
@@ -200,16 +220,18 @@
   line-height: var(--type-title-line);
   letter-spacing: var(--type-title-spacing);
   margin: 0;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .hero-value {
   font-family: var(--num-font-display);
-  color: var(--clr-primary);
+  color: #fff;
   font-size: var(--num-size-hero);
   line-height: 1.08;
   font-weight: 800;
   letter-spacing: var(--num-tracking-tight);
   margin: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .hero-note,
@@ -222,12 +244,100 @@
   font-weight: var(--type-subtitle-weight);
 }
 
+.hero-card .hero-note,
+.hero-card .budget-note {
+  color: rgba(255, 255, 255, 0.65);
+}
+
 /* Decorative elements (hidden by default) */
 .hero-graphic,
 .hero-orb,
 .hero-orb-2,
 .hero-lines {
   display: none !important;
+}
+
+/* --- Hero Card inner elements --- */
+.hero-card .wallet-balances {
+  margin-top: 0.5rem;
+}
+
+.hero-card .wallet-pill {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+}
+
+.hero-card .wallet-pill-icon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-card .wallet-pill-label {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.hero-card .wallet-pill-amount {
+  color: #fff;
+}
+
+.hero-card .btn-ghost {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-card .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.hero-card .budget-container {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+}
+
+.hero-card .budget-header-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hero-card .budget-text-used {
+  color: #fff;
+}
+
+.hero-card .budget-text-limit {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.hero-card .budget-bar {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.hero-card .budget-pct {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.hero-card .budget-pct.is-warn {
+  background: rgba(255, 200, 50, 0.3);
+  color: #ffe066;
+}
+
+.hero-card .budget-pct.is-over {
+  background: rgba(248, 113, 113, 0.3);
+  color: #fca5a5;
+}
+
+.hero-card .btn-budget-edit {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-card .btn-budget-edit:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
 /* --- Summary Card --- */
@@ -245,7 +355,7 @@
 /* --- Filter Card --- */
 .filter-card {
   padding: var(--space-5);
-  background: var(--clr-surface-alt);
+  background: var(--clr-surface);
 }
 
 .filter-card .card-title {

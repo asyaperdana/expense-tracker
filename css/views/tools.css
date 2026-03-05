@@ -271,11 +271,11 @@
 }
 
 .wallet-item-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
-  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--clr-primary-soft);
+  color: var(--clr-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -353,9 +353,10 @@
 }
 
 .split-mode-btn.active {
-  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+  background: var(--clr-primary);
   color: #fff;
   border-color: transparent;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--clr-primary) 30%, transparent);
 }
 
 .split-participants {

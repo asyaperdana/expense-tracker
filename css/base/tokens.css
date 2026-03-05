@@ -4,16 +4,16 @@
 
 :root {
   /* --- Typography --- */
-  --font-body: 'Manrope', 'Plus Jakarta Sans', 'Segoe UI', 'Helvetica Neue', sans-serif;
-  --font-heading: 'Sora', 'Space Grotesk', 'Avenir Next', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-body: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   /* --- Semantic Color Hierarchy --- */
-  /* Layer colors (background depth) */
-  --clr-layer-base: #f0f4f8;
+  /* Layer colors (background depth — GoPay clean white) */
+  --clr-layer-base: #f5f7fa;
   --clr-layer-1: #ffffff;
-  --clr-layer-2: #f7f9fc;
-  --clr-layer-3: #edf1f7;
+  --clr-layer-2: #f8fafb;
+  --clr-layer-3: #f0f3f6;
 
   /* Border colors */
   --clr-border-subtle: #dce3ed;
@@ -25,15 +25,16 @@
   --clr-text-muted: #6e7f95;
   --clr-text-inverse: #ffffff;
 
-  /* Action colors */
-  --clr-action-primary: #0f766e;
-  --clr-action-primary-hover: #0a5f59;
-  --clr-action-primary-soft: rgba(15, 118, 110, 0.12);
-  --clr-action-secondary: #2563eb;
-  --clr-action-secondary-hover: #1d4ed8;
+  /* Action colors (GoPay Palette) */
+  --clr-action-primary: #00aa13; /* GoPay Green */
+  --clr-action-primary-hover: #00880c;
+  --clr-action-primary-soft: rgba(0, 170, 19, 0.1);
+  --clr-action-secondary: #00aed6; /* GoPay Blue */
+  --clr-action-secondary-hover: #0098ba;
+  --clr-action-secondary-soft: rgba(0, 174, 214, 0.1);
 
   /* Status colors */
-  --clr-status-success: #0d9668;
+  --clr-status-success: #00AA13;
   --clr-status-success-soft: color-mix(in srgb, #0d9668 14%, transparent);
   --clr-status-danger: #dc2c42;
   --clr-status-danger-hover: #c41e34;
@@ -57,12 +58,12 @@
   --clr-chart-ring-border: rgba(255, 255, 255, 0.2);
   --clr-chart-slice-fallback: #94a3b8;
 
-  /* Brand/Decorative */
-  --clr-brand-glow-1: color-mix(in srgb, #0f766e 24%, transparent);
-  --clr-brand-glow-2: color-mix(in srgb, #2563eb 20%, transparent);
-  --clr-brand-glow-3: color-mix(in srgb, #0d9668 16%, transparent);
-  --clr-brand-grid: color-mix(in srgb, var(--clr-primary) 11%, transparent);
-  --clr-brand-vignette: rgba(5, 12, 28, 0.18);
+  /* Brand/Decorative — GoPay Green glow */
+  --clr-brand-glow-1: color-mix(in srgb, #00AA13 14%, transparent);
+  --clr-brand-glow-2: color-mix(in srgb, #00AED6 12%, transparent);
+  --clr-brand-glow-3: color-mix(in srgb, #00AA13 10%, transparent);
+  --clr-brand-grid: color-mix(in srgb, var(--clr-primary) 6%, transparent);
+  --clr-brand-vignette: rgba(5, 12, 28, 0.08);
 
   /* --- Legacy Aliases (for backward compatibility) --- */
   --clr-bg: var(--clr-layer-base);
@@ -145,12 +146,13 @@
   --space-rhythm-grid: clamp(0.75rem, 1.3vw, 1.2rem);
   --space-rhythm-inline: clamp(0.6rem, 1vw, 0.9rem);
 
-  /* --- Border Radius --- */
+  /* --- Border Radius (GoPay Rounded) --- */
   --radius-xs: 8px;
   --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
-  --radius-xl: 28px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
 
   /* --- Shadows --- */
   --shadow-sm: 0 2px 12px rgba(15, 23, 42, 0.06);
@@ -204,29 +206,30 @@
   --icon-size-lg: 1.26rem;
 }
 
-/* --- Dark Theme Tokens --- */
+/* --- Dark Theme Tokens (GoPay Inspired) --- */
 [data-theme='dark'] {
-  /* Layer colors */
-  --clr-layer-base: #0b1120;
-  --clr-layer-1: #111c2e;
-  --clr-layer-2: #162236;
-  --clr-layer-3: #1a2940;
+  /* Layer colors — deep dark GoPay palette */
+  --clr-layer-base: #0a0e17;
+  --clr-layer-1: #111823;
+  --clr-layer-2: #161e2c;
+  --clr-layer-3: #1c2535;
 
   /* Border colors */
-  --clr-border-subtle: #2a3d5c;
-  --clr-border-strong: #3b5579;
+  --clr-border-subtle: #243042;
+  --clr-border-strong: #34465e;
 
   /* Text colors */
-  --clr-text-primary: #e4ecf7;
-  --clr-text-secondary: #9eb2ca;
-  --clr-text-muted: #8298b2;
+  --clr-text-primary: #eaf0f7;
+  --clr-text-secondary: #8fa3bc;
+  --clr-text-muted: #6b829d;
 
-  /* Action colors */
-  --clr-action-primary: #22b8a0;
-  --clr-action-primary-hover: #1a9a86;
-  --clr-action-primary-soft: rgba(34, 184, 160, 0.14);
-  --clr-action-secondary: #60a5fa;
-  --clr-action-secondary-hover: #4d94f0;
+  /* Action colors (GoPay Dark) */
+  --clr-action-primary: #00D817; /* Brighter green for dark */
+  --clr-action-primary-hover: #00BC14;
+  --clr-action-primary-soft: rgba(0, 216, 23, 0.12);
+  --clr-action-secondary: #00C8E6; /* Brighter GoPay cyan */
+  --clr-action-secondary-hover: #00AED6;
+  --clr-action-secondary-soft: rgba(0, 200, 230, 0.12);
 
   /* Status colors */
   --clr-status-success: #34d399;
@@ -243,39 +246,40 @@
   --clr-on-warning: #111827;
 
   /* Chart colors */
-  --clr-chart-axis: #94a3b8;
-  --clr-chart-grid: rgba(255, 255, 255, 0.08);
+  --clr-chart-axis: #8fa3bc;
+  --clr-chart-grid: rgba(255, 255, 255, 0.06);
   --clr-chart-income: #34d399;
   --clr-chart-expense: #f87171;
-  --clr-chart-ring-border: rgba(148, 163, 184, 0.24);
+  --clr-chart-ring-border: rgba(148, 163, 184, 0.18);
   --clr-chart-slice-fallback: #64748b;
 
-  /* Brand/Decorative */
-  --clr-brand-glow-1: color-mix(in srgb, #22b8a0 28%, transparent);
-  --clr-brand-glow-2: color-mix(in srgb, #60a5fa 24%, transparent);
-  --clr-brand-glow-3: color-mix(in srgb, #34d399 16%, transparent);
-  --clr-brand-grid: rgba(148, 163, 184, 0.14);
-  --clr-brand-vignette: rgba(1, 6, 17, 0.56);
+  /* Brand/Decorative — GoPay Dark Glow */
+  --clr-brand-glow-1: color-mix(in srgb, #00D817 20%, transparent);
+  --clr-brand-glow-2: color-mix(in srgb, #00C8E6 16%, transparent);
+  --clr-brand-glow-3: color-mix(in srgb, #34d399 12%, transparent);
+  --clr-brand-grid: rgba(100, 130, 170, 0.08);
+  --clr-brand-vignette: rgba(1, 4, 12, 0.6);
 
   /* Form fields */
-  --field-bg: color-mix(in srgb, var(--clr-surface-alt) 88%, #0d1829);
-  --field-bg-hover: color-mix(in srgb, var(--clr-surface-alt) 72%, #112034);
-  --field-bg-focus: color-mix(in srgb, var(--clr-surface) 86%, #0d192b);
-  --field-border: color-mix(in srgb, var(--clr-border) 80%, var(--clr-accent) 20%);
-  --field-border-hover: color-mix(in srgb, var(--clr-border-strong) 78%, var(--clr-accent) 22%);
-  --field-focus-ring: 0 0 0 3px color-mix(in srgb, var(--clr-primary) 22%, transparent);
+  --field-bg: color-mix(in srgb, var(--clr-surface-alt) 88%, #0a0e17);
+  --field-bg-hover: color-mix(in srgb, var(--clr-surface-alt) 72%, #0e1420);
+  --field-bg-focus: color-mix(in srgb, var(--clr-surface) 86%, #0a0e17);
+  --field-border: var(--clr-border-subtle);
+  --field-border-hover: var(--clr-border-strong);
+  --field-focus-ring: 0 0 0 3px color-mix(in srgb, var(--clr-primary) 18%, transparent);
 
   /* Shadows */
-  --shadow-sm: 0 7px 22px rgba(1, 10, 24, 0.42);
-  --shadow-md: 0 16px 42px rgba(1, 8, 20, 0.54);
-  --shadow-lg: 0 28px 66px rgba(0, 6, 15, 0.62);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-sm: 0 4px 16px rgba(0, 6, 16, 0.5);
+  --shadow-md: 0 12px 36px rgba(0, 4, 12, 0.6);
+  --shadow-lg: 0 24px 56px rgba(0, 3, 10, 0.7);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   /* Card styles */
-  --card-border: color-mix(in srgb, var(--clr-border) 84%, transparent);
+  --card-border: color-mix(in srgb, var(--clr-border) 80%, transparent);
   --card-bg: linear-gradient(
     165deg,
     color-mix(in srgb, var(--clr-surface) 96%, transparent),
     color-mix(in srgb, var(--clr-surface-alt) 84%, var(--clr-surface))
   );
 }
+

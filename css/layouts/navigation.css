@@ -1,5 +1,5 @@
 /* ===========================
-   Navigation Layout
+   Navigation Layout — GoPay Style
    =========================== */
 
 /* App shell container */
@@ -9,7 +9,7 @@
   margin: 0 auto;
   display: flex;
   gap: var(--space-8);
-  padding: var(--space-9) var(--space-8) 8rem;
+  padding: var(--space-7) var(--space-8) 8rem;
   min-width: 0;
 }
 
@@ -18,18 +18,18 @@
   position: sticky;
   top: 5rem;
   align-self: flex-start;
-  width: 230px;
+  width: 220px;
   flex-shrink: 0;
   border-radius: var(--radius-lg);
   border: 1px solid var(--clr-border);
   background: var(--clr-surface);
   box-shadow: var(--shadow-sm);
-  padding: 1rem;
+  padding: 0.85rem;
 }
 
 [data-theme='dark'] .side-nav {
-  background: color-mix(in srgb, var(--clr-surface) 94%, #0e182a);
-  border-color: color-mix(in srgb, var(--clr-border) 88%, var(--clr-accent) 12%);
+  background: var(--clr-surface);
+  border-color: var(--clr-border);
 }
 
 .side-nav-title {
@@ -38,14 +38,15 @@
   font-weight: var(--type-kicker-weight);
   letter-spacing: var(--type-kicker-spacing);
   text-transform: uppercase;
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.55rem;
+  padding-left: 0.5rem;
 }
 
 .side-nav-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 /* Navigation links */
@@ -55,7 +56,7 @@
   gap: 0.6rem;
   width: 100%;
   padding: 0.6rem 0.75rem;
-  border: 1px solid transparent;
+  border: none;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--clr-text-2);
@@ -64,42 +65,36 @@
   font-family: var(--font-body);
   cursor: pointer;
   transition:
-    transform var(--dur-fast) var(--ease-snappy),
-    border-color var(--dur-normal) var(--ease),
     background var(--dur-normal) var(--ease),
     color var(--dur-normal) var(--ease),
-    box-shadow var(--dur-normal) var(--ease);
+    transform var(--dur-fast) var(--ease-snappy);
   text-align: left;
-  box-shadow: inset 0 1px 0 transparent;
 }
 
 .nav-link:hover {
-  border-color: var(--clr-border-strong);
-  background: color-mix(in srgb, var(--clr-surface-alt) 90%, transparent);
-  color: var(--clr-text);
+  background: var(--clr-primary-soft);
+  color: var(--clr-primary);
   transform: translateX(2px);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--clr-white) 30%, transparent);
 }
 
 [data-theme='dark'] .nav-link:hover {
-  border-color: color-mix(in srgb, var(--clr-border-strong) 78%, var(--clr-primary));
-  background: color-mix(in srgb, var(--clr-surface-alt) 86%, #1a2a42);
+  background: var(--clr-primary-soft);
+  color: var(--clr-primary);
 }
 
 .nav-link:active {
   transform: translateX(1px) scale(0.99);
-  background: color-mix(in srgb, var(--clr-surface-hover) 86%, var(--clr-surface));
 }
 
 .nav-link.is-active {
-  color: var(--clr-white);
-  border-color: transparent;
-  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--clr-primary) 35%, transparent);
+  color: #fff;
+  background: var(--clr-primary);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--clr-primary) 35%, transparent);
 }
 
 [data-theme='dark'] .nav-link.is-active {
-  box-shadow: 0 12px 26px color-mix(in srgb, var(--clr-primary) 30%, rgba(0, 0, 0, 0.68));
+  background: var(--clr-primary);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--clr-primary) 25%, rgba(0, 0, 0, 0.5));
 }
 
 .nav-link.is-active:hover {
@@ -111,9 +106,7 @@
 }
 
 .nav-link:focus-visible {
-  box-shadow:
-    var(--focus-ring),
-    inset 0 1px 0 color-mix(in srgb, var(--clr-white) 32%, transparent);
+  box-shadow: var(--focus-ring);
 }
 
 .nav-link[aria-disabled='true'],
@@ -183,7 +176,7 @@
   }
 }
 
-/* Bottom navigation (mobile) */
+/* Bottom navigation (mobile) — GoPay Style */
 .bottom-nav {
   display: none;
   position: fixed;
@@ -191,11 +184,15 @@
   left: 0;
   right: 0;
   z-index: 25;
-  border-top: 1px solid var(--clr-border);
-  background: color-mix(in srgb, var(--clr-surface) 90%, transparent);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  padding: 0.4rem 0.5rem 0.35rem;
+  border-top: none;
+  background: var(--clr-surface);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+  padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+}
+
+[data-theme='dark'] .bottom-nav {
+  background: var(--clr-surface);
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.35);
 }
 
 .bottom-link {
@@ -203,51 +200,77 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
-  padding: 0.3rem 0;
+  gap: 0.2rem;
+  padding: 0.35rem 0;
   border: none;
   background: none;
-  color: var(--clr-text-2);
-  font-size: 0.65rem;
+  color: var(--clr-text-muted);
+  font-size: 0.62rem;
   font-weight: 600;
   font-family: var(--font-body);
   cursor: pointer;
-  transition: color var(--ease);
+  transition: color 0.2s ease;
+  position: relative;
 }
 
 .bottom-link i {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+  transition: transform 0.2s ease;
 }
 
 .bottom-link.is-active {
   color: var(--clr-primary);
+  font-weight: 700;
+}
+
+.bottom-link.is-active i {
+  transform: scale(1.1);
+}
+
+/* GoPay-style active dot indicator */
+.bottom-link.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--clr-primary);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--clr-primary) 50%, transparent);
 }
 
 .bottom-link:hover {
   color: var(--clr-text);
 }
 
-/* Floating action button */
+/* Floating action button — GoPay style */
 .fab-add {
   position: fixed;
   bottom: 5rem;
   right: 1.5rem;
   z-index: 20;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-full, 9999px);
   border: none;
   color: #fff;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--clr-primary) 38%, transparent);
+  background: var(--clr-primary);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--clr-primary) 40%, transparent);
   display: none;
   align-items: center;
   justify-content: center;
-  transition: all var(--ease);
+  transition: all 0.2s ease;
 }
 
 .fab-add:hover {
-  transform: translateY(-2px) scale(1.04);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--clr-primary) 45%, transparent);
+}
+
+.fab-add:active {
+  transform: scale(0.95);
 }

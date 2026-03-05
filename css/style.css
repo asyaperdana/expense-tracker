@@ -30,6 +30,9 @@
 @import url('views/tools.css');
 @import url('views/shared-ledgers.css');
 
+/* --- Responsive Breakpoints (must be last) --- */
+@import url('utilities/responsive.css');
+
 /* --- Shared Patterns (keep minimal shared styles here) --- */
 
 /* Print Styles */

@@ -230,9 +230,9 @@
 .report-stat-icon {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
-  color: white;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--clr-primary-soft);
+  color: var(--clr-primary);
   display: flex;
   align-items: center;
   justify-content: center;

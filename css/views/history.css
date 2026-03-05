@@ -390,15 +390,15 @@
   align-items: center;
   gap: 0.35rem;
   width: fit-content;
-  border: 1px solid color-mix(in srgb, var(--clr-primary) 28%, var(--clr-border));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--clr-primary) 9%, transparent);
-  padding: 0.16rem 0.56rem;
+  border: none;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--clr-primary-soft);
+  padding: 0.2rem 0.65rem;
   font-size: var(--type-kicker-size);
   font-weight: var(--type-kicker-weight);
   letter-spacing: var(--type-kicker-spacing);
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--clr-primary) 80%, var(--clr-text));
+  color: var(--clr-primary);
   margin-bottom: 0.5rem;
 }
 

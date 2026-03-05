@@ -50,11 +50,7 @@ p {
 
 body {
   font-family: var(--font-body);
-  background: linear-gradient(
-    150deg,
-    color-mix(in srgb, var(--clr-bg) 94%, #f8fbff),
-    var(--clr-bg)
-  );
+  background: var(--clr-bg);
   color: var(--clr-text);
   font-size: var(--type-body-size);
   line-height: var(--type-body-line);

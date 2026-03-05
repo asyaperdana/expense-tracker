@@ -8,17 +8,24 @@
       content="Expense Tracker — Aplikasi tracking pengeluaran uang harian dengan penyimpanan lokal."
     />
     <title>Expense Tracker — Tracking Pengeluaran</title>
-    <meta name="theme-color" content="#0f766e" />
+    <meta name="theme-color" content="#00AA13" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://unpkg.com" />
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap"
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
     <link rel="apple-touch-icon" href="assets/icon.svg" />
     <link rel="manifest" href="assets/manifest.json" />
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
@@ -1711,7 +1718,7 @@
       <p>&copy; 2026 Expense Tracker — Data disimpan di browser (localStorage)</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
     <script>
       try {
         if (!localStorage.getItem('expense_tracker_theme')) {

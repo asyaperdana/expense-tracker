@@ -23,9 +23,15 @@
 
 .dashboard-stat {
   border: 1px solid var(--clr-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--clr-surface-alt);
-  padding: 1.5rem;
+  padding: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .dashboard-stat-label {
@@ -53,11 +59,17 @@
 .summary-item {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
   border: 1px solid var(--clr-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--clr-surface-alt);
-  padding: 1.5rem;
+  padding: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .summary-label {
@@ -94,11 +106,11 @@
 
 /* Budget Styles */
 .budget-container {
-  margin-top: 1rem;
+  margin-top: 0.85rem;
   padding: 1rem;
   background: var(--clr-surface-alt);
   border: 1px solid var(--clr-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
 }
 
 .budget-header {
@@ -138,7 +150,7 @@
 }
 
 .budget-bar {
-  height: 8px;
+  height: 10px;
   background: var(--clr-border);
   border-radius: 999px;
   overflow: hidden;
@@ -240,19 +252,20 @@
 .template-card:hover {
   transform: translateY(-3px);
   border-color: var(--clr-primary);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--clr-primary) 15%, transparent);
 }
 
 .template-icon {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-sm);
-  background: var(--clr-border);
+  border-radius: var(--radius-full, 9999px);
+  background: var(--clr-primary-soft);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.3rem;
   margin-bottom: 0.6rem;
+  color: var(--clr-primary);
 }
 
 .template-name {

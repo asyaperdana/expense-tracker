@@ -1,5 +1,5 @@
 /* ===========================
-   Button Components
+   Button Components — GoPay Style
    =========================== */
 
 .btn {
@@ -7,21 +7,22 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  min-height: 46px;
+  padding: 0.7rem 1.25rem;
+  min-height: 44px;
   font-size: 0.88rem;
   font-weight: 700;
   font-family: var(--font-body);
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full, 9999px);
   cursor: pointer;
-  transition: all var(--ease);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   overflow: hidden;
+  letter-spacing: -0.005em;
 }
 
 .btn:active {
-  transform: translateY(1px);
+  transform: scale(0.97);
 }
 
 .btn:disabled,
@@ -32,76 +33,83 @@
   transform: none;
 }
 
-/* Primary button */
+/* Primary button — GoPay solid green */
 .btn-primary {
   border-color: transparent;
-  color: var(--clr-on-primary);
-  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+  color: #fff;
+  background: var(--clr-primary);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--clr-primary) 30%, transparent);
 }
 
 .btn-primary:hover {
+  background: var(--clr-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--clr-primary) 32%, transparent);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--clr-primary) 35%, transparent);
 }
 
-/* Secondary/Accent button */
+/* Secondary/Accent button — GoPay cyan */
 .btn-accent {
   border-color: transparent;
-  color: var(--clr-on-secondary);
-  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+  color: #fff;
+  background: var(--clr-accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--clr-accent) 28%, transparent);
 }
 
 .btn-accent:hover {
+  background: var(--clr-accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--clr-primary) 32%, transparent);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--clr-accent) 32%, transparent);
 }
 
-/* Ghost button */
+/* Ghost button — GoPay outline style */
 .btn-ghost {
   border-color: var(--clr-border);
   color: var(--clr-text-2);
-  background: var(--clr-surface-alt);
+  background: transparent;
 }
 
 .btn-ghost:hover {
-  border-color: var(--clr-border-strong);
-  color: var(--clr-text);
-  background: var(--clr-surface);
+  border-color: var(--clr-primary);
+  color: var(--clr-primary);
+  background: var(--clr-primary-soft);
 }
 
 /* Danger button */
 .btn-danger {
   border-color: transparent;
-  color: var(--clr-on-danger);
-  background: linear-gradient(135deg, var(--clr-danger), var(--clr-danger-hover));
+  color: #fff;
+  background: var(--clr-danger);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--clr-danger) 28%, transparent);
 }
 
 .btn-danger:hover {
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--clr-danger) 28%, transparent);
+  background: var(--clr-danger-hover);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--clr-danger) 30%, transparent);
 }
 
 /* Split button */
 .btn-split {
   border-color: transparent;
-  color: var(--clr-on-primary);
-  background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+  color: #fff;
+  background: var(--clr-accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--clr-accent) 28%, transparent);
 }
 
 .btn-split:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--clr-primary) 32%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--clr-accent) 30%, transparent);
 }
 
 /* Button sizes */
 .btn-sm {
-  padding: 0.35rem 0.75rem;
-  min-height: 36px;
+  padding: 0.35rem 0.85rem;
+  min-height: 34px;
   font-size: 0.78rem;
-  border-radius: 8px;
+  border-radius: var(--radius-full, 9999px);
 }
 
 .btn-lg {
-  padding: 0.85rem 1.5rem;
+  padding: 0.85rem 1.75rem;
   min-height: 52px;
   font-size: 1rem;
 }
@@ -140,7 +148,7 @@
 .btn-pin.active {
   color: #fff;
   background: var(--clr-accent);
-  border-radius: 6px;
+  border-radius: var(--radius-full, 9999px);
   padding: 2px 6px;
 }
 
@@ -163,20 +171,20 @@
 .btn-edit {
   border-color: var(--clr-border);
   color: var(--clr-text-2);
-  background: var(--clr-surface-alt);
+  background: transparent;
 }
 
 .btn-edit:hover {
-  border-color: var(--clr-border-strong);
-  color: var(--clr-text);
-  background: var(--clr-surface);
+  border-color: var(--clr-primary);
+  color: var(--clr-primary);
+  background: var(--clr-primary-soft);
 }
 
 /* Close button */
 .btn-close {
   background: none;
   border: 1px solid var(--clr-border);
-  border-radius: 8px;
+  border-radius: var(--radius-full, 9999px);
   width: 32px;
   height: 32px;
   display: flex;
@@ -191,7 +199,7 @@
 .btn-close:hover {
   border-color: var(--clr-border-strong);
   color: var(--clr-text);
-  background: var(--clr-surface);
+  background: var(--clr-surface-alt);
 }
 
 /* Button Variants */
@@ -201,8 +209,8 @@
 
 .btn-budget-edit {
   font-size: 0.72rem;
-  padding: 0.35rem 0.6rem;
-  min-height: 32px;
+  padding: 0.35rem 0.65rem;
+  min-height: 30px;
 }
 
 .btn-add-goal {
