@@ -159,17 +159,20 @@
 
 .budget-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--clr-success), var(--clr-primary));
+  background: linear-gradient(90deg, #38bdf8, #34d399); /* Electric Sky to Glowing Emerald */
   border-radius: inherit;
-  transition: width 0.4s ease;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.6);
 }
 
 .budget-fill.is-warn {
-  background: linear-gradient(90deg, var(--clr-warning), var(--clr-danger));
+  background: linear-gradient(90deg, #fde047, #f59e0b);
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.6);
 }
 
 .budget-fill.is-over {
-  background: var(--clr-danger);
+  background: linear-gradient(90deg, #fb7185, #e11d48);
+  box-shadow: 0 0 12px rgba(251, 113, 133, 0.6);
 }
 
 .budget-footer {
