@@ -1893,26 +1893,15 @@ export function renderSplitResults(results) {
   dom.splitFormView.style.display = 'none';
   dom.splitResultsView.style.display = 'block';
   dom.splitResultSummary.innerHTML =
-    '<div class="result-bill-name">' +
-    calc.escapeHtml(results.billName) +
+    '<p>' + calc.escapeHtml(results.billName) + '</p>' +
+    '<strong>' + calc.formatRupiah(results.total) + '</strong>' +
+    '<div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--clr-text-2);">' +
+    results.people.length + ' peserta • ' +
+    (results.mode === 'equal' ? 'Bagi Rata' : 'Custom') +
     '</div>' +
-    '<div class="result-total">' +
-    calc.formatRupiah(results.total) +
-    '</div>' +
-    '<div class="result-people-count">' +
-    results.people.length +
-    ' peserta • ' +
-    (results.mode === 'equal'
-      ? '<i class="ph-bold ph-scales"></i> Bagi Rata'
-      : '<i class="ph-bold ph-pencil-simple"></i> Custom') +
-    '</div>' +
-    '<div class="result-payer">Dibayar oleh: ' +
-    calc.escapeHtml(results.payerName) +
-    '</div>' +
-    '<div class="result-owner-status">Status Saya (' +
-    calc.escapeHtml(results.ownerName) +
-    '): ' +
-    calc.escapeHtml(results.ownerStatusText) +
+    '<div style="margin-top: 0.75rem; border-top: 1px dashed color-mix(in srgb, var(--clr-primary) 20%, transparent); padding-top: 0.75rem;">' +
+    '<div style="margin-bottom: 0.25rem;">Dibayar oleh: <b>' + calc.escapeHtml(results.payerName) + '</b></div>' +
+    '<div>Status <b>' + calc.escapeHtml(results.ownerName) + '</b>: <span style="color: var(--clr-primary); font-weight: 600;">' + calc.escapeHtml(results.ownerStatusText) + '</span></div>' +
     '</div>';
   dom.splitResultList.innerHTML = '';
   results.people.forEach(function (p, i) {
