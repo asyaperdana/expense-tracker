@@ -405,12 +405,12 @@
 
   /* Table font size */
   #expense-table {
-    font-size: 0.78rem;
+    font-size: 0.82rem;
   }
 
   #expense-table th,
   #expense-table td {
-    padding: 0.5rem 0.4rem;
+    padding: 0.75rem 0.6rem;
   }
 
   /* Form input groups tighter */

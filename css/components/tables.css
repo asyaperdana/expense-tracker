@@ -23,14 +23,14 @@
 #expense-table thead th,
 #split-ledger-table thead th {
   text-align: left;
-  font-size: 0.68rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--clr-text-2);
-  padding: 0.7rem 0.85rem;
-  background: color-mix(in srgb, var(--clr-surface-alt) 96%, transparent);
-  border-bottom: 1px solid var(--clr-border);
+  padding: 0.85rem 1rem;
+  background: color-mix(in srgb, var(--clr-surface-alt) 90%, transparent);
+  border-bottom: 2px solid var(--clr-border);
   position: sticky;
   top: 0;
   z-index: 2;
@@ -40,8 +40,9 @@
 /* Table cells */
 #expense-table tbody td,
 #split-ledger-table tbody td {
-  padding: 0.7rem 0.85rem;
-  font-size: 0.82rem;
+  padding: 0.9rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 500;
   color: var(--clr-text);
   border-bottom: 1px solid var(--clr-border);
   background: var(--clr-surface);
