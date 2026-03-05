@@ -16,7 +16,8 @@
   padding: 0;
 }
 
-.modal-overlay.visible {
+.modal-overlay.visible,
+.modal-overlay.active {
   display: flex;
 }
 
