@@ -96,23 +96,30 @@
 .trend-legend {
   display: flex;
   gap: 0.75rem;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .trend-legend-item {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 3px 8px;
+  gap: 0.4rem;
+  padding: 4px 10px;
   border: 1px solid var(--clr-border);
-  border-radius: 999px;
-  background: var(--clr-surface-alt);
+  border-radius: var(--radius-full, 9999px);
+  background: var(--clr-surface);
   color: var(--clr-text-2);
+  transition: border-color var(--ease), background var(--ease);
+}
+
+.trend-legend-item:hover {
+  border-color: var(--clr-border-strong);
+  background: var(--clr-surface-alt);
 }
 
 .trend-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 
@@ -126,30 +133,33 @@
 
 /* Trend Chart */
 .trend-chart-wrapper {
-  margin-top: 0.5rem;
-  min-height: 260px;
+  margin-top: 1rem;
+  min-height: 270px;
   position: relative;
   width: 100%;
   overflow-x: auto;
   border: 1px solid var(--clr-border);
-  border-radius: var(--radius-sm);
-  background: var(--clr-surface-alt);
+  border-radius: var(--radius-md);
+  background: var(--clr-surface);
+  box-shadow: 0 4px 15px color-mix(in srgb, var(--clr-text) 3%, transparent);
 }
 
 .trend-tooltip {
   position: absolute;
-  background: var(--clr-surface);
+  background: color-mix(in srgb, var(--clr-surface) 90%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: var(--clr-text);
   border: 1px solid var(--clr-border);
-  padding: 0.65rem 0.85rem;
-  border-radius: var(--radius-sm);
+  padding: 0.85rem;
+  border-radius: var(--radius-md);
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 100;
   font-size: 0.82rem;
-  box-shadow: var(--shadow-md);
-  min-width: 130px;
+  box-shadow: 0 8px 25px color-mix(in srgb, var(--clr-text) 5%, transparent);
+  min-width: 140px;
 }
 
 /* Report Insights */

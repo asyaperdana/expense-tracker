@@ -872,11 +872,6 @@ export function renderTrendChart() {
     storage.getTheme() === 'dark' ? '#253550' : '#dce3ed'
   );
 
-  ctx.fillStyle = getCssColor('--clr-surface-alt', '#f7f9fc');
-  ctx.fillRect(padding.left, padding.top, chartW, chartH);
-  ctx.strokeStyle = borderColor;
-  ctx.strokeRect(padding.left + 0.5, padding.top + 0.5, chartW - 1, chartH - 1);
-
   ctx.fillStyle = axisColor;
   ctx.font = (compact ? '600 9px ' : '600 10px ') + '"Manrope", "Plus Jakarta Sans", sans-serif';
   ctx.textAlign = 'right';
@@ -885,9 +880,15 @@ export function renderTrendChart() {
     let labelVal = (maxVal / 4) * j;
     ctx.fillText(formatTrendAxisValue(labelVal), padding.left - 10, y + 4);
     ctx.beginPath();
-    ctx.strokeStyle = gridColor;
-    if (j === 0) ctx.setLineDash([]);
-    else ctx.setLineDash([5, 4]);
+    
+    if (j === 0) {
+      ctx.strokeStyle = borderColor;
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = gridColor;
+      ctx.setLineDash([4, 6]);
+    }
+    
     ctx.moveTo(padding.left, y);
     ctx.lineTo(padding.left + chartW, y);
     ctx.stroke();
@@ -908,13 +909,13 @@ export function renderTrendChart() {
     ctx.fillStyle = incomeColor;
     if (incomeDrawH > 0) {
       ctx.beginPath();
-      ctx.roundRect(incomeX, incomeY, singleBarWidth, incomeDrawH, [5, 5, 0, 0]);
+      ctx.roundRect(incomeX, incomeY, singleBarWidth, incomeDrawH, [6, 6, 0, 0]);
       ctx.fill();
     }
     ctx.fillStyle = expenseColor;
     if (expenseDrawH > 0) {
       ctx.beginPath();
-      ctx.roundRect(expenseX, expenseY, singleBarWidth, expenseDrawH, [5, 5, 0, 0]);
+      ctx.roundRect(expenseX, expenseY, singleBarWidth, expenseDrawH, [6, 6, 0, 0]);
       ctx.fill();
     }
 
