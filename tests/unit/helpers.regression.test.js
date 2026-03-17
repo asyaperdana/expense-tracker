@@ -17,6 +17,7 @@ import {
   formatPercent,
   truncateLabel,
 } from '../../js/modules/calculations.js';
+import { validateExpense } from '../../js/modules/validation.js';
 
 test('sanitizeExpenseItem normalizes legacy category value', () => {
   const item = sanitizeExpenseItem({
@@ -141,6 +142,22 @@ test('sanitizeImportPayload dedupes goals/templates strictly by content', () => 
 test('escapeCsvCell sanitizes formula-like values and quotes', () => {
   assert.equal(escapeCsvCell('=2+2'), '"\'=2+2"');
   assert.equal(escapeCsvCell('kata "aman"'), '"kata ""aman"""');
+});
+
+test('validateExpense rejects non-numeric amount input', () => {
+  const result = validateExpense({
+    date: '03/03/2026',
+    title: 'Tes Nominal',
+    category: 'Makanan',
+    amount: 'abc',
+    type: 'expense',
+    wallet: 'Tunai',
+    walletTo: '',
+    todayString: '2026-03-03',
+  });
+
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((msg) => msg.toLowerCase().includes('nominal')));
 });
 
 test('calculateSplitResults returns error on custom total mismatch', () => {

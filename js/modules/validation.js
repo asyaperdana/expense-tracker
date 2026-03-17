@@ -94,8 +94,9 @@ export function validateExpense(data) {
   }
 
   // Amount validation
-  const rawAmount = String(data.amount || '').replace(/,/g, '');
-  if (!rawAmount || Number(rawAmount) <= 0) {
+  const rawAmount = String(data.amount || '').replace(/,/g, '').trim();
+  const amount = Number(rawAmount);
+  if (!rawAmount || !Number.isFinite(amount) || amount <= 0) {
     errors.push('Nominal harus lebih dari 0');
   }
 

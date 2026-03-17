@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 const FIXED_NOW_ISO = '2026-03-04T10:15:00.000+07:00';
 const SNAPSHOT_VIEWS = ['dashboard', 'history', 'report'];

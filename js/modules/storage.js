@@ -16,18 +16,23 @@ const WALLETS_KEY = 'expense_tracker_wallets';
 const TEMPLATES_KEY = 'expense_tracker_templates';
 const VIEW_KEY = 'expense_tracker_active_view';
 
+function loadArray(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
 // ─── Expenses ─────────────────────────────
 /**
  * Loads expenses from localStorage.
  * @returns {Array} Array of expense objects
  */
 export function loadExpenses() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    return [];
-  }
+  return loadArray(STORAGE_KEY);
 }
 
 /**
@@ -44,12 +49,7 @@ export function saveExpenses(data) {
  * @returns {Array} Array of recurring expense objects
  */
 export function loadRecurring() {
-  try {
-    const raw = localStorage.getItem(RECURRING_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    return [];
-  }
+  return loadArray(RECURRING_KEY);
 }
 
 /**
@@ -62,12 +62,7 @@ export function saveRecurring(data) {
 
 // ─── Custom Categories ────────────────────
 export function loadCustomCategoriesData() {
-  try {
-    const raw = localStorage.getItem(CUSTOM_CAT_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    return [];
-  }
+  return loadArray(CUSTOM_CAT_KEY);
 }
 
 export function saveCustomCategories(data) {
@@ -80,12 +75,7 @@ export function saveCustomCategories(data) {
  * @returns {Array} Array of goal objects
  */
 export function loadGoals() {
-  try {
-    const raw = localStorage.getItem(GOALS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    return [];
-  }
+  return loadArray(GOALS_KEY);
 }
 
 /**
@@ -123,7 +113,9 @@ export function saveProfile(data) {
 export function loadWalletsData() {
   try {
     const raw = localStorage.getItem(WALLETS_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
   } catch (e) {
     return null;
   }
@@ -135,12 +127,7 @@ export function saveWallets(data) {
 
 // ─── Templates ────────────────────────────
 export function loadTemplatesData() {
-  try {
-    const raw = localStorage.getItem(TEMPLATES_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    return [];
-  }
+  return loadArray(TEMPLATES_KEY);
 }
 
 export function saveTemplates(data) {
@@ -149,16 +136,28 @@ export function saveTemplates(data) {
 
 // ─── Theme ────────────────────────────────
 export function getTheme() {
-  return localStorage.getItem(THEME_KEY) || 'dark';
+  try {
+    return localStorage.getItem(THEME_KEY) || 'dark';
+  } catch (e) {
+    return 'dark';
+  }
 }
 
 export function setThemeStorage(theme) {
-  localStorage.setItem(THEME_KEY, theme);
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch (e) {
+    // ignore
+  }
 }
 
 // ─── Budget ───────────────────────────────
 export function getBudgetLimit() {
-  return Number(localStorage.getItem(BUDGET_KEY)) || 0;
+  try {
+    return Number(localStorage.getItem(BUDGET_KEY)) || 0;
+  } catch (e) {
+    return 0;
+  }
 }
 
 export function saveBudgetLimit(val) {
@@ -189,12 +188,7 @@ export function saveCategoryBudgets(data) {
 
 // ─── Split Ledger ─────────────────────────
 export function loadSplitLedger() {
-  try {
-    const raw = localStorage.getItem(SPLIT_LEDGER_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    return [];
-  }
+  return loadArray(SPLIT_LEDGER_KEY);
 }
 
 export function saveSplitLedger(data) {

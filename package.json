@@ -1,0 +1,16 @@
+{
+  "name": "expense-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:unit": "node --test tests/unit/helpers.regression.test.js",
+    "test:visual": "playwright test --config=tests/visual/playwright.config.js",
+    "test:visual:update": "playwright test --config=tests/visual/playwright.config.js --update-snapshots",
+    "test:visual:report": "playwright show-report tests/visual/playwright-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "http-server": "^14.1.1"
+  }
+}

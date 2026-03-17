@@ -1,9 +1,12 @@
-const path = require('path');
-const { defineConfig } = require('@playwright/test');
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from '@playwright/test';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 
-module.exports = defineConfig({
+export default defineConfig({
   testDir: __dirname,
   testMatch: ['*.spec.js'],
   outputDir: path.resolve(__dirname, 'test-results'),
