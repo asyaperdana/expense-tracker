@@ -1070,3 +1070,107 @@
     justify-content: center;
   }
 }
+
+/* ─── OCR Enhanced Styles ──────────────────── */
+
+/* Confidence badge */
+.ocr-confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-full, 9999px);
+  margin-bottom: 0.5rem;
+}
+
+.ocr-conf-high {
+  background: color-mix(in srgb, var(--clr-success) 12%, transparent);
+  color: var(--clr-success);
+  border: 1px solid color-mix(in srgb, var(--clr-success) 25%, transparent);
+}
+
+.ocr-conf-mid {
+  background: color-mix(in srgb, var(--clr-warning) 12%, transparent);
+  color: var(--clr-warning);
+  border: 1px solid color-mix(in srgb, var(--clr-warning) 25%, transparent);
+}
+
+.ocr-conf-low {
+  background: color-mix(in srgb, var(--clr-danger) 10%, transparent);
+  color: var(--clr-danger);
+  border: 1px solid color-mix(in srgb, var(--clr-danger) 20%, transparent);
+}
+
+/* Store / date / payment metadata row */
+.ocr-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.ocr-meta-store,
+.ocr-meta-date,
+.ocr-meta-payment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: var(--clr-surface);
+  color: var(--clr-text-2);
+  border: 1px solid var(--clr-border);
+}
+
+.ocr-meta-store i { color: var(--clr-primary); }
+.ocr-meta-date i  { color: var(--clr-accent); }
+.ocr-meta-payment i { color: var(--clr-success); }
+
+/* Tax / discount breakdown */
+.ocr-breakdown {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.45rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.ocr-bd-tax,
+.ocr-bd-disc {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+
+.ocr-bd-tax {
+  background: color-mix(in srgb, var(--clr-warning) 10%, transparent);
+  color: var(--clr-warning);
+}
+
+.ocr-bd-disc {
+  background: color-mix(in srgb, var(--clr-success) 10%, transparent);
+  color: var(--clr-success);
+}
+
+/* Quantity label on item rows */
+.ocr-item-qty {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--clr-primary) 12%, transparent);
+  color: var(--clr-primary);
+  margin-right: 0.1rem;
+  flex-shrink: 0;
+}
+

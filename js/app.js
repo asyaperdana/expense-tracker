@@ -2126,7 +2126,7 @@ async function handleOcrFileSelect(e) {
   ui.dom.ocrPreviewPanel.style.display = 'block';
   ui.dom.ocrResults.style.display = 'none';
   ui.setOcrProgress(0);
-  ui.setOcrStatus('Memproses gambar...');
+  ui.setOcrStatus('Meningkatkan kualitas gambar...');
 
   // Show thumbnail
   const reader = new FileReader();
@@ -2137,11 +2137,12 @@ async function handleOcrFileSelect(e) {
 
   try {
     ui.setOcrStatus('Menginisialisasi OCR engine...');
-    ui.setOcrProgress(10);
+    ui.setOcrProgress(5);
 
-    const rawText = await ocr.recognizeReceipt(file, (pct) => {
+    const { text: rawText, confidence } = await ocr.recognizeReceipt(file, (pct) => {
       ui.setOcrProgress(pct);
-      if (pct < 30) ui.setOcrStatus('Menginisialisasi OCR engine...');
+      if (pct < 20) ui.setOcrStatus('Meningkatkan kualitas gambar...');
+      else if (pct < 30) ui.setOcrStatus('Menginisialisasi OCR engine...');
       else if (pct < 90) ui.setOcrStatus('Membaca teks dari nota...');
       else ui.setOcrStatus('Menganalisis hasil...');
     });
@@ -2149,13 +2150,22 @@ async function handleOcrFileSelect(e) {
     const parsed = ocr.parseReceiptText(rawText);
     state.ocrParsedItems = parsed.items;
     state.ocrParsedTotal = parsed.total;
+    state.ocrParsedDate = parsed.date;
+    state.ocrParsedStoreName = parsed.storeName;
 
-    ui.renderOcrResults(parsed.items, parsed.total);
+    ui.renderOcrResults(parsed, confidence);
 
     if (parsed.total > 0) {
-      ui.showToast('Nota berhasil dibaca!', 'success');
+      if (confidence < 60) {
+        ui.showToast(
+          'Nota dibaca (akurasi rendah ' + Math.round(confidence) + '%). Cek ulang hasilnya.',
+          'warning'
+        );
+      } else {
+        ui.showToast('Nota berhasil dibaca!', 'success');
+      }
     } else {
-      ui.showToast('Nota terbaca tapi total tidak ditemukan', 'warning');
+      ui.showToast('Nota terbaca tapi total tidak ditemukan. Coba foto lebih terang.', 'warning');
     }
   } catch (err) {
     ui.setOcrStatus('Gagal memproses nota');
@@ -2178,6 +2188,10 @@ function handleOcrUseTotal() {
     return;
   }
   ui.dom.splitTotal.value = state.ocrParsedTotal.toLocaleString('en-US');
+  // Pre-fill bill name from store name if available
+  if (state.ocrParsedStoreName && ui.dom.splitBillName && !ui.dom.splitBillName.value) {
+    ui.dom.splitBillName.value = state.ocrParsedStoreName;
+  }
   ui.showToast('Total tagihan terisi dari nota', 'success');
 }
 
@@ -2191,8 +2205,10 @@ function handleOcrUseItems() {
   ui.dom.splitPersonList.innerHTML = '';
 
   // Add each item as a participant row (useful for per-item split)
+  // Use "qty × name" format if qty > 1
   state.ocrParsedItems.forEach((item) => {
-    ui.addPersonRow(item.name);
+    const label = item.qty > 1 ? item.qty + '× ' + item.name : item.name;
+    ui.addPersonRow(label);
   });
 
   // Switch to custom mode and set amounts
@@ -2207,10 +2223,17 @@ function handleOcrUseItems() {
     }
   });
 
-  // Also fill total if not already filled
-  if (!ui.dom.splitTotal.value || ui.dom.splitTotal.value === '0') {
+  // Fill total from OCR result
+  if (state.ocrParsedTotal > 0) {
+    ui.dom.splitTotal.value = state.ocrParsedTotal.toLocaleString('en-US');
+  } else if (!ui.dom.splitTotal.value || ui.dom.splitTotal.value === '0') {
     const total = state.ocrParsedItems.reduce((sum, item) => sum + item.price, 0);
     ui.dom.splitTotal.value = total.toLocaleString('en-US');
+  }
+
+  // Pre-fill bill name from store name if available
+  if (state.ocrParsedStoreName && ui.dom.splitBillName && !ui.dom.splitBillName.value) {
+    ui.dom.splitBillName.value = state.ocrParsedStoreName;
   }
 
   ui.syncSplitPayerOptions();
