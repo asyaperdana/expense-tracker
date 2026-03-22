@@ -882,7 +882,7 @@ export function renderTrendChart() {
   );
 
   ctx.fillStyle = axisColor;
-  ctx.font = (compact ? '600 9px ' : '600 10px ') + '"Manrope", "Plus Jakarta Sans", sans-serif';
+  ctx.font = (compact ? '600 9px ' : '600 10px ') + '"Plus Jakarta Sans", "Inter", sans-serif';
   ctx.textAlign = 'right';
   for (let j = 0; j <= 4; j++) {
     let y = padding.top + chartH - j * (chartH / 4);
@@ -1612,9 +1612,9 @@ export function renderChart(data) {
   ctx.fillStyle = getCssColor('--clr-text', '#0f172a');
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '700 1rem "Sora", "Space Grotesk", sans-serif';
+  ctx.font = '700 1rem "Plus Jakarta Sans", "Inter", sans-serif';
   ctx.fillText(calc.formatRupiahCompact(total, { maxFractionDigits: 1 }), center, center - 8);
-  ctx.font = '600 0.7rem "Manrope", "Plus Jakarta Sans", sans-serif';
+  ctx.font = '600 0.7rem "Plus Jakarta Sans", "Inter", sans-serif';
   ctx.fillStyle = getCssColor('--clr-chart-axis', '#64748b');
   ctx.fillText('Total', center, center + 14);
 }
