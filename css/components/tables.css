@@ -63,7 +63,7 @@
 
 /* Row animations */
 .row-animate {
-  animation: itemSpringIn 0.5s var(--ease) both;
+  animation: itemSpringIn 0.5s var(--ease-curve) both;
 }
 
 .row-new {

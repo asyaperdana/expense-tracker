@@ -54,7 +54,7 @@
 .toast-exit-active {
   transform: translateX(120%);
   opacity: 0;
-  animation: toastSlideOut var(--dur-fast) var(--ease);
+  animation: toastSlideOut var(--dur-fast) var(--ease-curve);
 }
 
 @keyframes toastSlideIn {

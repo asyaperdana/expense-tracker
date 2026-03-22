@@ -44,7 +44,7 @@ textarea,
   background: var(--clr-surface);
   color: var(--clr-text);
   outline: none;
-  transition: border-color var(--dur-normal) var(--ease), box-shadow var(--dur-normal) var(--ease), background var(--dur-normal) var(--ease);
+  transition: border-color var(--dur-normal) var(--ease-curve), box-shadow var(--dur-normal) var(--ease-curve), background var(--dur-normal) var(--ease-curve);
   width: 100%;
 }
 

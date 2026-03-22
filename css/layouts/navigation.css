@@ -65,9 +65,9 @@
   font-family: var(--font-body);
   cursor: pointer;
   transition:
-    background var(--dur-normal) var(--ease),
-    color var(--dur-normal) var(--ease),
-    transform var(--dur-normal) var(--ease);
+    background var(--dur-normal) var(--ease-curve),
+    color var(--dur-normal) var(--ease-curve),
+    transform var(--dur-normal) var(--ease-curve);
   text-align: left;
 }
 
@@ -216,7 +216,7 @@
 
 .bottom-link i {
   font-size: 1.25rem;
-  transition: transform var(--dur-normal) var(--ease);
+  transition: transform var(--dur-normal) var(--ease-curve);
 }
 
 .bottom-link.is-active {
@@ -264,7 +264,7 @@
   display: none;
   align-items: center;
   justify-content: center;
-  transition: all var(--dur-normal) var(--ease);
+  transition: all var(--dur-normal) var(--ease-curve);
 }
 
 .fab-add:hover {

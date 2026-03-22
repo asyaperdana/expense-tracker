@@ -15,18 +15,10 @@
   isolation: isolate;
   transform: translateY(0);
   transition:
-    border-color var(--dur-normal) var(--ease),
-    box-shadow var(--dur-normal) var(--ease),
-    transform var(--dur-normal) var(--ease),
-    background var(--dur-normal) var(--ease);
-  animation: fadeSpringUp 0.8s var(--ease) both;
-  animation-play-state: paused; /* Will be played by scroll reveal */
-}
-
-/* Scroll reveal trigger */
-.card.revealed, 
-body:not(.perf-lite) .card {
-  animation-play-state: running;
+    border-color var(--dur-normal) var(--ease-curve),
+    box-shadow var(--dur-normal) var(--ease-curve),
+    transform var(--dur-normal) var(--ease-curve),
+    background var(--dur-normal) var(--ease-curve);
 }
 
 [data-theme='dark'] .card {
@@ -44,7 +36,7 @@ body:not(.perf-lite) .card {
   height: 2px;
   background: linear-gradient(90deg, var(--clr-primary), var(--clr-accent));
   opacity: 0;
-  transition: opacity var(--dur-normal) var(--ease);
+  transition: opacity var(--dur-normal) var(--ease-curve);
 }
 
 .card:hover::before {

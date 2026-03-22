@@ -126,7 +126,7 @@
 
 /* --- Staggered Spring Animations --- */
 .stagger-item {
-  animation: fadeSpringUp 0.6s var(--ease) backwards;
+  animation: fadeSpringUp 0.6s var(--ease-curve) backwards;
 }
 
 .stagger-item:nth-child(1) {
