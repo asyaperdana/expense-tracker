@@ -67,14 +67,14 @@
   transition:
     background var(--dur-normal) var(--ease),
     color var(--dur-normal) var(--ease),
-    transform var(--dur-fast) var(--ease-snappy);
+    transform var(--dur-normal) var(--ease);
   text-align: left;
 }
 
 .nav-link:hover {
   background: var(--clr-primary-soft);
   color: var(--clr-primary);
-  transform: translateX(2px);
+  transform: translateX(4px) scale(1.02);
 }
 
 [data-theme='dark'] .nav-link:hover {
@@ -83,7 +83,8 @@
 }
 
 .nav-link:active {
-  transform: translateX(1px) scale(0.99);
+  transform: translateX(2px) scale(0.97);
+  transition: transform var(--dur-fast) var(--ease-snappy);
 }
 
 .nav-link.is-active {
@@ -98,11 +99,11 @@
 }
 
 .nav-link.is-active:hover {
-  transform: translateX(1px);
+  transform: translateX(2px) scale(1.01);
 }
 
 .nav-link.is-active:active {
-  transform: scale(0.99);
+  transform: scale(0.97);
 }
 
 .nav-link:focus-visible {
@@ -215,7 +216,7 @@
 
 .bottom-link i {
   font-size: 1.25rem;
-  transition: transform 0.2s ease;
+  transition: transform var(--dur-normal) var(--ease);
 }
 
 .bottom-link.is-active {
@@ -224,7 +225,7 @@
 }
 
 .bottom-link.is-active i {
-  transform: scale(1.1);
+  transform: translateY(-2px) scale(1.15);
 }
 
 /* GoPay-style active dot indicator */
@@ -263,14 +264,15 @@
   display: none;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--dur-normal) var(--ease);
 }
 
 .fab-add:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 10px 28px color-mix(in srgb, var(--clr-primary) 45%, transparent);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--clr-primary) 45%, transparent);
 }
 
 .fab-add:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
+  transition: transform var(--dur-fast) var(--ease-snappy);
 }

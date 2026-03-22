@@ -17,7 +17,16 @@
   transition:
     border-color var(--dur-normal) var(--ease),
     box-shadow var(--dur-normal) var(--ease),
-    transform var(--dur-fast) var(--ease-snappy);
+    transform var(--dur-normal) var(--ease),
+    background var(--dur-normal) var(--ease);
+  animation: fadeSpringUp 0.8s var(--ease) both;
+  animation-play-state: paused; /* Will be played by scroll reveal */
+}
+
+/* Scroll reveal trigger */
+.card.revealed, 
+body:not(.perf-lite) .card {
+  animation-play-state: running;
 }
 
 [data-theme='dark'] .card {
@@ -58,9 +67,9 @@
 }
 
 .card:hover {
-  border-color: color-mix(in srgb, var(--clr-primary) 20%, var(--clr-border));
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--clr-primary) 30%, var(--clr-border));
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px) scale(1.005);
 }
 
 [data-theme='dark'] .card:hover {
@@ -74,9 +83,9 @@
 }
 
 .card:focus-within {
-  border-color: color-mix(in srgb, var(--clr-primary) 35%, var(--clr-border));
+  border-color: color-mix(in srgb, var(--clr-primary) 40%, var(--clr-border));
   box-shadow: var(--focus-ring), var(--shadow-md);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 /* Card illustration (decorative) */
@@ -225,9 +234,9 @@
 }
 
 .hero-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 48px -12px rgba(5, 150, 105, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 20px 50px -12px rgba(5, 150, 105, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .hero-content {
