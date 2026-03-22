@@ -63,7 +63,7 @@
 
 /* Row animations */
 .row-animate {
-  animation: rowFadeIn 0.3s ease;
+  animation: itemSpringIn 0.5s var(--ease) both;
 }
 
 .row-new {
@@ -76,14 +76,18 @@
   transition: all 0.3s ease;
 }
 
-@keyframes rowFadeIn {
-  from {
+@keyframes itemSpringIn {
+  0% {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(12px) scale(0.97);
   }
-  to {
+  50% {
+    opacity: 0.9;
+    transform: translateY(-1px) scale(1.005);
+  }
+  100% {
     opacity: 1;
-    transform: none;
+    transform: translateY(0) scale(1);
   }
 }
 
