@@ -169,8 +169,8 @@
   );
 
   /* --- Animation & Transitions --- */
-  --ease: 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.15); /* Springy / bouncy ease */
-  --ease-in-out: 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+  --ease: cubic-bezier(0.175, 0.885, 0.32, 1.15); /* Springy / bouncy easing */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-snappy: cubic-bezier(0.22, 0.9, 0.24, 1);
   --ease-emph: cubic-bezier(0.16, 1, 0.3, 1.05); /* Slight bounce */
   --dur-fast: 180ms;
