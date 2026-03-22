@@ -169,17 +169,18 @@
   );
 
   /* --- Animation & Transitions --- */
-  --ease: cubic-bezier(0.175, 0.885, 0.32, 1.15); /* Springy / bouncy easing */
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-curve: cubic-bezier(0.175, 0.885, 0.32, 1.15);
+  --ease: 0.24s var(--ease-curve);
+  --ease-in-out: 0.35s cubic-bezier(0.65, 0, 0.35, 1);
   --ease-snappy: cubic-bezier(0.22, 0.9, 0.24, 1);
-  --ease-emph: cubic-bezier(0.16, 1, 0.3, 1.05); /* Slight bounce */
-  --dur-fast: 180ms;
-  --dur-normal: 280ms;
-  --dur-slow: 420ms;
-  --view-motion-duration: 450ms;
-  --view-motion-stagger: 40ms;
-  --view-motion-shift-x: 24px;
-  --view-motion-shift-y: 16px;
+  --ease-emph: cubic-bezier(0.16, 1, 0.3, 1.05);
+  --dur-fast: 160ms;
+  --dur-normal: 240ms;
+  --dur-slow: 400ms;
+  --view-motion-duration: 440ms;
+  --view-motion-stagger: 32ms;
+  --view-motion-shift-x: 20px;
+  --view-motion-shift-y: 12px;
 
   /* --- Focus & State --- */
   --focus-ring: 0 0 0 3px color-mix(in srgb, var(--clr-primary) 22%, transparent);

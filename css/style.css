@@ -4,34 +4,34 @@
    =========================== */
 
 /* --- Base Layer --- */
-@import url('base/tokens.css?v=2');
-@import url('base/reset.css?v=2');
+@import url('base/tokens.css?v=4');
+@import url('base/reset.css?v=4');
 
 /* --- Layouts --- */
-@import url('layouts/header.css?v=2');
-@import url('layouts/navigation.css?v=2');
+@import url('layouts/header.css?v=4');
+@import url('layouts/navigation.css?v=4');
 
 /* --- Components --- */
-@import url('components/buttons.css?v=2');
-@import url('components/cards.css?v=2');
-@import url('components/forms.css?v=2');
-@import url('components/tables.css?v=2');
-@import url('components/skeleton.css?v=2');
-@import url('components/toast.css?v=2');
-@import url('components/modal.css?v=2');
+@import url('components/buttons.css?v=4');
+@import url('components/cards.css?v=4');
+@import url('components/forms.css?v=4');
+@import url('components/tables.css?v=4');
+@import url('components/skeleton.css?v=4');
+@import url('components/toast.css?v=4');
+@import url('components/modal.css?v=4');
 
 /* --- Utilities --- */
-@import url('utilities/helpers.css?v=2');
+@import url('utilities/helpers.css?v=4');
 
 /* --- Views (page-specific) --- */
-@import url('views/dashboard.css?v=2');
-@import url('views/history.css?v=2');
-@import url('views/reports.css?v=2');
-@import url('views/tools.css?v=2');
-@import url('views/shared-ledgers.css?v=2');
+@import url('views/dashboard.css?v=4');
+@import url('views/history.css?v=4');
+@import url('views/reports.css?v=4');
+@import url('views/tools.css?v=4');
+@import url('views/shared-ledgers.css?v=4');
 
 /* --- Responsive Breakpoints (must be last) --- */
-@import url('utilities/responsive.css?v=3');
+@import url('utilities/responsive.css?v=4');
 
 /* --- Shared Patterns (keep minimal shared styles here) --- */
 
