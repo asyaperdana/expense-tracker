@@ -163,6 +163,7 @@ export function cacheDom() {
   dom.historyTableCard = document.querySelector('.history-table-card');
   dom.reportCard = document.querySelector('.report-card');
   dom.trendCard = document.querySelector('.trend-card');
+  dom.viewTitle = document.querySelector('.view-title');
   dom.dashboardLoadingCards = [dom.summaryCard, dom.chartCard].filter(Boolean);
   dom.historyLoadingCards = [dom.historyTableCard].filter(Boolean);
   dom.reportLoadingCards = [dom.reportCard, dom.trendCard].filter(Boolean);
@@ -385,6 +386,16 @@ function updateHistoryEmptyState(hasAnyTransaction) {
 
 // ─── Summary ──────────────────────────────
 export function updateSummary(filteredData) {
+  if (dom.viewTitle && activeViewKey === 'dashboard') {
+    let now = new Date();
+    let hrs = now.getHours();
+    let greet = 'Halo, Selamat Datang! 👋';
+    if (hrs < 11) greet = 'Selamat Pagi! ☀️';
+    else if (hrs < 15) greet = 'Selamat Siang! ⛅';
+    else if (hrs < 19) greet = 'Selamat Sore! 🌅';
+    else greet = 'Selamat Malam! 🌙';
+    dom.viewTitle.textContent = greet;
+  }
   let totals = calc.calculateTotal(filteredData);
   dom.totalIncomeEl.textContent = calc.formatRupiah(totals.income);
   dom.totalExpenseEl.textContent = calc.formatRupiah(totals.expense);

@@ -40,11 +40,11 @@
 /* Table cells */
 #expense-table tbody td,
 #split-ledger-table tbody td {
-  padding: 0.9rem 1rem;
-  font-size: 0.88rem;
+  padding: 1rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--clr-text);
-  border-bottom: 1px solid var(--clr-border);
+  border-bottom: 2px solid var(--clr-surface-alt);
   background: var(--clr-surface);
   vertical-align: middle;
 }
@@ -224,8 +224,8 @@
 .tx-amount {
   font-family: var(--num-font-display);
   font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
+  font-size: 1.1rem;
+  letter-spacing: var(--num-tracking-tight);
 }
 
 .tx-amount-income { color: var(--clr-success); }

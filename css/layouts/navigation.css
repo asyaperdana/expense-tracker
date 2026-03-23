@@ -144,6 +144,45 @@
   gap: var(--space-rhythm-section);
 }
 
+.view-header {
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+  display: none;
+}
+
+.container > section.is-active ~ .view-header[data-for-view],
+.container > section.is-active:not([data-view]) ~ .view-header {
+  display: block;
+}
+
+/* Specific fix for dashboard header which is before the section */
+.dashboard-header {
+  display: block;
+  margin-top: 1rem;
+}
+
+.view-kicker {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--clr-primary);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+}
+
+.view-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--clr-text);
+  letter-spacing: -0.015em;
+  margin-bottom: 0.25rem;
+}
+
+.view-subtitle {
+  font-size: 0.88rem;
+  color: var(--clr-text-2);
+  font-weight: 500;
+}
+
 .container > section.is-active {
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
