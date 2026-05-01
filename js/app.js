@@ -986,7 +986,11 @@ function init() {
   ui.renderRecentTransactions();
 
   // Set initial view
-  const initialView = storage.getActiveView() || 'dashboard';
+  let initialView = storage.getActiveView() || 'dashboard';
+  if (window.location.hash === '#tambah') {
+    initialView = 'add';
+    window.history.replaceState(null, '', ' '); // Clean URL hash without triggering scroll
+  }
   ui.setActiveView(initialView, false);
 
   // Set default date in form
@@ -2411,4 +2415,7 @@ function processRecurringExpenses() {
 // ─── Init ──────────────────────────────────
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', init);
+  window.addEventListener('storage-quota-exceeded', () => {
+    ui.showToast('Penyimpanan penuh. Ekspor data Anda terlebih dahulu.', 'error');
+  });
 }

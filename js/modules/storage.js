@@ -2,6 +2,16 @@
    storage.js — All localStorage interactions
    =========================== */
 
+function safeSetItem(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    if (e.name === 'QuotaExceededError' || e.code === 22 || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+      window.dispatchEvent(new Event('storage-quota-exceeded'));
+    }
+  }
+}
+
 const STORAGE_KEY = 'expense_tracker_data';
 const THEME_KEY = 'expense_tracker_theme';
 const FILTER_KEY = 'expense_tracker_filters';
@@ -40,7 +50,7 @@ export function loadExpenses() {
  * @param {Array} data - Array of expense objects to save
  */
 export function saveExpenses(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  safeSetItem(STORAGE_KEY, JSON.stringify(data));
 }
 
 // ─── Recurring ────────────────────────────
@@ -57,7 +67,7 @@ export function loadRecurring() {
  * @param {Array} data - Array of recurring expense objects
  */
 export function saveRecurring(data) {
-  localStorage.setItem(RECURRING_KEY, JSON.stringify(data));
+  safeSetItem(RECURRING_KEY, JSON.stringify(data));
 }
 
 // ─── Custom Categories ────────────────────
@@ -66,7 +76,7 @@ export function loadCustomCategoriesData() {
 }
 
 export function saveCustomCategories(data) {
-  localStorage.setItem(CUSTOM_CAT_KEY, JSON.stringify(data));
+  safeSetItem(CUSTOM_CAT_KEY, JSON.stringify(data));
 }
 
 // ─── Goals ────────────────────────────────
@@ -83,7 +93,7 @@ export function loadGoals() {
  * @param {Array} data - Array of goal objects
  */
 export function saveGoals(data) {
-  localStorage.setItem(GOALS_KEY, JSON.stringify(data));
+  safeSetItem(GOALS_KEY, JSON.stringify(data));
 }
 
 // ─── Profile ──────────────────────────────
@@ -101,7 +111,7 @@ export function loadProfile() {
 }
 
 export function saveProfile(data) {
-  localStorage.setItem(
+  safeSetItem(
     PROFILE_KEY,
     JSON.stringify({
       name: (data.name || '').trim(),
@@ -122,7 +132,7 @@ export function loadWalletsData() {
 }
 
 export function saveWallets(data) {
-  localStorage.setItem(WALLETS_KEY, JSON.stringify(data));
+  safeSetItem(WALLETS_KEY, JSON.stringify(data));
 }
 
 // ─── Templates ────────────────────────────
@@ -131,7 +141,7 @@ export function loadTemplatesData() {
 }
 
 export function saveTemplates(data) {
-  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(data));
+  safeSetItem(TEMPLATES_KEY, JSON.stringify(data));
 }
 
 // ─── Theme ────────────────────────────────
@@ -161,7 +171,7 @@ export function getBudgetLimit() {
 }
 
 export function saveBudgetLimit(val) {
-  localStorage.setItem(BUDGET_KEY, val);
+  safeSetItem(BUDGET_KEY, val);
 }
 
 // ─── Category Budgets ─────────────────────
@@ -183,7 +193,7 @@ export function loadCategoryBudgets() {
 }
 
 export function saveCategoryBudgets(data) {
-  localStorage.setItem(CATEGORY_BUDGET_KEY, JSON.stringify(data));
+  safeSetItem(CATEGORY_BUDGET_KEY, JSON.stringify(data));
 }
 
 // ─── Split Ledger ─────────────────────────
@@ -192,7 +202,7 @@ export function loadSplitLedger() {
 }
 
 export function saveSplitLedger(data) {
-  localStorage.setItem(SPLIT_LEDGER_KEY, JSON.stringify(data));
+  safeSetItem(SPLIT_LEDGER_KEY, JSON.stringify(data));
 }
 
 // ─── Filters ──────────────────────────────
@@ -206,7 +216,7 @@ export function loadFilters() {
 }
 
 export function saveFilters(data) {
-  localStorage.setItem(FILTER_KEY, JSON.stringify(data));
+  safeSetItem(FILTER_KEY, JSON.stringify(data));
 }
 
 export function removeFilters() {
@@ -223,9 +233,5 @@ export function getActiveView() {
 }
 
 export function saveActiveView(view) {
-  try {
-    localStorage.setItem(VIEW_KEY, view);
-  } catch (e) {
-    // ignore
-  }
+  safeSetItem(VIEW_KEY, view);
 }
